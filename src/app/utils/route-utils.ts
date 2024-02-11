@@ -77,8 +77,8 @@ export abstract class RouteUtils {
       [Layer.consensus]: !isStableDeploy,
     },
     [Network.testnet]: {
-      [Layer.emerald]: true,
-      [Layer.sapphire]: true,
+      [Layer.emerald]: false,
+      [Layer.sapphire]: false,
       [Layer.cipher]: false,
       [Layer.pontusxdev]: true,
       [Layer.pontusx]: true,
