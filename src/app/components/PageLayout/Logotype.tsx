@@ -5,8 +5,10 @@ import Link from '@mui/material/Link'
 import { useTheme } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 import { Link as RouterLink } from 'react-router-dom'
-import { PontusxIcon } from '../CustomIcons/PontusxIcon'
-import PontusxExplorerIcon from '../CustomIcons/pontusx_horizontal_white.svg'
+import pontusXIcon from '../CustomIcons/pontusx.svg'
+import Typography from '@mui/material/Typography'
+import { getAppTitle } from '../../../config'
+import { COLORS } from '../../../styles/theme/colors'
 
 interface LogotypeProps {
   color?: string
@@ -40,15 +42,11 @@ export const Logotype: FC<LogotypeProps> = ({ color, showText }) => {
         color: color || theme.palette.layout.main,
       }}
     >
-      {!showText ? (
-        <PontusxIcon sx={logoSize} />
-      ) : (
-        <img
-          src={PontusxExplorerIcon}
-          height={logoSize.height}
-          width={logoSize.width}
-          alt={'Pontus-X Explorer logo'}
-        />
+      <img src={pontusXIcon} alt="Pontus-X logo" width={logoSize} />
+      {showText && (
+        <Typography variant="h1" color={color || COLORS.white} sx={{ whiteSpace: 'nowrap' }}>
+          {getAppTitle()}
+        </Typography>
       )}
     </Box>
   )
