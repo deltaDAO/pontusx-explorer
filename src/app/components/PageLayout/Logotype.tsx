@@ -7,6 +7,7 @@ import { Link as RouterLink } from 'react-router-dom'
 import pontusXIcon from '../CustomIcons/pontusx.svg'
 import Typography from '@mui/material/Typography'
 import { getAppTitle } from '../../../config'
+import { COLORS } from '../../../styles/theme/colors'
 
 interface LogotypeProps {
   color?: string
@@ -38,7 +39,7 @@ export const Logotype: FC<LogotypeProps> = ({ color, showText }) => {
     >
       <img src={pontusXIcon} alt="Pontus-X logo" width={logoSize} />
       {showText && (
-        <Typography variant="h1" color={color || theme.palette.layout.main} sx={{ whiteSpace: 'nowrap' }}>
+        <Typography variant="h1" color={color || COLORS.white} sx={{ whiteSpace: 'nowrap' }}>
           {getAppTitle()}
         </Typography>
       )}
