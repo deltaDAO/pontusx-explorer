@@ -5,7 +5,7 @@ import { AppError, AppErrors } from '../../types/errors'
 import { EvmTokenType, Layer } from '../../oasis-nexus/api'
 import { Network } from '../../types/network'
 import { SearchScope } from '../../types/searchScope'
-import { isStableDeploy } from '../../config'
+import { isStableDeploy, specialScopePaths } from '../../config'
 import { getSearchTermFromRequest } from '../components/Search/search-utils'
 import { isLayerHidden } from '../../types/layers'
 
@@ -37,6 +37,33 @@ export type SpecifiedPerEnabledLayer<T = any, ExcludeLayers = never> = {
 
 export type SpecifiedPerEnabledRuntime<T = any> = SpecifiedPerEnabledLayer<T, typeof Layer.consensus>
 
+export const specialScopeRecognition: Partial<Record<string, Partial<Record<string, SearchScope>>>> = {}
+
+function cacheSpecialScopePaths() {
+  const networks = Object.keys(specialScopePaths) as Network[]
+
+  networks.forEach(network => {
+    const networkPaths = specialScopePaths[network]!
+    const layers = Object.keys(networkPaths) as Layer[]
+    layers.forEach(layer => {
+      const [word1, word2] = networkPaths[layer]!
+      if (!specialScopeRecognition[word1]) {
+        specialScopeRecognition[word1] = {}
+      }
+      if (specialScopeRecognition[word1]![word2]) {
+        const other = specialScopeRecognition[word1]![word2]!
+        console.warn(
+          `Wrong config: conflicting special scope paths ${word1}/${word2} definitions used both for ${other.network}/${other.layer} and ${network}/${layer} `,
+        )
+      } else {
+        specialScopeRecognition[word1]![word2] = { network, layer }
+      }
+    })
+  })
+}
+
+cacheSpecialScopePaths()
+
 export abstract class RouteUtils {
   private static ENABLED_LAYERS_FOR_NETWORK = {
     [Network.mainnet]: {
@@ -60,7 +87,11 @@ export abstract class RouteUtils {
   } satisfies Record<Network, Record<Layer, boolean>>
 
   static getScopeRoute = ({ network, layer }: SearchScope) => {
-    return `/${encodeURIComponent(network)}/${encodeURIComponent(layer)}`
+    const specialPath = specialScopePaths[network]?.[layer]
+    const result = specialPath
+      ? `/${specialPath[0]}/${specialPath[1]}`
+      : `/${encodeURIComponent(network)}/${encodeURIComponent(layer)}`
+    return result
   }
 
   static getDashboardRoute = (scope: SearchScope) => this.getScopeRoute(scope)
@@ -297,19 +328,25 @@ export const runtimeTransactionParamLoader = async ({ params }: LoaderFunctionAr
   return validateRuntimeTxHashParam(params.hash!)
 }
 
-export const assertEnabledScope = ({
-  network,
-  layer,
-}: {
+export const assertEnabledScope = (params: {
   network: string | undefined
   layer: string | undefined
 }): SearchScope => {
-  if (!network || !RouteUtils.getEnabledNetworks().includes(network as Network)) {
+  const { network: networkLike, layer: layerLike } = params
+  if (!networkLike || !layerLike) {
+    throw new AppError(AppErrors.InvalidUrl)
+  }
+
+  const { network, layer } = specialScopeRecognition[networkLike]?.[layerLike] ?? {
+    network: networkLike as Network,
+    layer: layerLike as Layer,
+  }
+
+  if (!RouteUtils.getEnabledNetworks().includes(network as Network)) {
     throw new AppError(AppErrors.InvalidUrl)
   }
 
   if (
-    !layer || // missing param
     !RouteUtils.getAllLayersForNetwork(network as Network).enabled.includes(layer as Layer) // unsupported on network
   ) {
     throw new AppError(AppErrors.UnsupportedLayer)
