@@ -1,6 +1,7 @@
 {
   "account": {
     "available": "Available",
+    "balanceDistribution": "Balance Distribution",
     "birth": "Birth",
     "cantLoadDetails": "Unfortunately we couldn't load the account details at this time. Please try again later.",
     "debonding": "Debonding",
@@ -13,19 +14,31 @@
     "lastNonce": "Last Nonce",
     "listTitle": "Accounts",
     "noTokens": "This account holds no tokens",
+    "noBalances": "This account currently has no balances.",
+    "notStaking": "This account is currently not staking.",
     "showMore": "+ {{counter}} more",
     "sizeTooltip": "This account is indicated as an {{size}} account based on sum of assets they own.",
-    "staked": "Staked",
-    "staking": "Staking",
+    "startStaking": "Start staking now",
     "title": "Account",
     "transactionsListTitle": "Account Transactions",
     "totalBalance": "Total Balance",
     "totalReceived": "Total Received",
-    "totalSent": "Total Sent"
+    "totalSent": "Total Sent",
+    "totalValue": "Total {{value}}"
   },
   "activeAccounts": {
     "title": "Active Accounts",
     "tooltip": "{{value, number}} accounts"
+  },
+  "analyticsConsent": {
+    "privacyPolicy": "Privacy Policy",
+    "settings": "Privacy settings",
+    "text": "At Oasis Foundation we believe in your privacy, so you can choose to browse our site without any tracking or by clicking “{{acceptButtonLabel}}”, you help us to improve our site and help us grow our ecosystem. View our <PrivacyPolicyLink>Privacy Policy</PrivacyPolicyLink> for more information.",
+    "blockedText": "Our analytics tracking failed to load. Therefore, you will continue using the site with user tracking disabled. If you are willing to accept tracking please pause your adblocker and reload the page to accept tracking. View our <PrivacyPolicyLink>Privacy Policy</PrivacyPolicyLink> for more information.",
+    "acceptButtonLabel": "Accept",
+    "declineButtonLabel": "Decline",
+    "reloadButtonLabel": "Reload page",
+    "closeButtonLabel": "Close"
   },
   "blocks": {
     "latest": "Latest Blocks",
@@ -76,6 +89,8 @@
     "hash": "Hash",
     "height": "Height",
     "hide": "Hide",
+    "invalidVotes": "Invalid votes",
+    "layer": "Layer",
     "loadMore": "Load more",
     "lessThanAmount": "&lt; {{value, number}} <TickerLink />",
     "method": "Method",
@@ -84,13 +99,13 @@
     "network": "Network",
     "nft": "NFT",
     "nfts": "NFTs",
+    "nonce": "Nonce",
     "not_defined": "Not defined",
     "oasis": "Oasis",
     "owned": "Owned",
     "paratime": "Paratime",
     "parentheses": "({{subject}})",
     "percentage": "Percentage",
-    "pontusx": "Pontus-X",
     "proposal": "Proposal",
     "proposer": "Proposer",
     "rank": "Rank",
@@ -100,6 +115,8 @@
     "show": "Show",
     "smartContract": "Smart Contract",
     "smartContract_short": "Contract",
+    "staked": "Staked",
+    "staking": "Staking",
     "submitter": "Submitter",
     "success": "Success",
     "status": "Status",
@@ -125,6 +142,9 @@
     "valueInTokenWithLink": "{{value, number}} <TickerLink />",
     "view": "View",
     "viewAll": "View all",
+    "vote": "Vote",
+    "voter": "Voter",
+    "votes": "Votes",
     "paraTimeOnline": "ParaTime Online",
     "paraTimeOutOfDate": "ParaTime Out of date",
     "mainnet": "Mainnet",
@@ -167,6 +187,8 @@
     "create": "Created",
     "createTooltip": "Voting created on epoch shown.",
     "deposit": "Deposit",
+    "failedToLoadAllVotes": "Failed to load all the votes, number might be incomplete!",
+    "thereAreNoVotes": "No votes have been registered.",
     "handler": "Title",
     "id": "ID",
     "listTitle": "Network Change Proposals",
@@ -176,10 +198,17 @@
       "passed": "Passed",
       "rejected": "Rejected"
     },
+    "searchForVoter": "Search for voter",
     "type": {
       "upgrade": "Upgrade",
       "parameterUpgrade": "Parameter upgrade",
       "cancellation": "Cancellation"
+    },
+    "vote": {
+      "yes": "Yes",
+      "no": "No",
+      "abstain": "Abstained",
+      "all": "All votes"
     }
   },
   "nft": {
@@ -224,6 +253,7 @@
     "validateURL": "Please validate provided URL",
     "validateURLOrGoToFirstPage": "Please check the URL or <FirstPageLink />.",
     "invalidUrl": "Invalid URL",
+    "invalidVote": "Invalid vote",
     "revertedWithoutMessage": "reverted without a message",
     "storage": "Access to browser storage denied"
   },
@@ -264,7 +294,21 @@
       "header": "Add the {{ layer }} Testnet to Hardhat",
       "description": "Open up your hardhat.config.ts and drop in these lines."
     },
-    "pontusx": {
+    "pontusxdevnet": {
+      "1": {
+        "header": "What is the Pontus-X Network?",
+        "description": "The Pontus-X Network is our official confidential EVM Compatible ParaTime offering a smart contract development environment that is compatible with the Ethereum Virtual Machine (EVM) focused on building a Federated Data Economy."
+      },
+      "2": {
+        "header": "Devnet Parameters",
+        "description": "The Devnet for Pontus-X may undergo frequent version upgrades."
+      },
+      "3": {
+        "header": "Adding the Pontus-X Devnet to Hardhat",
+        "description": "To integrate with Pontus-X devnet, open your hardhat.config.ts file and insert the following configurations."
+      }
+    },
+    "pontusxtestnet": {
       "1": {
         "header": "What is the Pontus-X Network?",
         "description": "The Pontus-X Network is our official confidential EVM Compatible ParaTime offering a smart contract development environment that is compatible with the Ethereum Virtual Machine (EVM) focused on building a Federated Data Economy."
@@ -275,7 +319,7 @@
       },
       "3": {
         "header": "Adding the Pontus-X Testnet to Hardhat",
-        "description": "To integrate with Pontus-X, open your hardhat.config.ts file and insert the following configurations."
+        "description": "To integrate with Pontus-X testnet, open your hardhat.config.ts file and insert the following configurations."
       }
     },
     "token": {
@@ -333,8 +377,7 @@
       "approval": "Approval",
       "minting": "Minting",
       "burning": "Burning",
-      "unavailable": "Unknown token transfer event",
-      "unknown": "Unknown: {{name}}"
+      "unavailable": "Unknown token transfer event"
     },
     "type": "Token Type"
   },
@@ -377,7 +420,6 @@
       "beaconPVSSReveal": "PVSSReveal",
       "beaconVRFProve": "VRFProve",
       "unavailable": "Malformed transaction, method unavailable",
-      "unknown": "Unknown: {{method}}",
       "accounts": {
         "transfer": "Transfer"
       },
@@ -431,6 +473,9 @@
     "gasUsed": "Gas used",
     "fields": {
       "amount": "Amount",
+      "data": "Data",
+      "emittingContract": "Emitting contract",
+      "topics": "Topics",
       "owner": "Owner",
       "activeShares": "Active Shares",
       "debondingShares": "Debonding Shares"
@@ -484,17 +529,19 @@
     "testnet": {
       "emerald": "The Testnet of the EVM Compatible ParaTime providing a smart contract development environment.",
       "sapphire": "The Testnet of the official confidential EVM Compatible ParaTime providing a smart contract development environment with EVM compatibility.",
-      "pontusx": "The Testnet of the official confidential EVM Compatible ParaTime offering a smart contract development environment that is compatible with the Ethereum Virtual Machine (EVM) focused on building a Federated Data Economy."
+      "pontusxdev": "The Devnet of Pontus-X, a confidential EVM Compatible ParaTime offering a smart contract development environment that is compatible with the Ethereum Virtual Machine (EVM) focused on building a Federated Data Economy.",
+      "pontusxtest": "The Testnet of Pontus-X, a confidential EVM Compatible ParaTime offering a smart contract development environment that is compatible with the Ethereum Virtual Machine (EVM) focused on building a Federated Data Economy."
     }
   },
   "home": {
     "apiOffline": "Our {{ target }} API is offline. We’re trying to reconnect",
     "userOffline": "You are offline. We’re trying to reconnect",
-    "runtimeOutOfDate": "We don't have fully up-to-date data about our {{ target }}. The data displayed here might be out of date.",
-    "runtimeUnavailable": "Data about {{ target }} is currently not available. Please check back later.",
-    "runtimeOutOfDateSince": "The last update we have about our {{ target }} is from {{ lastUpdate }}. The data displayed here might be out of date.",
+    "layerOutOfDate": "We don't have fully up-to-date data about our {{ target }}. The data displayed here might be out of date.",
+    "layerUnavailable": "Data about {{ target }} is currently not available. Please check back later.",
+    "layerOutOfDateSince": "The last update we have about our {{ target }} is from {{ lastUpdate }}. The data displayed here might be out of date.",
     "blocks": "Blocks",
     "exploreBtnText": "Explore Oasis",
+    "link": "Oasis Explorer Home",
     "txns": "Txns",
     "zoomOutBtnText": "Zoom out",
     "online": "Online",
@@ -522,13 +569,21 @@
     "soon": "soon"
   },
   "paratimes": {
-    "active": "Active",
     "activeNodes": "{{nodes}} active",
     "blockNumber": "Block number:",
     "inactive": "Coming soon",
     "listTitle": "ParaTimes",
     "noData": "No data available",
-    "nodes": "Nodes:"
+    "nodes": "Nodes:",
+    "online": "Online",
+    "outdated": "Out-of-date"
+  },
+  "pontusx": {
+    "devnet": "Devnet",
+    "testnet": "Testnet"
+  },
+  "privacyPolicy": {
+    "title": "Privacy Policy"
   },
   "privacyPolicy": {
     "title": "Privacy Policy"
@@ -585,29 +640,50 @@
     "searchSuggestionsForNoResults": "Alternatively, you can view a random <BlockLink><BlockIcon/> Block</BlockLink>, <OptionalBreak><TransactionLink><TransactionIcon/> Transaction</TransactionLink>, <AccountLink><AccountIcon/> Address</AccountLink> or <TokenLink><TokenIcon/> Token</TokenLink></OptionalBreak> <OptionalBreak>to discover our Explorer.</OptionalBreak>",
     "wordsOfPower": "I COMMAND THEE TO SEARCH FOR"
   },
+  "tableSearch": {
+    "error": {
+      "tooShort": "Please enter at least 3 characters to perform a search."
+    },
+    "noMatchingResults": "There are no results matching your filters.",
+    "clearFilters": "Clear filters"
+  },
   "validator": {
     "active": "Active",
+    "amount": "Amount",
     "balanceDistribution": "Balance Distribution",
+    "blockWithHeight": "Block {{height}}",
     "boundsNotSet": "No bounds set (0% - 100%)",
     "change": "Change (24h)",
     "commission": "Commission",
     "commissionBounds": "Commission Bounds",
     "commissionRates": "Commission Rates",
     "cumulativeVoting": "Cumulative Voting %",
+    "debondingEnd": "End of debonding",
     "delegators": "Delegators",
+    "emptyDebondingList": "No one is debonding delegations from this validator.",
+    "emptyDelegationsList": "No one is delegating to this validator.",
     "entityId": "Entity ID",
     "externalLink": "External Link",
     "externalLinkDescriotion": "Oasis is not responsible for any content on external pages.",
     "groupStatus": "{{status}} validators",
     "inactive": "Inactive",
     "listTitle": "Validators",
+    "missed": "Missed",
     "nodeId": "Node ID",
     "participationRate": "Participation Rate",
+    "signed": "Signed",
+    "signedBlocks": "Signed Blocks",
+    "signedBlocksDescription": "Last 100 blocks",
+    "proposedBlocks": "Proposed Blocks",
     "snapshot": "Validator Snapshot",
+    "shares": "Shares",
+    "sharesDocs": "How shares are calculated",
     "staked": "Staked",
+    "stakingTrend": "Staking Trend",
     "startDate": "Start Date",
     "title": "Validator",
     "totalShare": "Total Share",
+    "undelegations": "Undelegations",
     "uptime": "Uptime",
     "voting": "Voting %",
     "votingPower": "Voting Power"

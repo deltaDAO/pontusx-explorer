@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next'
 import { TFunction } from 'i18next'
 import { Layer } from '../../../../../oasis-nexus/api'
 import { Network } from '../../../../../types/network'
-import { useRuntimeFreshness } from '../../../../components/OfflineBanner/hook'
+import { useConsensusFreshness, useRuntimeFreshness } from '../../../../components/OfflineBanner/hook'
 import { getNetworkIcons } from '../../../../utils/content'
 import { useNavigate } from 'react-router-dom'
 import { RouteUtils } from '../../../../utils/route-utils'
@@ -19,6 +19,7 @@ import Fade from '@mui/material/Fade'
 import IconButton from '@mui/material/IconButton'
 import CloseIcon from '@mui/icons-material/Close'
 import { zIndexHomePage } from '../../index'
+import { SelectorArea, UniverseArea } from '../ParaTimeSelector'
 
 interface GraphTooltipStyledProps {
   isMobile: boolean
@@ -54,7 +55,7 @@ const GraphTooltipIcon = styled(Box, {
   flex: '0 0 120px',
   height: '100%',
   borderRight: `2px solid ${COLORS.aqua}`,
-  backgroundColor: COLORS.brandExtraDark + (isMobile ? '7a' : ''),
+  backgroundColor: COLORS.brandExtraDark + (isMobile ? 'c0' : ''),
   borderRadius: isMobile ? '12px 0 0 12px' : '0 0 0 0',
   color: COLORS.white,
 }))
@@ -75,7 +76,7 @@ const GraphTooltipText = styled(Box, {
   justifyContent: 'space-between',
   flex: '0 1 100%',
   padding: theme.spacing(4),
-  backgroundColor: (disabled ? COLORS.shadowBlue : COLORS.brandExtraDark) + (isMobile ? '7a' : ''),
+  backgroundColor: (disabled ? COLORS.shadowBlue : COLORS.brandExtraDark) + (isMobile ? 'c0' : ''),
   borderRadius: isMobile ? '0 12px 0 0' : '0 12px 12px 0',
 }))
 
@@ -116,7 +117,7 @@ const MobileGraphTooltip = styled(Box)(({ theme }) => ({
 
 interface GraphTooltipMobileProps {
   network: Network
-  layer: Layer
+  area: SelectorArea
   onClose: (e?: MouseEvent) => void
 }
 
@@ -140,7 +141,7 @@ const layerTooltipBodyCaption = (t: TFunction, layer: Layer, enabled: boolean, o
       : t('common.paraTimeOnline')
 }
 
-const useLayerTooltipMap = (network: Network): Partial<Record<Layer, TooltipInfo>> => {
+const useAreaTooltipMap = (network: Network): Partial<Record<SelectorArea, TooltipInfo>> => {
   const isSapphireEnabled = RouteUtils.getAllLayersForNetwork(network).enabled.includes(Layer.sapphire)
   const isEmeraldEnabled = RouteUtils.getAllLayersForNetwork(network).enabled.includes(Layer.emerald)
   const isCipherEnabled = RouteUtils.getAllLayersForNetwork(network).enabled.includes(Layer.cipher)
@@ -148,6 +149,7 @@ const useLayerTooltipMap = (network: Network): Partial<Record<Layer, TooltipInfo
 
   const isEmeraldOutOfDate = useRuntimeFreshness({ network, layer: Layer.emerald }).outOfDate
   const isSapphireOutOfDate = useRuntimeFreshness({ network, layer: Layer.sapphire }).outOfDate
+  const isConsensusOutOfDate = useConsensusFreshness(network).outOfDate
   return {
     [Layer.sapphire]: {
       disabled: !isSapphireEnabled,
@@ -189,9 +191,15 @@ const useLayerTooltipMap = (network: Network): Partial<Record<Layer, TooltipInfo
       disabled: !isConsensusEnabled,
       body: {
         title: (t: TFunction) => t('common.consensus'),
-        caption: (t: TFunction) => layerTooltipBodyCaption(t, Layer.consensus, isConsensusEnabled),
+        caption: (t: TFunction) =>
+          layerTooltipBodyCaption(t, Layer.consensus, isConsensusEnabled, isConsensusOutOfDate),
         body: (t: TFunction) => t('home.tooltip.consensusDesc'),
       },
+      ...(isConsensusEnabled
+        ? {
+            failing: isConsensusOutOfDate,
+          }
+        : {}),
     },
   }
 }
@@ -199,10 +207,10 @@ const useLayerTooltipMap = (network: Network): Partial<Record<Layer, TooltipInfo
 interface GraphTooltipHeaderProps {
   disabled: boolean
   network: Network
-  layer: Layer
+  area: SelectorArea
 }
 
-const GraphTooltipHeader: FC<GraphTooltipHeaderProps> = ({ disabled, network, layer }) => {
+const GraphTooltipHeader: FC<GraphTooltipHeaderProps> = ({ disabled, network, area }) => {
   const { t } = useTranslation()
   const { isMobile } = useScreenSize()
   const icons = getNetworkIcons({ size: 38 })
@@ -219,7 +227,7 @@ const GraphTooltipHeader: FC<GraphTooltipHeaderProps> = ({ disabled, network, la
             color={COLORS.white}
             sx={{ fontSize: '10px', position: 'absolute', bottom: '10px' }}
           >
-            {layer === Layer.consensus ? t('home.tooltip.openConsensus') : t('home.tooltip.openParatime')}
+            {area === Layer.consensus ? t('home.tooltip.openConsensus') : t('home.tooltip.openParatime')}
           </Typography>
         </>
       )}
@@ -266,11 +274,11 @@ const GraphTooltipBody: FC<GraphTooltipBodyProps> = ({ title, caption, body, dis
   )
 }
 
-export const GraphTooltipMobile: FC<GraphTooltipMobileProps> = ({ network, layer, onClose }) => {
+export const GraphTooltipMobile: FC<GraphTooltipMobileProps> = ({ network, area, onClose }) => {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { isMobile } = useScreenSize()
-  const tooltip = useLayerTooltipMap(network)[layer]
+  const tooltip = useAreaTooltipMap(network)[area]
   if (!tooltip) return
   const { body, disabled, failing } = tooltip
 
@@ -278,8 +286,10 @@ export const GraphTooltipMobile: FC<GraphTooltipMobileProps> = ({ network, layer
     if (disabled) {
       return
     }
-
-    navigate(RouteUtils.getDashboardRoute({ network, layer }))
+    if (area === UniverseArea) {
+      return
+    }
+    navigate(RouteUtils.getDashboardRoute({ network, layer: area }))
   }
 
   return (
@@ -291,7 +301,7 @@ export const GraphTooltipMobile: FC<GraphTooltipMobileProps> = ({ network, layer
             <CloseIcon fontSize="medium" sx={{ color: COLORS.white }} aria-label={t('home.tooltip.close')} />
           </IconButton>
           <GraphTooltipStyled disabled={disabled} isMobile={isMobile} onClick={navigateTo}>
-            <GraphTooltipHeader disabled={disabled} network={network} layer={layer} />
+            <GraphTooltipHeader disabled={disabled} network={network} area={area} />
             <GraphTooltipBody {...body} disabled={disabled} failing={failing} />
           </GraphTooltipStyled>
         </MobileGraphTooltip>

@@ -7,7 +7,7 @@ import {
   getInverseFilterForScope,
   SearchScope,
 } from '../../../types/searchScope'
-import { getThemesForNetworks } from '../../../styles/theme'
+import { getThemeForScope } from '../../../styles/theme'
 import { RouteUtils } from '../../utils/route-utils'
 import { SearchResults } from './hooks'
 import { SearchResultsList } from './SearchResultsList'
@@ -15,24 +15,29 @@ import { NoResultsInScope } from './NoResults'
 import { AllTokenPrices } from '../../../coin-gecko/api'
 import { HideMoreResults, ShowMoreResults } from './notifications'
 import { useRedirectIfSingleResult } from './useRedirectIfSingleResult'
+import { SearchParams } from '../../components/Search/search-utils'
 
 export const ScopedSearchResultsView: FC<{
   wantedScope: SearchScope
-  searchTerm: string
+  searchParams: SearchParams
   searchResults: SearchResults
+  isPotentiallyIncomplete: boolean // Some of the searches failed, so we might not see everything // TODO: indicate this on the UI
   tokenPrices: AllTokenPrices
-}> = ({ wantedScope, searchTerm, searchResults, tokenPrices }) => {
+}> = ({ wantedScope, searchParams, searchResults, tokenPrices }) => {
   const { t } = useTranslation()
   const [othersOpen, setOthersOpen] = useState(false)
   const networkNames = getNetworkNames(t)
-  const themes = getThemesForNetworks()
   const isInWantedScope = getFilterForScope(wantedScope)
   const isNotInWantedScope = getInverseFilterForScope(wantedScope)
   const wantedResults = searchResults.filter(isInWantedScope)
   const otherResults = searchResults.filter(isNotInWantedScope)
-  const notificationTheme = themes[otherResults.some(isOnMainnet) ? Network.mainnet : Network.testnet]
+  const notificationTheme = getThemeForScope(
+    otherResults.some(isOnMainnet) ? Network.mainnet : Network.testnet,
+  )
 
-  useRedirectIfSingleResult(wantedScope, searchTerm, searchResults)
+  useRedirectIfSingleResult(wantedScope, searchParams, searchResults)
+
+  const { searchTerm } = searchParams
 
   return (
     <>

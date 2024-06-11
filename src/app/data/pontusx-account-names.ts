@@ -1,94 +1,103 @@
 import axios from 'axios'
 import { useQuery } from '@tanstack/react-query'
-import type { AccountNameInfo } from '../hooks/useAccountName'
-import { Layer } from '../../oasis-nexus/api'
+import {
+  AccountMetadata,
+  AccountMap,
+  AccountMetadataInfo,
+  AccountNameSearchRuntimeMatch,
+  AccountNameSearchRuntimeResults,
+} from './named-accounts'
+import { Layer, useGetRuntimeAccountsAddresses } from '../../oasis-nexus/api'
 import { Network } from '../../types/network'
-import { findTextMatch } from '../components/HighlightedText/text-matching'
-import * as process from 'process'
+import { hasTextMatch } from '../components/HighlightedText/text-matching'
+import { getOasisAddress } from '../utils/helpers'
 
 const DATA_SOURCE_URL = 'https://raw.githubusercontent.com/deltaDAO/mvg-portal/main/pontusxAddresses.json'
 
-type AccountMap = Map<string, string>
-type AccountEntry = {
-  name: string
-  address: string
-}
-type AccountData = {
-  map: AccountMap
-  list: AccountEntry[]
-}
-
-const getPontusXAccountNames = () =>
-  new Promise<AccountData>((resolve, reject) => {
-    axios.get(DATA_SOURCE_URL).then(response => {
-      if (response.status !== 200) reject("Couldn't load names")
-      if (!response.data) reject("Couldn't load names")
-      const map = new Map()
-      const list: AccountEntry[] = []
-      Object.entries(response.data).forEach(([address, name]) => {
-        map.set(address, name)
-        const normalizedEntry: AccountEntry = {
-          name: name as string,
-          address,
-        }
-        list.push(normalizedEntry)
-      })
-      resolve({
-        map,
-        list,
-      })
-    }, reject)
+const getPontusXAccountsMetadata = async () => {
+  const response = await axios.get(DATA_SOURCE_URL)
+  if (response.status !== 200) throw new Error("Couldn't load names")
+  if (!response.data) throw new Error("Couldn't load names")
+  const map: AccountMap = new Map()
+  const list: AccountMetadata[] = []
+  Object.entries(response.data).forEach(([evmAddress, name]) => {
+    const account: AccountMetadata = {
+      address: getOasisAddress(evmAddress),
+      name: name as string,
+    }
+    map.set(evmAddress, account)
+    list.push(account)
   })
+  return {
+    map,
+    list,
+  }
+}
 
-export const usePontusXAccountNames = (enabled: boolean) => {
-  return useQuery(['pontusXNames'], getPontusXAccountNames, {
-    enabled,
+export const usePontusXAccountsMetadata = (queryOptions: { enabled: boolean }) => {
+  return useQuery(['pontusXNames'], getPontusXAccountsMetadata, {
+    enabled: queryOptions.enabled,
     staleTime: Infinity,
   })
 }
 
-export const usePontusXAccountName = (address: string, enabled: boolean): AccountNameInfo => {
-  // When running jest tests, we don't want to load from Pontus-X.
-  if (process.env.NODE_ENV === 'test') {
-    return {
-      name: undefined,
-      loading: false,
-    }
-  }
-  // This is not a condition that can change while the app is running, so it's OK.
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { isLoading, error, data: allNames } = usePontusXAccountNames(enabled)
-  if (error) {
+export const usePontusXAccountMetadata = (
+  address: string,
+  queryOptions: { enabled: boolean },
+): AccountMetadataInfo => {
+  const { isLoading, isError, error, data: allData } = usePontusXAccountsMetadata(queryOptions)
+  if (isError) {
     console.log('Failed to load Pontus-X account names', error)
   }
   return {
-    name: allNames?.map.get(address),
-    loading: isLoading,
+    metadata: allData?.map.get(address),
+    isLoading,
+    isError,
   }
 }
 
 export const useSearchForPontusXAccountsByName = (
   network: Network,
   nameFragment: string,
-  enabled: boolean,
-) => {
-  const { isLoading, error, data: allNames } = usePontusXAccountNames(enabled)
-  if (error) {
-    console.log('Failed to load Pontus-X account names', error)
+  queryOptions: { enabled: boolean },
+): AccountNameSearchRuntimeResults => {
+  const {
+    isLoading: isMetadataLoading,
+    isError: isMetadataError,
+    error: metadataError,
+    data: namedAccounts,
+  } = usePontusXAccountsMetadata(queryOptions)
+  if (isMetadataError) {
+    console.log('Failed to load Pontus-X account names', metadataError)
   }
 
   const textMatcher =
-    nameFragment && enabled
-      ? (entry: AccountEntry): boolean => {
-          return !!findTextMatch(entry.name, [nameFragment])
-        }
+    nameFragment && queryOptions.enabled
+      ? (account: AccountMetadata) => hasTextMatch(account.name, [nameFragment])
       : () => false
+
+  const matches =
+    isMetadataLoading || isMetadataLoading
+      ? undefined
+      : namedAccounts?.list.filter(textMatcher).map(
+          (account): AccountNameSearchRuntimeMatch => ({
+            network,
+            layer: Layer.pontusx,
+            address: account.address,
+          }),
+        )
+
+  const {
+    isLoading: areAccountsLoading,
+    isError: areAccountsError,
+    data: results,
+  } = useGetRuntimeAccountsAddresses(matches, {
+    enabled: queryOptions.enabled && !isMetadataLoading && !isMetadataError,
+  })
+
   return {
-    results: (allNames?.list || []).filter(textMatcher).map(entry => ({
-      network,
-      layer: Layer.pontusx,
-      address: entry.address,
-    })),
-    isLoading,
+    isLoading: isMetadataLoading || areAccountsLoading,
+    isError: isMetadataError || areAccountsError,
+    results,
   }
 }

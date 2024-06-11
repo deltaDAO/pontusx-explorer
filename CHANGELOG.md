@@ -12,6 +12,210 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 1.11.0 (2024-05-22)
+
+### Features
+
+- Support for named accounts
+  ([#1398](https://github.com/oasisprotocol/explorer/issues/1398))
+
+- Display the votes on the network proposal details page
+  ([#1356](https://github.com/oasisprotocol/explorer/issues/1356))
+
+- Extend functionality of method icons
+  ([#1363](https://github.com/oasisprotocol/explorer/issues/1363))
+
+  - bring back type description
+  - conditionally truncate descriptions in tables
+  - enable tooltip for truncated descriptions
+
+- Show emitting contract address in evm.log events
+  ([#1385](https://github.com/oasisprotocol/explorer/issues/1385))
+
+- Show array of topics in raw evm.log events
+  ([#1385](https://github.com/oasisprotocol/explorer/issues/1385),
+  [#1402](https://github.com/oasisprotocol/explorer/issues/1402))
+
+### Bug Fixes and Improvements
+
+- Fetch balances from Oasis gRPC instead of Web3 JSON-RPC
+  ([#1384](https://github.com/oasisprotocol/explorer/issues/1384))
+
+- Fix mobile search issues
+  ([#1411](https://github.com/oasisprotocol/explorer/issues/1411))
+
+- Fix React duplicated key warning in transactions list
+  ([#1412](https://github.com/oasisprotocol/explorer/issues/1412))
+
+- Fix the "zoom out" button
+  ([#1413](https://github.com/oasisprotocol/explorer/issues/1413))
+
+### Internal Changes
+
+- Replace custom icons with MethodIcon component
+  ([#1383](https://github.com/oasisprotocol/explorer/issues/1383))
+
+- Reduce the size of node_modules using `npx yarn-deduplicate yarn.lock`
+  ([#1388](https://github.com/oasisprotocol/explorer/issues/1388))
+
+- Remove usage of deprecated React API
+  ([#1414](https://github.com/oasisprotocol/explorer/issues/1414))
+
+- Update dependencies
+  ([#1323](https://github.com/oasisprotocol/explorer/issues/1323),
+  [#1349](https://github.com/oasisprotocol/explorer/issues/1349),
+  [#1352](https://github.com/oasisprotocol/explorer/issues/1352),
+  [#1353](https://github.com/oasisprotocol/explorer/issues/1353),
+  [#1377](https://github.com/oasisprotocol/explorer/issues/1377),
+  [#1378](https://github.com/oasisprotocol/explorer/issues/1378),
+  [#1379](https://github.com/oasisprotocol/explorer/issues/1379),
+  [#1380](https://github.com/oasisprotocol/explorer/issues/1380),
+  [#1381](https://github.com/oasisprotocol/explorer/issues/1381),
+  [#1382](https://github.com/oasisprotocol/explorer/issues/1382),
+  [#1389](https://github.com/oasisprotocol/explorer/issues/1389),
+  [#1390](https://github.com/oasisprotocol/explorer/issues/1390),
+  [#1391](https://github.com/oasisprotocol/explorer/issues/1391),
+  [#1394](https://github.com/oasisprotocol/explorer/issues/1394),
+  [#1395](https://github.com/oasisprotocol/explorer/issues/1395),
+  [#1408](https://github.com/oasisprotocol/explorer/issues/1408),
+  [#1409](https://github.com/oasisprotocol/explorer/issues/1409))
+
+## 1.10.0 (2024-04-11)
+
+### Features
+
+- New Oasis branding
+  ([#1370](https://github.com/oasisprotocol/explorer/issues/1370))
+
+### Bug Fixes and Improvements
+
+- Display EVM addresses in events
+  ([#1364](https://github.com/oasisprotocol/explorer/issues/1364))
+
+- Fix root error element crashing because it's outside AnalyticsContext
+  ([#1366](https://github.com/oasisprotocol/explorer/issues/1366))
+
+- Fix isAccountEmpty to handle accounts with balances = 0
+  ([#1372](https://github.com/oasisprotocol/explorer/issues/1372))
+
+- Fix account search sometimes returning wrong data on repeated search
+  ([#1374](https://github.com/oasisprotocol/explorer/issues/1374))
+
+### Internal Changes
+
+- Fix Storybook build
+  ([#1362](https://github.com/oasisprotocol/explorer/issues/1362))
+
+- Simplify converting EVM addresses to oasis1
+  ([#1365](https://github.com/oasisprotocol/explorer/issues/1365))
+
+- Update dependencies
+  ([#1335](https://github.com/oasisprotocol/explorer/issues/1335),
+  [#1339](https://github.com/oasisprotocol/explorer/issues/1339),
+  [#1341](https://github.com/oasisprotocol/explorer/issues/1341),
+  [#1342](https://github.com/oasisprotocol/explorer/issues/1342),
+  [#1350](https://github.com/oasisprotocol/explorer/issues/1350))
+
+## 1.9.1 (2024-03-27)
+
+### Bug Fixes and Improvements
+
+- Fix stable deploys array
+  ([#1346](https://github.com/oasisprotocol/explorer/issues/1346))
+
+## 1.9.0 (2024-03-26)
+
+### Features
+
+- Add support for white-labeling Explorer
+  ([#1244](https://github.com/oasisprotocol/explorer/issues/1244),
+  [#1281](https://github.com/oasisprotocol/explorer/issues/1281),
+  [#1265](https://github.com/oasisprotocol/explorer/issues/1265),
+  [#1269](https://github.com/oasisprotocol/explorer/issues/1269))
+
+- Add Pontus-X as a hidden layer
+  ([#1245](https://github.com/oasisprotocol/explorer/issues/1245))
+
+- Integrate Matomo analytics
+  ([#1294](https://github.com/oasisprotocol/explorer/issues/1294),
+  [#1325](https://github.com/oasisprotocol/explorer/issues/1325),
+  [#1327](https://github.com/oasisprotocol/explorer/issues/1327))
+
+### Bug Fixes and Improvements
+
+- Display transaction when "to" field is missing
+  ([#1268](https://github.com/oasisprotocol/explorer/issues/1268))
+
+- Show errors in runtime events
+  ([#1278](https://github.com/oasisprotocol/explorer/issues/1278))
+
+- Fix snapshot cards spacing
+  ([#1282](https://github.com/oasisprotocol/explorer/issues/1282))
+
+- Show LongDataDisplay controls only when needed
+  ([#1287](https://github.com/oasisprotocol/explorer/issues/1287),
+  [#1293](https://github.com/oasisprotocol/explorer/issues/1293))
+
+- Fix account icons of EVM accounts to match MetaMask
+  ([#1328](https://github.com/oasisprotocol/explorer/issues/1328))
+
+- Fix oasis address links even when toggled to ETH addresses
+  ([#1329](https://github.com/oasisprotocol/explorer/issues/1329))
+
+- Fix issue with empty ticker
+  ([#1336](https://github.com/oasisprotocol/explorer/issues/1336))
+
+  - tx.body.amount.Denomination can be an empty string
+
+- Fix RPC native balance and adds PontusX RPC
+  ([#1338](https://github.com/oasisprotocol/explorer/issues/1338))
+
+### Internal Changes
+
+- Upgrade orval and start using urlEncodeParameters
+  ([#1097](https://github.com/oasisprotocol/explorer/issues/1097))
+
+- Fix coingecko API types and query key
+  ([#1331](https://github.com/oasisprotocol/explorer/issues/1331))
+
+- Update dependencies
+  ([#1172](https://github.com/oasisprotocol/explorer/issues/1172),
+  [#1175](https://github.com/oasisprotocol/explorer/issues/1175),
+  [#1207](https://github.com/oasisprotocol/explorer/issues/1207),
+  [#1209](https://github.com/oasisprotocol/explorer/issues/1209),
+  [#1212](https://github.com/oasisprotocol/explorer/issues/1212),
+  [#1224](https://github.com/oasisprotocol/explorer/issues/1224),
+  [#1229](https://github.com/oasisprotocol/explorer/issues/1229),
+  [#1233](https://github.com/oasisprotocol/explorer/issues/1233),
+  [#1234](https://github.com/oasisprotocol/explorer/issues/1234),
+  [#1235](https://github.com/oasisprotocol/explorer/issues/1235),
+  [#1238](https://github.com/oasisprotocol/explorer/issues/1238),
+  [#1239](https://github.com/oasisprotocol/explorer/issues/1239),
+  [#1240](https://github.com/oasisprotocol/explorer/issues/1240),
+  [#1241](https://github.com/oasisprotocol/explorer/issues/1241),
+  [#1243](https://github.com/oasisprotocol/explorer/issues/1243),
+  [#1248](https://github.com/oasisprotocol/explorer/issues/1248),
+  [#1270](https://github.com/oasisprotocol/explorer/issues/1270),
+  [#1271](https://github.com/oasisprotocol/explorer/issues/1271),
+  [#1274](https://github.com/oasisprotocol/explorer/issues/1274),
+  [#1275](https://github.com/oasisprotocol/explorer/issues/1275),
+  [#1297](https://github.com/oasisprotocol/explorer/issues/1297),
+  [#1300](https://github.com/oasisprotocol/explorer/issues/1300),
+  [#1301](https://github.com/oasisprotocol/explorer/issues/1301),
+  [#1302](https://github.com/oasisprotocol/explorer/issues/1302),
+  [#1303](https://github.com/oasisprotocol/explorer/issues/1303),
+  [#1304](https://github.com/oasisprotocol/explorer/issues/1304),
+  [#1306](https://github.com/oasisprotocol/explorer/issues/1306),
+  [#1309](https://github.com/oasisprotocol/explorer/issues/1309),
+  [#1313](https://github.com/oasisprotocol/explorer/issues/1313),
+  [#1315](https://github.com/oasisprotocol/explorer/issues/1315),
+  [#1320](https://github.com/oasisprotocol/explorer/issues/1320),
+  [#1321](https://github.com/oasisprotocol/explorer/issues/1321),
+  [#1322](https://github.com/oasisprotocol/explorer/issues/1322),
+  [#1333](https://github.com/oasisprotocol/explorer/issues/1333),
+  [#1334](https://github.com/oasisprotocol/explorer/issues/1334),
+  [#1340](https://github.com/oasisprotocol/explorer/issues/1340))
+
 ## 1.8.0 (2024-02-05)
 
 ### Features

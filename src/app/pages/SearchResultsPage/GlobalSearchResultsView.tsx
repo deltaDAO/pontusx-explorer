@@ -15,21 +15,23 @@ import {
   Network,
 } from '../../../types/network'
 import { HideMoreResults, ShowMoreResults } from './notifications'
-import { getThemesForNetworks } from '../../../styles/theme'
+import { getThemeForScope } from '../../../styles/theme'
 import { orderByLayer } from '../../../types/layers'
 import { useRedirectIfSingleResult } from './useRedirectIfSingleResult'
+import { SearchParams } from '../../components/Search/search-utils'
 
 export const GlobalSearchResultsView: FC<{
-  searchTerm: string
+  searchParams: SearchParams
   searchResults: SearchResults
+  isPotentiallyIncomplete: boolean // Some of the searches failed, so we might not see everything // TODO: indicate this on the UI
   tokenPrices: AllTokenPrices
-}> = ({ searchTerm, searchResults, tokenPrices }) => {
+}> = ({ searchParams, searchResults, tokenPrices }) => {
   const { t } = useTranslation()
   const [othersOpen, setOthersOpen] = useState(false)
-  useRedirectIfSingleResult(undefined, searchTerm, searchResults)
+  useRedirectIfSingleResult(undefined, searchParams, searchResults)
 
-  const themes = getThemesForNetworks()
   const networkNames = getNetworkNames(t)
+  const { searchTerm } = searchParams
 
   if (fixedNetwork) {
     return (
@@ -48,7 +50,7 @@ export const GlobalSearchResultsView: FC<{
   }
 
   const otherNetworks = RouteUtils.getEnabledNetworks().filter(isNotMainnet)
-  const notificationTheme = themes[Network.testnet]
+  const notificationTheme = getThemeForScope(Network.testnet)
   const mainnetResults = searchResults.filter(isOnMainnet).sort(orderByLayer)
   const otherResults = searchResults.filter(isNotOnMainnet).sort(orderByLayer)
 

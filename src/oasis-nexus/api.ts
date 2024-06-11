@@ -3,24 +3,29 @@
 import axios, { AxiosResponse } from 'axios'
 import { consensusDecimals, getTokensForScope, paraTimesConfig } from '../config'
 import * as generated from './generated/api'
-import { QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
+import { QueryKey, UseQueryOptions, UseQueryResult, useQuery } from '@tanstack/react-query'
 import {
+  Account,
   EvmToken,
   EvmTokenType,
   GetRuntimeAccountsAddress,
   HumanReadableErrorResponse,
   Layer,
   NotFoundErrorResponse,
+  Runtime,
   RuntimeAccount,
   RuntimeEventType,
 } from './generated/api'
-import { fromBaseUnits, getEthAddressForAccount, getAccountSize } from '../app/utils/helpers'
+import {
+  fromBaseUnits,
+  getEthAddressForAccount,
+  getAccountSize,
+  getOasisAddressOrNull,
+} from '../app/utils/helpers'
 import { Network } from '../types/network'
 import { SearchScope } from '../types/searchScope'
 import { Ticker } from '../types/ticker'
-import { useTransformToOasisAddress } from '../app/hooks/useTransformToOasisAddress'
-import { useEffect, useState } from 'react'
-import { RpcUtils } from '../app/utils/rpc-utils'
+import { getRPCAccountBalances } from '../app/utils/getRPCAccountBalances'
 import { toChecksumAddress } from '@ethereumjs/util'
 
 export * from './generated/api'
@@ -90,17 +95,47 @@ declare module './generated/api' {
     network: Network
     layer: typeof Layer.consensus
   }
+
+  export interface Delegation {
+    network: Network
+    layer: typeof Layer.consensus
+    ticker: Ticker
+  }
+
+  export interface DebondingDelegation {
+    layer: typeof Layer.consensus
+    network: Network
+    ticker: Ticker
+  }
 }
 
-export const isAccountEmpty = (account: RuntimeAccount) => {
-  const { balances, evm_balances, stats } = account
-  const { total_received, total_sent, num_txns } = stats
-  const result =
-    !balances?.length && !evm_balances?.length && total_received === '0' && total_sent === '0' && !num_txns
-  return result
+export const isAccountEmpty = (account: RuntimeAccount | Account) => {
+  if (account.layer === Layer.consensus) {
+    // TODO: find a sane way to recognize an important consensus account.
+    // The heuristics below is clearly insufficient, because it would indicate even named accounts like "Governance Escrow" to be empty.
+    return false
+    // const { available, size, nonce, debonding_delegations_balance, delegations_balance, escrow, total } =
+    //   account as Account
+    // return (
+    //   available === '0' &&
+    //   debonding_delegations_balance === '0' &&
+    //   delegations_balance === '0' &&
+    //   escrow === '0' &&
+    //   total === '0' &&
+    //   nonce === 0 &&
+    //   size === 'XXS'
+    // )
+    // TODO: we should also check the number of transactions, where it becomes available
+  } else {
+    const { balances, evm_balances, stats } = account as RuntimeAccount
+    const { total_received, total_sent, num_txns } = stats
+    const hasNoBalances = [...balances, ...evm_balances].every(b => b.balance === '0' || b.balance === '0.0')
+    const hasNoTransactions = total_received === '0' && total_sent === '0' && num_txns === 0
+    return hasNoBalances && hasNoTransactions
+  }
 }
 
-export const isAccountNonEmpty = (account: RuntimeAccount) => !isAccountEmpty(account)
+export const isAccountNonEmpty = (account: RuntimeAccount | Account) => !isAccountEmpty(account)
 
 export const groupAccountTokenBalances = (account: Omit<RuntimeAccount, 'tokenBalances'>): RuntimeAccount => {
   const tokenBalances: Partial<Record<generated.EvmTokenType, generated.RuntimeEvmBalance[]>> = {}
@@ -186,7 +221,7 @@ export const useGetRuntimeTransactions: typeof generated.useGetRuntimeTransactio
                 layer: runtime,
                 network,
                 ticker:
-                  tx.body?.amount?.Denomination ?? getTokensForScope({ network, layer: runtime })[0].ticker,
+                  tx.body?.amount?.Denomination || getTokensForScope({ network, layer: runtime })[0].ticker,
                 method: adjustRuntimeTransactionMethod(tx.method, tx.is_likely_native_token_transfer),
               }
             }),
@@ -214,14 +249,9 @@ export const useGetConsensusTransactionsTxHash: typeof generated.useGetConsensus
           if (status !== 200) return data
           return {
             ...data,
-            transactions: data.transactions.map(tx => {
-              return {
-                ...tx,
-                layer: Layer.consensus,
-                network,
-                ticker,
-              }
-            }),
+            layer: Layer.consensus,
+            network,
+            ticker,
           }
         },
         ...arrayify(options?.request?.transformResponse),
@@ -258,7 +288,7 @@ export const useGetRuntimeTransactionsTxHash: typeof generated.useGetRuntimeTran
                 layer: runtime,
                 network,
                 ticker:
-                  tx.body?.amount?.Denomination ?? getTokensForScope({ network, layer: runtime })[0].ticker,
+                  tx.body?.amount?.Denomination || getTokensForScope({ network, layer: runtime })[0].ticker,
                 method: adjustRuntimeTransactionMethod(tx.method, tx.is_likely_native_token_transfer),
               }
             }),
@@ -278,6 +308,10 @@ export const useGetConsensusAccountsAddress: typeof generated.useGetConsensusAcc
   const ticker = getTokensForScope({ network, layer: Layer.consensus })[0].ticker
   return generated.useGetConsensusAccountsAddress(network, address, {
     ...options,
+    query: {
+      ...(options?.query ?? {}),
+      enabled: !!address && (options?.query?.enabled ?? true),
+    },
     request: {
       ...options?.request,
       transformResponse: [
@@ -315,9 +349,8 @@ export const useGetRuntimeAccountsAddress: typeof generated.useGetRuntimeAccount
   address,
   options,
 ) => {
-  const [rpcAccountBalance, setRpcAccountBalance] = useState<string | null>(null)
-
-  const oasisAddress = useTransformToOasisAddress(address)
+  // console.log('Should we get', runtime, '/', address, '?', options?.query?.enabled)
+  const oasisAddress = getOasisAddressOrNull(address)
 
   const query = generated.useGetRuntimeAccountsAddress(network, runtime, oasisAddress!, {
     ...options,
@@ -377,51 +410,23 @@ export const useGetRuntimeAccountsAddress: typeof generated.useGetRuntimeAccount
     HumanReadableErrorResponse | NotFoundErrorResponse
   > & { queryKey: QueryKey }
 
-  const runtimeAccount = query.data?.data as RuntimeAccount
+  const runtimeAccount = query.data?.data
 
   // TODO: Remove after account balances on Nexus are in sync with the node
-  useEffect(() => {
-    // Trigger only if the account has been fetched from Nexus and is not a contract and has eth address
-    if (!runtimeAccount || !!runtimeAccount.evm_contract || !runtimeAccount.address_eth) {
-      return
-    }
+  const rpcAccountBalances = useQuery({
+    enabled: !!oasisAddress,
+    queryKey: [oasisAddress, network, runtime],
+    queryFn: async () => {
+      if (!oasisAddress) throw new Error('Needed to fix types - see `enabled`')
+      return await getRPCAccountBalances(oasisAddress, { network: network, layer: runtime })
+    },
+  }).data
 
-    let shouldUpdate = true
-
-    const fetchAccountBalance = async () => {
-      setRpcAccountBalance(null)
-
-      const balance = await RpcUtils.getAccountBalance(runtimeAccount.address_eth!, {
-        context: {
-          network: runtimeAccount.network,
-          layer: runtimeAccount.layer,
-        },
-      })
-
-      if (shouldUpdate) {
-        setRpcAccountBalance(balance)
-      }
-    }
-
-    fetchAccountBalance()
-
-    return () => {
-      shouldUpdate = false
-    }
-  }, [runtimeAccount])
-
-  const data: any =
-    rpcAccountBalance !== null && runtimeAccount
+  const data =
+    rpcAccountBalances && runtimeAccount
       ? {
           ...runtimeAccount,
-          balances: runtimeAccount.balances?.length
-            ? [
-                {
-                  ...runtimeAccount.balances[0],
-                  balance: rpcAccountBalance,
-                },
-              ]
-            : [],
+          balances: rpcAccountBalances,
         }
       : runtimeAccount
 
@@ -435,6 +440,62 @@ export const useGetRuntimeAccountsAddress: typeof generated.useGetRuntimeAccount
       : query.data,
     // TypeScript complaining for no good reason
   } as any
+}
+
+const MAX_LOADED_ADDRESSES = 100
+const MASS_LOAD_INDEXES = [...Array(MAX_LOADED_ADDRESSES).keys()]
+
+type RuntimeTarget = {
+  network: Network
+  layer: Runtime
+  address: string
+}
+
+export const useGetRuntimeAccountsAddresses = (
+  targets: RuntimeTarget[] | undefined = [],
+  queryOptions: { enabled: boolean },
+) => {
+  const queries = MASS_LOAD_INDEXES.map((i): RuntimeTarget | undefined => targets[i]).map(target =>
+    // The number of iterations is constant here, so we will always call the hook the same number.
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useGetRuntimeAccountsAddress(
+      target?.network ?? Network.mainnet,
+      target?.layer ?? Layer.emerald,
+      target?.address ?? '',
+      {
+        query: { enabled: queryOptions.enabled && !!target?.address },
+      },
+    ),
+  )
+  return {
+    isLoading: !!targets?.length && queries.some(query => query.isLoading && query.fetchStatus !== 'idle'),
+    isError: queries.some(query => query.isError) || targets?.length > MAX_LOADED_ADDRESSES,
+    data: queries.map(query => query.data?.data).filter(account => !!account) as RuntimeAccount[],
+  }
+}
+
+type ConsensusTarget = {
+  network: Network
+  address: string
+}
+
+export const useGetConsensusAccountsAddresses = (
+  targets: ConsensusTarget[] | undefined = [],
+  queryOptions: { enabled: boolean },
+) => {
+  const queries = MASS_LOAD_INDEXES.map((i): ConsensusTarget | undefined => targets[i]).map(target =>
+    // The number of iterations is constant here, so we will always call the hook the same number.
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useGetConsensusAccountsAddress(target?.network ?? Network.mainnet, target?.address ?? '', {
+      query: { enabled: queryOptions.enabled && !!target?.address },
+    }),
+  )
+
+  return {
+    isLoading: !!targets?.length && queries.some(query => query.isLoading && query.fetchStatus !== 'idle'),
+    isError: queries.some(query => query.isError) || targets?.length > MAX_LOADED_ADDRESSES,
+    data: queries.map(query => query.data?.data).filter(account => !!account) as generated.Account[],
+  }
 }
 
 export function useGetConsensusBlockByHeight(
@@ -673,7 +734,7 @@ export const useGetRuntimeEvmTokensAddress: typeof generated.useGetRuntimeEvmTok
   address,
   options,
 ) => {
-  const oasisAddress = useTransformToOasisAddress(address)
+  const oasisAddress = getOasisAddressOrNull(address)
 
   return generated.useGetRuntimeEvmTokensAddress(network, runtime, oasisAddress!, {
     ...options,
@@ -870,7 +931,7 @@ export const useGetConsensusProposalsProposalId: typeof generated.useGetConsensu
 
 export const useGetConsensusProposalsByName = (network: Network, nameFragment: string | undefined) => {
   const query = useGetConsensusProposals(network, {}, { query: { enabled: !!nameFragment } })
-  const { isLoading, isInitialLoading, data, status, error } = query
+  const { isError, isLoading, isInitialLoading, data, status, error } = query
   const textMatcher = nameFragment
     ? (proposal: generated.Proposal): boolean =>
         !!proposal.handler && proposal.handler?.includes(nameFragment)
@@ -878,11 +939,16 @@ export const useGetConsensusProposalsByName = (network: Network, nameFragment: s
   const results = data ? query.data.data.proposals.filter(textMatcher) : undefined
   return {
     isLoading,
+    isError,
     isInitialLoading,
     status,
     error,
     results,
   }
+}
+
+export type ExtendedValidatorList = generated.ValidatorList & {
+  map?: Map<string, generated.Validator>
 }
 
 export const useGetConsensusValidators: typeof generated.useGetConsensusValidators = (
@@ -897,17 +963,21 @@ export const useGetConsensusValidators: typeof generated.useGetConsensusValidato
       ...options?.request,
       transformResponse: [
         ...arrayify(axios.defaults.transformResponse),
-        (data: generated.ValidatorList, headers, status) => {
+        (data: generated.ValidatorList, headers, status): ExtendedValidatorList => {
           if (status !== 200) return data
+          const validators = data.validators.map((validator): generated.Validator => {
+            return {
+              ...validator,
+              escrow: fromBaseUnits(validator.escrow, consensusDecimals),
+              ticker,
+            }
+          })
+          const map = new Map<string, generated.Validator>()
+          validators.forEach(validator => map.set(validator.entity_address, validator))
           return {
             ...data,
-            validators: data.validators.map(validator => {
-              return {
-                ...validator,
-                escrow: fromBaseUnits(validator.escrow, consensusDecimals),
-                ticker,
-              }
-            }),
+            validators,
+            map,
           }
         },
         ...arrayify(options?.request?.transformResponse),
@@ -954,3 +1024,93 @@ export const useGetConsensusAccounts: typeof generated.useGetConsensusAccounts =
     },
   })
 }
+
+export const useGetConsensusAccountsAddressDelegations: typeof generated.useGetConsensusAccountsAddressDelegations =
+  (network, address, params?, options?) => {
+    const ticker = getTokensForScope({ network, layer: Layer.consensus })[0].ticker
+    return generated.useGetConsensusAccountsAddressDelegations(network, address, params, {
+      ...options,
+      request: {
+        ...options?.request,
+        transformResponse: [
+          ...arrayify(axios.defaults.transformResponse),
+          (data: generated.DelegationList, headers, status) => {
+            if (status !== 200) return data
+            return {
+              ...data,
+              delegations: data.delegations.map(delegation => {
+                return {
+                  ...delegation,
+                  amount: fromBaseUnits(delegation.amount, consensusDecimals),
+                  layer: Layer.consensus,
+                  network,
+                  ticker,
+                }
+              }),
+            }
+          },
+          ...arrayify(options?.request?.transformResponse),
+        ],
+      },
+    })
+  }
+
+export const useGetConsensusAccountsAddressDebondingDelegationsTo: typeof generated.useGetConsensusAccountsAddressDebondingDelegationsTo =
+  (network, address, params?, options?) => {
+    const ticker = getTokensForScope({ network, layer: Layer.consensus })[0].ticker
+    return generated.useGetConsensusAccountsAddressDebondingDelegationsTo(network, address, params, {
+      ...options,
+      request: {
+        ...options?.request,
+        transformResponse: [
+          ...arrayify(axios.defaults.transformResponse),
+          (data: generated.DebondingDelegationList, headers, status) => {
+            if (status !== 200) return data
+            return {
+              ...data,
+              debonding_delegations: data.debonding_delegations.map(delegation => {
+                return {
+                  ...delegation,
+                  amount: fromBaseUnits(delegation.amount, consensusDecimals),
+                  layer: Layer.consensus,
+                  network,
+                  ticker,
+                }
+              }),
+            }
+          },
+          ...arrayify(options?.request?.transformResponse),
+        ],
+      },
+    })
+  }
+
+export const useGetConsensusAccountsAddressDelegationsTo: typeof generated.useGetConsensusAccountsAddressDelegationsTo =
+  (network, address, params?, options?) => {
+    const ticker = getTokensForScope({ network, layer: Layer.consensus })[0].ticker
+    return generated.useGetConsensusAccountsAddressDelegationsTo(network, address, params, {
+      ...options,
+      request: {
+        ...options?.request,
+        transformResponse: [
+          ...arrayify(axios.defaults.transformResponse),
+          (data: generated.DelegationList, headers, status) => {
+            if (status !== 200) return data
+            return {
+              ...data,
+              delegations: data.delegations.map(delegation => {
+                return {
+                  ...delegation,
+                  amount: fromBaseUnits(delegation.amount, consensusDecimals),
+                  layer: Layer.consensus,
+                  network,
+                  ticker,
+                }
+              }),
+            }
+          },
+          ...arrayify(options?.request?.transformResponse),
+        ],
+      },
+    })
+  }

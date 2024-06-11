@@ -15,31 +15,29 @@ import {
   useGetRuntimeBlockByHash,
   Proposal,
   useGetConsensusProposalsByName,
+  Account,
+  useGetConsensusAccountsAddress,
 } from '../../../oasis-nexus/api'
 import { RouteUtils } from '../../utils/route-utils'
 import { SearchParams } from '../../components/Search/search-utils'
 import { SearchScope } from '../../../types/searchScope'
-import { useSearchForAccountsByName } from '../../hooks/useAccountName'
+import { useSearchForAccountsByName } from '../../hooks/useAccountMetadata'
 
 function isDefined<T>(item: T): item is NonNullable<T> {
   return item != null
 }
 
-export type ConditionalResults<T> = { isLoading: boolean; results: T[] }
+export type ConditionalResults<T> = { isLoading: boolean; isError?: boolean; results: T[] }
 
 type SearchResultItemCore = HasScope & {
-  resultType: 'block' | 'transaction' | 'account' | 'accountAddress' | 'contract' | 'token' | 'proposal'
+  resultType: 'block' | 'transaction' | 'account' | 'contract' | 'token' | 'proposal'
 }
 
 export type BlockResult = SearchResultItemCore & RuntimeBlock & { resultType: 'block' }
 
 export type TransactionResult = SearchResultItemCore & RuntimeTransaction & { resultType: 'transaction' }
 
-export type AccountResult = SearchResultItemCore & RuntimeAccount & { resultType: 'account' }
-
-export type AccountAddressResult = SearchResultItemCore & { address: string } & {
-  resultType: 'accountAddress'
-}
+export type AccountResult = SearchResultItemCore & (RuntimeAccount | Account) & { resultType: 'account' }
 
 export type ContractResult = SearchResultItemCore & RuntimeAccount & { resultType: 'contract' }
 
@@ -51,7 +49,6 @@ export type SearchResultItem =
   | BlockResult
   | TransactionResult
   | AccountResult
-  | AccountAddressResult
   | ContractResult
   | TokenResult
   | ProposalResult
@@ -131,6 +128,7 @@ export function useTransactionsConditionally(
     results: queries.flatMap(query => query.data?.data.transactions).filter(isDefined),
   }
 }
+
 export function useRuntimeAccountConditionally(
   currentScope: SearchScope | undefined,
   address: string | undefined,
@@ -146,6 +144,23 @@ export function useRuntimeAccountConditionally(
         },
       }),
     )
+
+  return {
+    isLoading: queries.some(query => query.isInitialLoading),
+    results: queries.map(query => query.data?.data).filter(isDefined),
+  }
+}
+
+export function useConsensusAccountConditionally(address: string | undefined): ConditionalResults<Account> {
+  const queries = RouteUtils.getEnabledNetworksForLayer(Layer.consensus).map(network =>
+    // See explanation above
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useGetConsensusAccountsAddress(network, address!, {
+      query: {
+        enabled: !!address,
+      },
+    }),
+  )
 
   return {
     isLoading: queries.some(query => query.isInitialLoading),
@@ -179,6 +194,7 @@ export function useRuntimeTokenConditionally(
 
   return {
     isLoading: queries.some(query => query.isInitialLoading),
+    isError: queries.some(query => query.isError),
     results: queries.map(query => query.data?.data).filter(isDefined),
   }
 }
@@ -192,6 +208,7 @@ export function useNetworkProposalsConditionally(
   )
   return {
     isLoading: queries.some(query => query.isInitialLoading),
+    isError: queries.some(query => query.isError),
     results: queries
       .map(query => query.results)
       .filter(isDefined)
@@ -199,18 +216,17 @@ export function useNetworkProposalsConditionally(
   }
 }
 
-type AccountAddressInfo = Pick<RuntimeAccount, 'network' | 'layer' | 'address'>
-
 export function useNamedAccountConditionally(
   currentScope: SearchScope | undefined,
   nameFragment: string | undefined,
-): ConditionalResults<AccountAddressInfo> {
+): ConditionalResults<Account | RuntimeAccount> {
   const queries = RouteUtils.getVisibleScopes(currentScope).map(scope =>
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useSearchForAccountsByName(scope, nameFragment),
   )
   return {
     isLoading: queries.some(query => query.isLoading),
+    isError: queries.some(query => query.isError),
     results: queries
       .map(query => query.results)
       .filter(isDefined)
@@ -223,7 +239,8 @@ export const useSearch = (currentScope: SearchScope | undefined, q: SearchParams
     blockHeight: useBlocksByHeightConditionally(currentScope, q.blockHeight),
     blockHash: useBlocksByHashConditionally(currentScope, q.blockHash),
     txHash: useTransactionsConditionally(currentScope, q.txHash),
-    oasisAccount: useRuntimeAccountConditionally(currentScope, q.consensusAccount),
+    oasisConsensusAccount: useConsensusAccountConditionally(q.consensusAccount),
+    oasisRuntimeAccount: useRuntimeAccountConditionally(currentScope, q.consensusAccount),
     // TODO: remove evmBech32Account and use evmAccount when API is ready
     evmBech32Account: useRuntimeAccountConditionally(currentScope, q.evmBech32Account),
     accountsByName: useNamedAccountConditionally(currentScope, q.accountNameFragment),
@@ -231,13 +248,15 @@ export const useSearch = (currentScope: SearchScope | undefined, q: SearchParams
     proposals: useNetworkProposalsConditionally(q.networkProposalNameFragment),
   }
   const isLoading = Object.values(queries).some(query => query.isLoading)
+  const hasErrors = Object.values(queries).some(query => query.isError)
   const blocks = [...queries.blockHeight.results, ...queries.blockHash.results]
   const transactions = queries.txHash.results || []
   const accounts = [
-    ...(queries.oasisAccount.results || []),
+    ...(queries.oasisConsensusAccount.results || []),
+    ...(queries.oasisRuntimeAccount.results || []),
     ...(queries.evmBech32Account.results || []),
+    ...(queries.accountsByName.results || []),
   ].filter(isAccountNonEmpty)
-  const accountAddresses = queries.accountsByName.results || []
   const tokens = queries.tokens.results
     .map(l => l.evm_tokens)
     .flat()
@@ -250,19 +269,18 @@ export const useSearch = (currentScope: SearchScope | undefined, q: SearchParams
         ...blocks.map((block): BlockResult => ({ ...block, resultType: 'block' })),
         ...transactions.map((tx): TransactionResult => ({ ...tx, resultType: 'transaction' })),
         ...accounts
-          .filter(account => !account.evm_contract)
+          .filter(account => !(account as RuntimeAccount).evm_contract)
           .map((account): AccountResult => ({ ...account, resultType: 'account' })),
         ...accounts
+          .filter((account): account is RuntimeAccount => account.layer !== Layer.consensus)
           .filter(account => account.evm_contract)
           .map((account): ContractResult => ({ ...account, resultType: 'contract' })),
-        ...accountAddresses.map(
-          (account): AccountAddressResult => ({ ...account, resultType: 'accountAddress' }),
-        ),
         ...tokens.map((token): TokenResult => ({ ...token, resultType: 'token' })),
         ...proposals.map((proposal): ProposalResult => ({ ...proposal, resultType: 'proposal' })),
       ]
   return {
     isLoading,
+    hasErrors,
     results,
   }
 }

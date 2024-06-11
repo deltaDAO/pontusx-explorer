@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import TextField, { textFieldClasses } from '@mui/material/TextField'
 import InputAdornment, { inputAdornmentClasses } from '@mui/material/InputAdornment'
 import { styled } from '@mui/material/styles'
-import Button from '@mui/material/Button'
+import Button, { ButtonProps } from '@mui/material/Button'
 import Box from '@mui/material/Box'
 import SearchIcon from '@mui/icons-material/Search'
 import { useTranslation } from 'react-i18next'
@@ -52,6 +52,9 @@ const SearchForm = styled('form', {
               display: 'none',
             },
             [`.${inputAdornmentClasses.positionEnd}`]: {
+              'button[type="button"]': {
+                display: 'none',
+              },
               marginLeft: 0,
             },
           },
@@ -70,7 +73,7 @@ const SearchForm = styled('form', {
 
 interface SearchButtonProps extends StyledBaseProps {}
 
-export const SearchButton = styled(Button, {
+export const StyledSearchButton = styled(Button, {
   shouldForwardProp: (prop: PropertyKey) =>
     !(['searchVariant'] as (keyof SearchButtonProps)[]).includes(prop as keyof SearchButtonProps),
 })<SearchButtonProps>(({ theme, searchVariant }) => ({
@@ -90,10 +93,10 @@ export const SearchButton = styled(Button, {
       }
     : {}),
 }))
-SearchButton.defaultProps = {
-  variant: 'contained',
-  color: 'primary',
-}
+
+export const SearchButton = (props: ButtonProps & SearchButtonProps) => (
+  <StyledSearchButton variant="contained" color="primary" {...props} />
+)
 
 export interface SearchProps {
   scope?: SearchScope
@@ -139,7 +142,7 @@ const SearchCmp: FC<SearchProps> = ({ scope, variant, disabled, onFocusChange: o
 
   const onFormSubmit = (e?: FormEvent) => {
     e?.preventDefault()
-    if (value) {
+    if (value && value !== valueInSearchParams) {
       navigate(RouteUtils.getSearchRoute(scope, valueWithoutPrefix))
     }
   }

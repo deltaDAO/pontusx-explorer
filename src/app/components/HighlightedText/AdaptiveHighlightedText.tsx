@@ -29,7 +29,7 @@ type AdaptiveHighlightedTextProps = {
 }
 
 /**
- * Display a text with a part highlighted, potentially trimmed to an adaptive length around the highlight
+ * Display a text with a part highlighted, adaptively trimmed to the maximum length around the highlight
  */
 export const AdaptiveHighlightedText: FC<AdaptiveHighlightedTextProps> = ({
   text,

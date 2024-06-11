@@ -1,5 +1,6 @@
 import { EvmAbiParam, RuntimeEvent, RuntimeEventType } from '../../../oasis-nexus/api'
-import { FC, useEffect, useState } from 'react'
+import { FC } from 'react'
+import { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { StyledDescriptionList } from '../StyledDescriptionList'
 import { useScreenSize } from '../../hooks/useScreensize'
@@ -16,46 +17,86 @@ import { getOasisAddress } from '../../utils/helpers'
 import { exhaustedTypeWarning } from '../../../types/errors'
 import { LongDataDisplay } from '../LongDataDisplay'
 import { parseEvmEvent } from '../../utils/parseEvmEvent'
-import { TokenTransferIcon, TokenTransferLabel } from '../Tokens/TokenTransferIcon'
+import { TokenTransferIcon } from '../Tokens/TokenTransferIcon'
 import Box from '@mui/material/Box'
-import { TransferIcon } from '../CustomIcons/Transfer'
-import { DepositIcon } from '../CustomIcons/Deposit'
-import { WithdrawIcon } from '../CustomIcons/Withdraw'
-import { COLORS } from '../../../styles/theme/colors'
+import Typography from '@mui/material/Typography'
 import StreamIcon from '@mui/icons-material/Stream'
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import { getPreciseNumberFormat } from '../../../locales/getPreciseNumberFormat'
-import { UndelegateStartIcon } from '../CustomIcons/UndelegateStart'
-import { UndelegateFinishIcon } from '../CustomIcons/UndelegateFinish'
-import { DelegateIcon } from '../CustomIcons/Delegate'
 import { MaybeEventErrorLine } from './EventError'
+import {
+  AccountLinkWithAddressSwitch,
+  WrappedAccountLinkWithAddressSwitch,
+} from '../Account/AccountLinkWithAddressSwitch'
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
+import LanIcon from '@mui/icons-material/Lan'
+import LanOutlinedIcon from '@mui/icons-material/LanOutlined'
+import { MethodIcon } from '../ConsensusTransactionMethod'
+
+const getRuntimeEventMethodLabel = (t: TFunction, method: string | undefined) => {
+  switch (method) {
+    case RuntimeEventType.accountstransfer:
+      return t('runtimeEvent.accountstransfer')
+    case RuntimeEventType.evmlog:
+      return t('runtimeEvent.evmLog')
+    case RuntimeEventType.coregas_used:
+      return t('runtimeEvent.gasUsed')
+    case RuntimeEventType.consensus_accountswithdraw:
+      return t('runtimeEvent.consensusWithdrawal')
+    case RuntimeEventType.consensus_accountsdeposit:
+      return t('runtimeEvent.consensusDeposit')
+    case RuntimeEventType.consensus_accountsdelegate:
+      return t('runtimeEvent.consensusDelegate')
+    case RuntimeEventType.consensus_accountsundelegate_start:
+      return t('runtimeEvent.consensusUndelegateStart')
+    case RuntimeEventType.consensus_accountsundelegate_done:
+      return t('runtimeEvent.consensusUndelegateDone')
+    case RuntimeEventType.accountsmint:
+      return t('runtimeEvent.accountsmint')
+    case RuntimeEventType.accountsburn:
+      return t('runtimeEvent.accountsburn')
+    default:
+      return method || t('common.unknown')
+  }
+}
 
 export const EventTypeIcon: FC<{
   eventType: RuntimeEventType
-  eventName: string
-}> = ({ eventType, eventName }) => {
+}> = ({ eventType }) => {
+  const { t } = useTranslation()
+  const label = getRuntimeEventMethodLabel(t, eventType)
+  const props = {
+    border: false,
+    label,
+    reverseLabel: true,
+    size: 25,
+  }
   const eventTypeIcons: Record<RuntimeEventType, React.ReactNode> = {
-    [RuntimeEventType.accountstransfer]: <TransferIcon fontSize="inherit" />,
+    [RuntimeEventType.accountstransfer]: <MethodIcon color="green" icon={<ArrowForwardIcon />} {...props} />,
     [RuntimeEventType.evmlog]: <></>,
     [RuntimeEventType.coregas_used]: <></>,
-    [RuntimeEventType.consensus_accountswithdraw]: <WithdrawIcon fontSize="inherit" />,
-    [RuntimeEventType.consensus_accountsdeposit]: <DepositIcon fontSize="inherit" />,
-    [RuntimeEventType.consensus_accountsdelegate]: <DelegateIcon fontSize="inherit" />,
-    [RuntimeEventType.consensus_accountsundelegate_start]: <UndelegateStartIcon fontSize="inherit" />,
-    [RuntimeEventType.consensus_accountsundelegate_done]: <UndelegateFinishIcon fontSize="inherit" />,
-    [RuntimeEventType.accountsmint]: <StreamIcon fontSize="inherit" htmlColor={COLORS.eucalyptus} />,
+    [RuntimeEventType.consensus_accountswithdraw]: (
+      <MethodIcon color="orange" icon={<ArrowUpwardIcon />} {...props} />
+    ),
+    [RuntimeEventType.consensus_accountsdeposit]: (
+      <MethodIcon color="green" icon={<ArrowDownwardIcon />} {...props} />
+    ),
+    [RuntimeEventType.consensus_accountsdelegate]: <MethodIcon icon={<LanIcon />} {...props} />,
+    [RuntimeEventType.consensus_accountsundelegate_start]: (
+      <MethodIcon icon={<LanOutlinedIcon />} {...props} />
+    ),
+    [RuntimeEventType.consensus_accountsundelegate_done]: <MethodIcon icon={<LanIcon />} {...props} />,
+    [RuntimeEventType.accountsmint]: <MethodIcon color="green" icon={<StreamIcon />} {...props} />,
     [RuntimeEventType.accountsburn]: (
-      <LocalFireDepartmentIcon fontSize="inherit" htmlColor={COLORS.eucalyptus} />
+      <MethodIcon color="orange" icon={<LocalFireDepartmentIcon />} {...props} />
     ),
   }
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      <b>{eventName}</b>
-      &nbsp;
-      <Box component="span" sx={{ fontSize: 25, lineHeight: 0 }}>
-        {eventTypeIcons[eventType]}
-      </Box>
+      <b>{eventTypeIcons[eventType]}</b>
     </Box>
   )
 }
@@ -64,7 +105,8 @@ const EvmEventParamData: FC<{
   scope: SearchScope
   param: EvmAbiParam
   address?: string
-}> = ({ scope, param, address }) => {
+  alwaysTrimOnTable?: boolean
+}> = ({ scope, param, address, alwaysTrimOnTable }) => {
   /**
    * According to the API docs:
    *
@@ -76,7 +118,9 @@ const EvmEventParamData: FC<{
   switch (param.evm_type) {
     // TODO: handle more EVM types
     case 'address':
-      return address ? <AccountLink address={address} scope={scope} /> : null
+      return address ? (
+        <AccountLink address={address} scope={scope} alwaysTrimOnTablet={alwaysTrimOnTable} />
+      ) : null
     case 'uint256':
       // TODO: format with BigNumber
       return <span>{param.value as string}</span>
@@ -90,24 +134,9 @@ const EvmLogRow: FC<{
   param: EvmAbiParam
   addressSwitchOption: AddressSwitchOption
 }> = ({ scope, param, addressSwitchOption }) => {
-  const [address, setAddress] = useState<string>()
-
-  useEffect(() => {
-    if (param.evm_type !== 'address') {
-      return
-    }
-
-    const resolveAddresses = async () => {
-      if (addressSwitchOption === AddressSwitchOption.Oasis) {
-        const oasisAddress = await getOasisAddress(param.value as string)
-        setAddress(oasisAddress)
-      } else {
-        setAddress(param.value as string)
-      }
-    }
-
-    resolveAddresses()
-  }, [param, addressSwitchOption])
+  const evmAddress = param.evm_type === 'address' ? (param.value as string) : undefined
+  const oasisAddress = evmAddress ? getOasisAddress(evmAddress) : undefined
+  const address = addressSwitchOption === AddressSwitchOption.Oasis ? oasisAddress : evmAddress
 
   const getCopyToClipboardValue = () => {
     if (address) {
@@ -122,7 +151,7 @@ const EvmLogRow: FC<{
       <TableCell>{param.name}</TableCell>
       <TableCell>{param.evm_type}</TableCell>
       <TableCell>
-        <EvmEventParamData scope={scope} param={param} address={address} />{' '}
+        <EvmEventParamData scope={scope} param={param} address={address} alwaysTrimOnTable />{' '}
       </TableCell>
       <TableCell>
         <CopyToClipboard value={getCopyToClipboardValue()} />
@@ -138,20 +167,7 @@ export const RuntimeEventDetails: FC<{
 }> = ({ scope, event, addressSwitchOption }) => {
   const { isMobile } = useScreenSize()
   const { t } = useTranslation()
-  const eventTypeNames: Record<RuntimeEventType, string> = {
-    [RuntimeEventType.accountstransfer]: t('runtimeEvent.accountstransfer'),
-    [RuntimeEventType.evmlog]: t('runtimeEvent.evmLog'),
-    [RuntimeEventType.coregas_used]: t('runtimeEvent.gasUsed'),
-    [RuntimeEventType.consensus_accountswithdraw]: t('runtimeEvent.consensusWithdrawal'),
-    [RuntimeEventType.consensus_accountsdeposit]: t('runtimeEvent.consensusDeposit'),
-    [RuntimeEventType.consensus_accountsdelegate]: t('runtimeEvent.consensusDelegate'),
-    [RuntimeEventType.consensus_accountsundelegate_start]: t('runtimeEvent.consensusUndelegateStart'),
-    [RuntimeEventType.consensus_accountsundelegate_done]: t('runtimeEvent.consensusUndelegateDone'),
-    [RuntimeEventType.accountsmint]: t('runtimeEvent.accountsmint'),
-    [RuntimeEventType.accountsburn]: t('runtimeEvent.accountsburn'),
-  }
-
-  const eventName = eventTypeNames[event.type]
+  const eventName = getRuntimeEventMethodLabel(t, event.type)
   switch (event.type) {
     case RuntimeEventType.coregas_used:
       return (
@@ -161,14 +177,44 @@ export const RuntimeEventDetails: FC<{
       )
     case RuntimeEventType.evmlog: {
       const { parsedEvmLogName } = parseEvmEvent(event)
+      const emittingEthAddress = `0x${Buffer.from(event.body.address, 'base64').toString('hex')}`
+      const emittingOasisAddress = getOasisAddress(emittingEthAddress)
       if (!event.evm_log_name && !event.evm_log_params) {
         return (
           <div>
             <b>{eventName}</b>
             <br />
+            {t('runtimeEvent.fields.topics')}:
+            <Typography
+              variant="mono"
+              fontWeight={400}
+              sx={{
+                display: 'block',
+                whiteSpace: 'pre-wrap',
+                overflowWrap: 'break-word',
+              }}
+            >
+              {event.body.topics
+                /* @ts-expect-error -- Event body is missing types */
+                .map((base64Topic, index) => {
+                  return `${index}: 0x${Buffer.from(base64Topic, 'base64').toString('hex')}`
+                })
+                .join('\n')}
+            </Typography>
+            <br />
+            {t('runtimeEvent.fields.data')}:
             <LongDataDisplay
               data={`0x${Buffer.from(event.body.data, 'base64').toString('hex')}`}
               fontWeight={400}
+            />
+            <br />
+            {t('runtimeEvent.fields.emittingContract')}:
+            <br />
+            <WrappedAccountLinkWithAddressSwitch
+              scope={scope}
+              addressSwitchOption={addressSwitchOption}
+              ethAddress={emittingEthAddress}
+              oasisAddress={emittingOasisAddress}
             />
           </div>
         )
@@ -176,12 +222,9 @@ export const RuntimeEventDetails: FC<{
       return (
         <div>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {eventName}: &nbsp;
             <b>
-              <TokenTransferLabel name={parsedEvmLogName} />
+              <TokenTransferIcon reverseLabel method={parsedEvmLogName} size={25} />
             </b>
-            &nbsp;
-            <TokenTransferIcon name={parsedEvmLogName} size={25} />
           </Box>
           <br />
           {event.evm_log_params && event.evm_log_params.length > 0 && (
@@ -206,6 +249,15 @@ export const RuntimeEventDetails: FC<{
               </TableBody>
             </Table>
           )}
+          <br />
+          {t('runtimeEvent.fields.emittingContract')}:
+          <br />
+          <WrappedAccountLinkWithAddressSwitch
+            scope={scope}
+            addressSwitchOption={addressSwitchOption}
+            ethAddress={emittingEthAddress}
+            oasisAddress={emittingOasisAddress}
+          />
         </div>
       )
     }
@@ -214,18 +266,16 @@ export const RuntimeEventDetails: FC<{
     case RuntimeEventType.accountsmint:
       return (
         <div>
-          <EventTypeIcon eventType={event.type} eventName={eventName} />
+          <EventTypeIcon eventType={event.type} />
           <StyledDescriptionList titleWidth={isMobile ? '100px' : '200px'}>
             <dt>{t('runtimeEvent.fields.owner')}</dt>
             <dd>
-              <AccountLink
-                address={event.body.owner}
+              <AccountLinkWithAddressSwitch
                 scope={scope}
-                plain={addressSwitchOption !== AddressSwitchOption.Oasis}
+                addressSwitchOption={addressSwitchOption}
+                ethAddress={event.body.owner_eth}
+                oasisAddress={event.body.owner}
               />
-              {addressSwitchOption === AddressSwitchOption.Oasis && (
-                <CopyToClipboard value={event.body.owner} />
-              )}
             </dd>
             <dt>{t('runtimeEvent.fields.amount')}</dt>
             <dd>
@@ -242,28 +292,26 @@ export const RuntimeEventDetails: FC<{
     case RuntimeEventType.consensus_accountswithdraw:
       return (
         <div>
-          <EventTypeIcon eventType={event.type} eventName={eventName} />
+          <EventTypeIcon eventType={event.type} />
           <StyledDescriptionList titleWidth={isMobile ? '100px' : '200px'}>
             <MaybeEventErrorLine event={event} />
             <dt>{t('common.from')}</dt>
             <dd>
-              <AccountLink
-                address={event.body.from}
+              <AccountLinkWithAddressSwitch
                 scope={scope}
-                plain={addressSwitchOption !== AddressSwitchOption.Oasis}
+                addressSwitchOption={addressSwitchOption}
+                ethAddress={event.body.from_eth}
+                oasisAddress={event.body.from}
               />
-              {addressSwitchOption === AddressSwitchOption.Oasis && (
-                <CopyToClipboard value={event.body.from} />
-              )}
             </dd>
             <dt>{t('common.to')}</dt>
             <dd>
-              <AccountLink
-                address={event.body.to}
+              <AccountLinkWithAddressSwitch
                 scope={scope}
-                plain={addressSwitchOption !== AddressSwitchOption.Oasis}
+                addressSwitchOption={addressSwitchOption}
+                ethAddress={event.body.to_eth}
+                oasisAddress={event.body.to}
               />
-              {addressSwitchOption === AddressSwitchOption.Oasis && <CopyToClipboard value={event.body.to} />}
             </dd>
             <dt>{t('runtimeEvent.fields.amount')}</dt>
             <dd>
@@ -278,28 +326,26 @@ export const RuntimeEventDetails: FC<{
     case RuntimeEventType.consensus_accountsdelegate:
       return (
         <div>
-          <EventTypeIcon eventType={event.type} eventName={eventName} />
+          <EventTypeIcon eventType={event.type} />
           <StyledDescriptionList titleWidth={isMobile ? '100px' : '200px'}>
             <MaybeEventErrorLine event={event} />
             <dt>{t('common.from')}</dt>
             <dd>
-              <AccountLink
-                address={event.body.from}
+              <AccountLinkWithAddressSwitch
                 scope={scope}
-                plain={addressSwitchOption !== AddressSwitchOption.Oasis}
+                addressSwitchOption={addressSwitchOption}
+                ethAddress={event.body.from_eth}
+                oasisAddress={event.body.from}
               />
-              {addressSwitchOption === AddressSwitchOption.Oasis && (
-                <CopyToClipboard value={event.body.from} />
-              )}
             </dd>
             <dt>{t('common.to')}</dt>
             <dd>
-              <AccountLink
-                address={event.body.to}
+              <AccountLinkWithAddressSwitch
                 scope={scope}
-                plain={addressSwitchOption !== AddressSwitchOption.Oasis}
+                addressSwitchOption={addressSwitchOption}
+                ethAddress={event.body.to_eth}
+                oasisAddress={event.body.to}
               />
-              {addressSwitchOption === AddressSwitchOption.Oasis && <CopyToClipboard value={event.body.to} />}
             </dd>
             <dt>{t('runtimeEvent.fields.amount')}</dt>
             <dd>
@@ -314,28 +360,26 @@ export const RuntimeEventDetails: FC<{
     case RuntimeEventType.consensus_accountsundelegate_start:
       return (
         <div>
-          <EventTypeIcon eventType={event.type} eventName={eventName} />
+          <EventTypeIcon eventType={event.type} />
           <StyledDescriptionList titleWidth={isMobile ? '100px' : '200px'}>
             <MaybeEventErrorLine event={event} />
             <dt>{t('common.from')}</dt>
             <dd>
-              <AccountLink
-                address={event.body.from}
+              <AccountLinkWithAddressSwitch
                 scope={scope}
-                plain={addressSwitchOption !== AddressSwitchOption.Oasis}
+                addressSwitchOption={addressSwitchOption}
+                ethAddress={event.body.from_eth}
+                oasisAddress={event.body.from}
               />
-              {addressSwitchOption === AddressSwitchOption.Oasis && (
-                <CopyToClipboard value={event.body.from} />
-              )}
             </dd>
             <dt>{t('common.to')}</dt>
             <dd>
-              <AccountLink
-                address={event.body.to}
+              <AccountLinkWithAddressSwitch
                 scope={scope}
-                plain={addressSwitchOption !== AddressSwitchOption.Oasis}
+                addressSwitchOption={addressSwitchOption}
+                ethAddress={event.body.to_eth}
+                oasisAddress={event.body.to}
               />
-              {addressSwitchOption === AddressSwitchOption.Oasis && <CopyToClipboard value={event.body.to} />}
             </dd>
             <dt>{t('runtimeEvent.fields.activeShares')}</dt>
             <dd>
@@ -349,28 +393,26 @@ export const RuntimeEventDetails: FC<{
     case RuntimeEventType.consensus_accountsundelegate_done:
       return (
         <div>
-          <EventTypeIcon eventType={event.type} eventName={eventName} />
+          <EventTypeIcon eventType={event.type} />
           <StyledDescriptionList titleWidth={isMobile ? '100px' : '200px'}>
             <MaybeEventErrorLine event={event} />
             <dt>{t('common.from')}</dt>
             <dd>
-              <AccountLink
-                address={event.body.from}
+              <AccountLinkWithAddressSwitch
                 scope={scope}
-                plain={addressSwitchOption !== AddressSwitchOption.Oasis}
+                addressSwitchOption={addressSwitchOption}
+                ethAddress={event.body.from_eth}
+                oasisAddress={event.body.from}
               />
-              {addressSwitchOption === AddressSwitchOption.Oasis && (
-                <CopyToClipboard value={event.body.from} />
-              )}
             </dd>
             <dt>{t('common.to')}</dt>
             <dd>
-              <AccountLink
-                address={event.body.to}
+              <AccountLinkWithAddressSwitch
                 scope={scope}
-                plain={addressSwitchOption !== AddressSwitchOption.Oasis}
+                addressSwitchOption={addressSwitchOption}
+                ethAddress={event.body.to_eth}
+                oasisAddress={event.body.to}
               />
-              {addressSwitchOption === AddressSwitchOption.Oasis && <CopyToClipboard value={event.body.to} />}
             </dd>
             <dt>{t('runtimeEvent.fields.amount')}</dt>
             <dd>
