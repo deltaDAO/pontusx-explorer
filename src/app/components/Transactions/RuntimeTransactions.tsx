@@ -6,7 +6,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import LockIcon from '@mui/icons-material/Lock'
 import { Table, TableCellAlign, TableColProps } from '../../components/Table'
 import { StatusIcon } from '../StatusIcon'
-import { RuntimeTransactionIcon } from '../../components/RuntimeTransactionLabel'
+import { RuntimeTransactionMethod } from '../../components/RuntimeTransactionMethod'
 import { RoundedBalance } from '../../components/RoundedBalance'
 import { RuntimeTransaction } from '../../../oasis-nexus/api'
 import { COLORS } from '../../../styles/theme/colors'
@@ -75,7 +75,7 @@ export const RuntimeTransactions: FC<TransactionsProps> = ({
     { key: 'age', content: t('common.age'), align: TableCellAlign.Right },
     ...(verbose
       ? [
-          { key: 'type', content: t('common.type'), align: TableCellAlign.Center },
+          { key: 'type', content: t('common.type') },
           { key: 'from', content: t('common.from'), width: '150px' },
           { key: 'to', content: t('common.to'), width: '150px' },
           { key: 'txnFee', content: t('common.transactionFee'), align: TableCellAlign.Right, width: '250px' },
@@ -86,7 +86,7 @@ export const RuntimeTransactions: FC<TransactionsProps> = ({
   const tableRows = transactions?.map(transaction => {
     const targetAddress = transaction.to_eth || transaction.to
     return {
-      key: transaction.hash,
+      key: `${transaction.hash}${transaction.index}`,
       data: [
         {
           content: <StatusIcon success={transaction.success} error={transaction.error} />,
@@ -118,8 +118,7 @@ export const RuntimeTransactions: FC<TransactionsProps> = ({
         ...(verbose
           ? [
               {
-                align: TableCellAlign.Center,
-                content: <RuntimeTransactionIcon method={transaction.method} />,
+                content: <RuntimeTransactionMethod method={transaction.method} truncate />,
                 key: 'type',
               },
               {
@@ -134,13 +133,13 @@ export const RuntimeTransactions: FC<TransactionsProps> = ({
                     }}
                   >
                     <AccountLink
-                      scope={transaction}
-                      address={transaction.sender_0_eth || transaction.sender_0}
-                      alwaysTrim
-                      plain={
+                      labelOnly={
                         !!ownAddress &&
                         (transaction.sender_0_eth === ownAddress || transaction.sender_0 === ownAddress)
                       }
+                      scope={transaction}
+                      address={transaction.sender_0_eth || transaction.sender_0}
+                      alwaysTrim
                     />
                     {targetAddress && (
                       <StyledCircle>
@@ -154,12 +153,12 @@ export const RuntimeTransactions: FC<TransactionsProps> = ({
               {
                 content: targetAddress ? (
                   <AccountLink
+                    labelOnly={
+                      !!ownAddress && (transaction.to_eth === ownAddress || transaction.to === ownAddress)
+                    }
                     scope={transaction}
                     address={targetAddress}
                     alwaysTrim
-                    plain={
-                      !!ownAddress && (transaction.to_eth === ownAddress || transaction.to === ownAddress)
-                    }
                   />
                 ) : null,
                 key: 'to',

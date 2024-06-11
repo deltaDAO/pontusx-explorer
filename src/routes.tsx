@@ -5,30 +5,34 @@ import { RuntimeTransactionsPage } from './app/pages/RuntimeTransactionsPage'
 import { RuntimeTransactionDetailPage } from './app/pages/RuntimeTransactionDetailPage'
 import { ParatimeDashboardPage } from './app/pages/ParatimeDashboardPage'
 import { RuntimeBlockDetailPage } from './app/pages/RuntimeBlockDetailPage'
-import { AccountDetailsPage, useAccountDetailsProps } from './app/pages/AccountDetailsPage'
-import { AccountTransactionsCard } from './app/pages/AccountDetailsPage/AccountTransactionsCard'
-import { AccountTokensCard } from './app/pages/AccountDetailsPage/AccountTokensCard'
+import {
+  RuntimeAccountDetailsPage,
+  useRuntimeAccountDetailsProps,
+} from './app/pages/RuntimeAccountDetailsPage'
+import { AccountTransactionsCard } from './app/pages/RuntimeAccountDetailsPage/AccountTransactionsCard'
+import { AccountTokensCard } from './app/pages/RuntimeAccountDetailsPage/AccountTokensCard'
 import { SearchResultsPage } from './app/pages/SearchResultsPage'
 import {
   consensusAddressParamLoader,
   runtimeAddressParamLoader,
   blockHeightParamLoader,
-  transactionParamLoader,
+  consensusTransactionParamLoader,
+  runtimeTransactionParamLoader,
   assertEnabledScope,
   proposalIdParamLoader,
   fixedNetwork,
   fixedLayer,
   RouteUtils,
+  skipGraph,
 } from './app/utils/route-utils'
-import { searchParamLoader } from './app/components/Search/search-utils'
 import { RoutingErrorPage } from './app/pages/RoutingErrorPage'
-import { ThemeByNetwork, withDefaultTheme } from './app/components/ThemeByNetwork'
+import { ThemeByScope, withDefaultTheme } from './app/components/ThemeByScope'
 import { useRequiredScopeParam } from './app/hooks/useScopeParam'
 import { TokensPage } from './app/pages/TokensOverviewPage'
-import { ContractCodeCard } from './app/pages/AccountDetailsPage/ContractCodeCard'
+import { ContractCodeCard } from './app/pages/RuntimeAccountDetailsPage/ContractCodeCard'
 import { TokenDashboardPage, useTokenDashboardProps } from './app/pages/TokenDashboardPage'
-import { AccountTokenTransfersCard } from './app/pages/AccountDetailsPage/AccountTokenTransfersCard'
-import { AccountNFTCollectionCard } from './app/pages/AccountDetailsPage/AccountNFTCollectionCard'
+import { AccountTokenTransfersCard } from './app/pages/RuntimeAccountDetailsPage/AccountTokenTransfersCard'
+import { AccountNFTCollectionCard } from './app/pages/RuntimeAccountDetailsPage/AccountNFTCollectionCard'
 import { TokenTransfersCard } from './app/pages/TokenDashboardPage/TokenTransfersCard'
 import { TokenHoldersCard } from './app/pages/TokenDashboardPage/TokenHoldersCard'
 import { TokenInventoryCard } from './app/pages/TokenDashboardPage/TokenInventoryCard'
@@ -39,25 +43,34 @@ import { ConsensusDashboardPage } from 'app/pages/ConsensusDashboardPage'
 import { ValidatorsPage } from './app/pages/ValidatorsPage'
 import { ProposalsPage } from './app/pages/ProposalsPage'
 import { ValidatorDetailsPage } from './app/pages/ValidatorDetailsPage'
+import { useValidatorDetailsProps } from './app/pages/ValidatorDetailsPage/hooks'
+import { DebondingDelegationsCard } from './app/pages/ValidatorDetailsPage/DebondingDelegationsCard'
+import { DelegatorsCard } from './app/pages/ValidatorDetailsPage/DelegatorsCard'
 import { Layer } from './oasis-nexus/api'
 import { SearchScope } from './types/searchScope'
 import { ProposalDetailsPage } from './app/pages/ProposalDetailsPage'
 import { ConsensusBlocksPage } from './app/pages/ConsensusBlocksPage'
 import { ConsensusAccountsPage } from './app/pages/ConsensusAccountsPage'
 import { ConsensusTransactionsPage } from './app/pages/ConsensusTransactionsPage'
+import { ConsensusTransactionDetailPage } from './app/pages/ConsensusTransactionDetailPage'
 import { ConsensusAccountDetailsPage } from './app/pages/ConsensusAccountDetailsPage'
+import { useConsensusAccountDetailsProps } from './app/pages/ConsensusAccountDetailsPage/hooks'
+import { ConsensusAccountTransactionsCard } from './app/pages/ConsensusAccountDetailsPage/ConsensusAccountTransactionsCard'
 import { FC, useEffect } from 'react'
-import { PrivacyPage } from './app/pages/PrivacyPage'
-import { showPrivacyPolicy } from './config'
+import { AnalyticsConsentProvider } from './app/components/AnalyticsConsent'
+import { PontusxPrivacyPage } from './app/pages/PontusxPrivacyPage'
 
-const NetworkSpecificPart = () => (
-  <ThemeByNetwork network={useRequiredScopeParam().network}>
-    <Outlet />
-  </ThemeByNetwork>
-)
+const ScopeSpecificPart = () => {
+  const { network, layer } = useRequiredScopeParam()
+  return (
+    <ThemeByScope isRootTheme={true} network={network} layer={layer}>
+      <Outlet />
+    </ThemeByScope>
+  )
+}
 
 /**
- * In case of being restricted to a specific layer, jump to a dashboard
+ * In case of being restricted to a specific layer or layers, jump to a dashboard
  *
  * This should be rendered on the landing page, since we don't want the opening graph.
  */
@@ -67,8 +80,11 @@ const RedirectToDashboard: FC = () => {
   useEffect(() =>
     navigate(
       RouteUtils.getDashboardRoute({
-        network: fixedNetwork ?? RouteUtils.getEnabledNetworksForLayer(fixedLayer!)[0]!,
-        layer: fixedLayer!,
+        network:
+          fixedNetwork ?? fixedLayer
+            ? RouteUtils.getEnabledNetworksForLayer(fixedLayer)[0]!
+            : RouteUtils.getEnabledScopes()[0].network,
+        layer: fixedLayer ?? RouteUtils.getEnabledScopes()[0].layer,
       }),
     ),
   )
@@ -77,17 +93,21 @@ const RedirectToDashboard: FC = () => {
 
 export const routes: RouteObject[] = [
   {
-    errorElement: <RoutingErrorPage />,
+    errorElement: (
+      <AnalyticsConsentProvider>
+        <RoutingErrorPage />
+      </AnalyticsConsentProvider>
+    ),
     element: (
-      <>
+      <AnalyticsConsentProvider>
         <ScrollRestoration />
         <Outlet />
-      </>
+      </AnalyticsConsentProvider>
     ),
     children: [
       {
         path: '/',
-        element: fixedLayer ? <RedirectToDashboard /> : withDefaultTheme(<HomePage />, true),
+        element: skipGraph ? <RedirectToDashboard /> : withDefaultTheme(<HomePage />, true),
       },
       ...(!!fixedNetwork && !!fixedLayer
         ? []
@@ -95,12 +115,11 @@ export const routes: RouteObject[] = [
             {
               path: '/search', // Global search
               element: withDefaultTheme(<SearchResultsPage />),
-              loader: searchParamLoader,
             },
           ]),
       {
         path: '/:_network/consensus',
-        element: <NetworkSpecificPart />,
+        element: <ScopeSpecificPart />,
         errorElement: <RoutingErrorPage />,
         loader: async ({ params }): Promise<SearchScope> => {
           return assertEnabledScope({ network: params._network, layer: Layer.consensus })
@@ -119,6 +138,12 @@ export const routes: RouteObject[] = [
             path: `address/:address`,
             element: <ConsensusAccountDetailsPage />,
             loader: consensusAddressParamLoader(),
+            children: [
+              {
+                path: '',
+                Component: () => <ConsensusAccountTransactionsCard {...useConsensusAccountDetailsProps()} />,
+              },
+            ],
           },
           {
             path: `proposal`,
@@ -137,6 +162,20 @@ export const routes: RouteObject[] = [
             path: `validators/:address`,
             element: <ValidatorDetailsPage />,
             loader: consensusAddressParamLoader(),
+            children: [
+              {
+                path: '',
+                Component: () => <ConsensusAccountTransactionsCard {...useValidatorDetailsProps()} />,
+              },
+              {
+                path: 'delegators',
+                Component: () => <DelegatorsCard {...useValidatorDetailsProps()} />,
+              },
+              {
+                path: 'debonding-delegations',
+                Component: () => <DebondingDelegationsCard {...useValidatorDetailsProps()} />,
+              },
+            ],
           },
           {
             path: `block`,
@@ -146,11 +185,16 @@ export const routes: RouteObject[] = [
             path: 'tx',
             element: <ConsensusTransactionsPage />,
           },
+          {
+            path: `tx/:hash`,
+            element: <ConsensusTransactionDetailPage />,
+            loader: consensusTransactionParamLoader,
+          },
         ],
       },
       {
         path: '/:_network/:_layer',
-        element: <NetworkSpecificPart />,
+        element: <ScopeSpecificPart />,
         errorElement: <RoutingErrorPage />,
         loader: async ({ params }): Promise<SearchScope> => {
           return assertEnabledScope({ network: params._network, layer: params._layer })
@@ -164,7 +208,6 @@ export const routes: RouteObject[] = [
           {
             path: 'search', // Search within this scope
             element: <SearchResultsPage />,
-            loader: searchParamLoader,
           },
 
           {
@@ -178,38 +221,38 @@ export const routes: RouteObject[] = [
           },
           {
             path: `address/:address`,
-            element: <AccountDetailsPage />,
+            element: <RuntimeAccountDetailsPage />,
             loader: runtimeAddressParamLoader(),
             children: [
               {
                 path: '',
-                Component: () => <AccountTransactionsCard {...useAccountDetailsProps()} />,
+                Component: () => <AccountTransactionsCard {...useRuntimeAccountDetailsProps()} />,
               },
               {
                 path: 'token-transfers',
-                Component: () => <AccountTokenTransfersCard {...useAccountDetailsProps()} />,
+                Component: () => <AccountTokenTransfersCard {...useRuntimeAccountDetailsProps()} />,
               },
               {
                 path: 'tokens/erc-20',
-                Component: () => <AccountTokensCard {...useAccountDetailsProps()} type="ERC20" />,
+                Component: () => <AccountTokensCard {...useRuntimeAccountDetailsProps()} type="ERC20" />,
               },
               {
                 path: 'tokens/erc-721',
                 children: [
                   {
                     path: '',
-                    Component: () => <AccountTokensCard {...useAccountDetailsProps()} type="ERC721" />,
+                    Component: () => <AccountTokensCard {...useRuntimeAccountDetailsProps()} type="ERC721" />,
                   },
                   {
                     path: ':contractAddress',
-                    Component: () => <AccountNFTCollectionCard {...useAccountDetailsProps()} />,
+                    Component: () => <AccountNFTCollectionCard {...useRuntimeAccountDetailsProps()} />,
                     loader: runtimeAddressParamLoader('contractAddress'),
                   },
                 ],
               },
               {
                 path: 'code',
-                Component: () => <ContractCodeCard {...useAccountDetailsProps()} />,
+                Component: () => <ContractCodeCard {...useRuntimeAccountDetailsProps()} />,
               },
             ],
           },
@@ -220,7 +263,7 @@ export const routes: RouteObject[] = [
           {
             path: `tx/:hash`,
             element: <RuntimeTransactionDetailPage />,
-            loader: transactionParamLoader,
+            loader: runtimeTransactionParamLoader,
           },
           {
             path: `token`,
@@ -266,14 +309,10 @@ export const routes: RouteObject[] = [
           },
         ],
       },
-      ...(showPrivacyPolicy
-        ? [
-            {
-              path: '/privacy',
-              element: withDefaultTheme(<PrivacyPage />),
-            },
-          ]
-        : []),
+      {
+        path: '/privacy',
+        element: <PontusxPrivacyPage />,
+      },
     ],
   },
 ]

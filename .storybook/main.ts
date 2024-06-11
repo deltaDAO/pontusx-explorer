@@ -1,4 +1,7 @@
+import path from 'path'
 import type { StorybookConfig } from '@storybook/react-webpack5'
+
+const appSource = path.resolve(__dirname, '../src/app')
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(js|jsx|ts|tsx)'],
@@ -9,6 +12,7 @@ const config: StorybookConfig = {
     '@storybook/addon-interactions',
     'storybook-addon-react-router-v6',
     '@storybook/addon-viewport',
+    '@storybook/addon-webpack5-compiler-babel',
   ],
   framework: {
     name: '@storybook/react-webpack5',
@@ -21,7 +25,7 @@ const config: StorybookConfig = {
   babel: async options => ({
     ...options,
     presets: [
-      ...options.presets!,
+      ...(options.presets || []), // In Storybook 8 presets are not provided
       ...[
         [
           '@babel/preset-env',
@@ -32,6 +36,7 @@ const config: StorybookConfig = {
           },
         ],
         '@babel/preset-typescript',
+        ['@babel/preset-react', { runtime: 'automatic' }],
       ],
     ],
   }),
@@ -41,6 +46,14 @@ const config: StorybookConfig = {
   webpackFinal: async config => {
     return {
       ...config,
+      resolve: {
+        ...config.resolve,
+        alias: {
+          ...config.resolve?.alias,
+          'app/hooks': path.resolve(appSource, 'hooks'),
+          'app/components': path.resolve(appSource, 'components'),
+        },
+      },
       module: {
         ...config.module,
         unknownContextCritical: false,

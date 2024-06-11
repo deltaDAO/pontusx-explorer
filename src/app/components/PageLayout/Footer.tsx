@@ -4,20 +4,21 @@ import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import { useScreenSize } from '../../hooks/useScreensize'
 import { styled } from '@mui/material/styles'
-import { Link as RouterLink } from 'react-router-dom'
 import Link from '@mui/material/Link'
 import { useTheme } from '@mui/material/styles'
 import { useConstant } from '../../hooks/useConstant'
 import { AppendMobileSearch } from '../AppendMobileSearch'
 import { SearchScope } from '../../../types/searchScope'
 import { api, github } from '../../utils/externalLinks'
-import { showPrivacyPolicy } from '../../../config'
+import { ReopenAnalyticsConsentButton } from 'app/components/AnalyticsConsent'
 
-const FooterBox = styled(Box)(({ theme }) => ({
+const FooterBox = styled(Box, {
+  shouldForwardProp: prop => prop !== 'enableMobileSearch',
+})<{ enableMobileSearch: boolean }>(({ theme, enableMobileSearch }) => ({
   display: 'flex',
   width: '100%',
   justifyContent: 'space-between',
-  padding: theme.spacing(5, 4),
+  padding: theme.spacing(5, enableMobileSearch ? 4 : 0),
   [theme.breakpoints.up('sm')]: {
     flex: '0 1 100%',
     padding: theme.spacing(5, 0),
@@ -32,30 +33,47 @@ const StyledBox = styled(Box)(({ theme }) => ({
 const StyledLinksGroup = styled(Box)(({ theme }) => ({
   display: 'flex',
   gap: theme.spacing(3),
-  borderLeft: `1px solid ${theme.palette.layout.main}`,
-  paddingLeft: theme.spacing(3),
-  marginLeft: theme.spacing(3),
+  paddingLeft: theme.spacing(2),
+}))
+
+const StyledTypography = styled(Typography)(() => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 2,
+  flexWrap: 'wrap',
 }))
 
 interface FooterProps {
   scope?: SearchScope
   mobileSearchAction?: ReactNode
+  enableMobileSearch?: boolean
 }
 
-export const Footer: FC<FooterProps> = ({ scope, mobileSearchAction }) => {
+export const Footer: FC<FooterProps> = ({ scope, mobileSearchAction, enableMobileSearch = true }) => {
   const theme = useTheme()
   const { t } = useTranslation()
   const { isMobile, isTablet } = useScreenSize()
   const currentYear = useConstant(() => new Date().getFullYear())
+  const hasMobileAction = isMobile && mobileSearchAction
+  const privacyPolicyLinkStyles = hasMobileAction ? { order: 1, flexBasis: '100%' } : {}
 
   return (
     <footer>
-      <FooterBox>
+      <FooterBox enableMobileSearch={enableMobileSearch}>
         {isTablet ? (
-          <AppendMobileSearch scope={scope} action={isMobile && mobileSearchAction}>
-            <Typography variant="footer">
-              {isTablet ? t('footer.mobileTitle') : t('footer.title')} | {currentYear}
-            </Typography>
+          <AppendMobileSearch
+            scope={scope}
+            action={isMobile && mobileSearchAction}
+            enableMobileSearch={enableMobileSearch}
+          >
+            <StyledTypography variant="footer">
+              <Box sx={{ whiteSpace: 'nowrap' }}>{t('footer.mobileTitle')} |</Box>
+              <Box sx={privacyPolicyLinkStyles}>
+                <ReopenAnalyticsConsentButton />
+                {!hasMobileAction && ' | '}
+              </Box>
+              <Box>{currentYear}</Box>
+            </StyledTypography>
           </AppendMobileSearch>
         ) : (
           <>
@@ -109,6 +127,7 @@ export const Footer: FC<FooterProps> = ({ scope, mobileSearchAction }) => {
               )}
               <StyledLinksGroup>
                 <Typography variant="footer">
+                  {' | '}
                   <Link
                     href={api.spec}
                     rel="noopener noreferrer"
@@ -130,15 +149,8 @@ export const Footer: FC<FooterProps> = ({ scope, mobileSearchAction }) => {
                 </Typography>
               </StyledLinksGroup>
             </StyledBox>
-            {showPrivacyPolicy && (
-              <Typography variant="footer">
-                <Link component={RouterLink} to={'/privacy'} sx={{ color: theme.palette.layout.main }}>
-                  {t('privacyPolicy.title')}
-                </Link>
-              </Typography>
-            )}
             <Typography variant="footer">
-              {isTablet ? t('footer.mobileTitle') : t('footer.title')} | {currentYear}
+              {t('footer.title')} | <ReopenAnalyticsConsentButton /> | {currentYear}
             </Typography>
           </>
         )}

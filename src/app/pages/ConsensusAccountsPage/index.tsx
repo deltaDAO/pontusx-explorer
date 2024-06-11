@@ -14,7 +14,7 @@ import { useRequiredScopeParam } from '../../hooks/useScopeParam'
 import { CardHeaderWithCounter } from '../../components/CardHeaderWithCounter'
 import { VerticalList } from '../../components/VerticalList'
 import { AccountList } from 'app/components/AccountList'
-import { ConsensusAccountDetailsView } from '../ConsensusAccountDetailsPage'
+import { ConsensusAccountDetailsView } from '../../components/Account/ConsensusAccountDetailsView'
 
 export const ConsensusAccountsPage: FC = () => {
   const [tableView, setTableView] = useState<TableLayout>(TableLayout.Horizontal)
@@ -31,18 +31,10 @@ export const ConsensusAccountsPage: FC = () => {
     }
   }, [isMobile, setTableView])
 
-  const accountsQuery = useGetConsensusAccounts(
-    network,
-    {
-      limit: tableView === TableLayout.Vertical ? offset + PAGE_SIZE : PAGE_SIZE,
-      offset: tableView === TableLayout.Vertical ? 0 : offset,
-    },
-    {
-      query: {
-        cacheTime: 0,
-      },
-    },
-  )
+  const accountsQuery = useGetConsensusAccounts(network, {
+    limit: tableView === TableLayout.Vertical ? offset + PAGE_SIZE : PAGE_SIZE,
+    offset: tableView === TableLayout.Vertical ? 0 : offset,
+  })
   const { isLoading, isFetched, data } = accountsQuery
   const accountsData = data?.data
   if (isFetched && offset && !accountsData?.accounts?.length) {
@@ -65,6 +57,7 @@ export const ConsensusAccountsPage: FC = () => {
             isTotalCountClipped={accountsData?.is_total_count_clipped}
           />
         }
+        mainTitle
         action={isMobile && <TableLayoutButton tableView={tableView} setTableView={setTableView} />}
         noPadding={tableView === TableLayout.Vertical}
       >

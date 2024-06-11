@@ -5,9 +5,8 @@ import Link from '@mui/material/Link'
 import { RouteUtils } from '../../utils/route-utils'
 import InfoIcon from '@mui/icons-material/Info'
 import Typography from '@mui/material/Typography'
-import { COLORS } from '../../../styles/theme/colors'
 import { SearchScope } from '../../../types/searchScope'
-import { useAccountName } from '../../hooks/useAccountName'
+import { useAccountMetadata } from '../../hooks/useAccountMetadata'
 import { trimLongString } from '../../utils/trimLongString'
 import { MaybeWithTooltip } from '../AdaptiveTrimmer/MaybeWithTooltip'
 import Box from '@mui/material/Box'
@@ -17,10 +16,10 @@ import { AdaptiveTrimmer } from '../AdaptiveTrimmer/AdaptiveTrimmer'
 
 const WithTypographyAndLink: FC<{
   to: string
-  plain?: boolean
   mobile?: boolean
   children: ReactNode
-}> = ({ children, to, plain, mobile }) => {
+  labelOnly?: boolean
+}> = ({ children, to, mobile, labelOnly }) => {
   return (
     <Typography
       variant="mono"
@@ -32,12 +31,9 @@ const WithTypographyAndLink: FC<{
               overflow: 'hidden',
             }
           : {}),
-        ...(plain
-          ? { color: COLORS.grayExtraDark, fontWeight: 400 }
-          : { color: COLORS.brandDark, fontWeight: 700 }),
       }}
     >
-      {plain ? (
+      {labelOnly ? (
         children
       ) : (
         <Link component={RouterLink} to={to}>
@@ -48,7 +44,7 @@ const WithTypographyAndLink: FC<{
   )
 }
 
-export const AccountLink: FC<{
+interface Props {
   scope: SearchScope
   address: string
 
@@ -58,9 +54,9 @@ export const AccountLink: FC<{
   alwaysTrim?: boolean
 
   /**
-   * Plain mode? (No link required)
+   * Should we always trim the text to a short line when on mobile or Tablet?
    */
-  plain?: boolean
+  alwaysTrimOnTablet?: boolean
 
   /**
    * What part of the name should be highlighted (if any)
@@ -73,35 +69,60 @@ export const AccountLink: FC<{
    * (Besides the content necessary because of potential shortening)
    */
   extraTooltip?: ReactNode
-}> = ({ scope, address, alwaysTrim, plain, highlightedPartOfName, extraTooltip }) => {
+
+  /**
+   * Should we display this as a simple label, with no link?
+   *
+   * (Used for own address)
+   */
+  labelOnly?: boolean
+}
+
+export const AccountLink: FC<Props> = ({
+  scope,
+  address,
+  alwaysTrim,
+  alwaysTrimOnTablet,
+  highlightedPartOfName,
+  extraTooltip,
+  labelOnly,
+}) => {
   const { isTablet } = useScreenSize()
-  const { name: accountName } = useAccountName(scope, address)
+  const {
+    metadata: accountMetadata,
+    // isError, // Use this to indicate that we have failed to load the name for this account
+  } = useAccountMetadata(scope, address)
+  const accountName = accountMetadata?.name // TODO: we should also use the description
+
   const to = RouteUtils.getAccountRoute(scope, address)
 
-  const tooltipPostfix = extraTooltip ? (
-    <>
+  const extraTooltipWithIcon = extraTooltip ? (
+    <Box
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        verticalAlign: 'middle',
+        gap: 2,
+      }}
+    >
       <InfoIcon />
       {extraTooltip}
-    </>
+    </Box>
   ) : undefined
 
-  // Are we in a table?
-  if (alwaysTrim) {
-    // In a table, we only ever want one short line
+  // Are we in a situation when we should always trim?
+  if (alwaysTrim || (alwaysTrimOnTablet && isTablet)) {
+    // In a table, we only ever want a short line
 
     return (
-      <WithTypographyAndLink to={to} plain={plain}>
+      <WithTypographyAndLink to={to} labelOnly={labelOnly}>
         <MaybeWithTooltip
           title={
-            accountName ? (
-              <div>
-                <Box sx={{ fontWeight: 'bold' }}>{accountName}</Box>
-                <Box sx={{ fontWeight: 'normal' }}>{address}</Box>
-                {tooltipPostfix}
-              </div>
-            ) : (
-              address
-            )
+            <div>
+              {accountName && <Box sx={{ fontWeight: 'bold' }}>{accountName}</Box>}
+              <Box sx={{ fontWeight: 'normal' }}>{address}</Box>
+              {extraTooltipWithIcon}
+            </div>
           }
         >
           {accountName ? trimLongString(accountName, 12, 0) : trimLongString(address, 6, 6)}
@@ -115,8 +136,8 @@ export const AccountLink: FC<{
     // We want one long line, with name and address.
 
     return (
-      <WithTypographyAndLink to={to} plain={plain}>
-        <MaybeWithTooltip title={tooltipPostfix}>
+      <WithTypographyAndLink to={to} labelOnly={labelOnly}>
+        <MaybeWithTooltip title={extraTooltipWithIcon}>
           {accountName ? (
             <span>
               <HighlightedText text={accountName} pattern={highlightedPartOfName} /> ({address})
@@ -131,9 +152,9 @@ export const AccountLink: FC<{
 
   // We need to show the data in details mode on mobile.
   // We want two lines, one for name (if available), one for address
-  // Both line adaptively shortened to fill available space
+  // Both lines adaptively shortened to fill available space
   return (
-    <WithTypographyAndLink to={to} plain={plain} mobile>
+    <WithTypographyAndLink to={to} mobile labelOnly={labelOnly}>
       <>
         <AdaptiveHighlightedText
           text={accountName}

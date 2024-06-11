@@ -57,7 +57,7 @@ export const ConsensusTransactions: FC<ConsensusTransactionsProps> = ({
       : []),
   ]
   const tableRows = transactions?.map(transaction => ({
-    key: transaction.hash,
+    key: `${transaction.hash}${transaction.index}`,
     data: [
       {
         content: <StatusIcon success={transaction.success} error={transaction.error} />,
@@ -78,8 +78,7 @@ export const ConsensusTransactions: FC<ConsensusTransactionsProps> = ({
       ...(verbose
         ? [
             {
-              align: TableCellAlign.Center,
-              content: <ConsensusTransactionMethod method={transaction.method} />,
+              content: <ConsensusTransactionMethod method={transaction.method} truncate />,
               key: 'method',
             },
             {
@@ -94,10 +93,10 @@ export const ConsensusTransactions: FC<ConsensusTransactionsProps> = ({
                   }}
                 >
                   <AccountLink
+                    labelOnly={!!ownAddress && transaction.sender === ownAddress}
                     scope={transaction}
                     address={transaction.sender}
                     alwaysTrim
-                    plain={!!ownAddress && transaction.sender === ownAddress}
                   />
                 </Box>
               ),

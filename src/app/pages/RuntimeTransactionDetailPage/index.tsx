@@ -11,7 +11,7 @@ import { StyledDescriptionList } from '../../components/StyledDescriptionList'
 import { PageLayout } from '../../components/PageLayout'
 import { SubPageCard } from '../../components/SubPageCard'
 import { StatusIcon } from '../../components/StatusIcon'
-import { RuntimeTransactionLabel } from '../../components/RuntimeTransactionLabel'
+import { RuntimeTransactionMethod } from '../../components/RuntimeTransactionMethod'
 import { useFormattedTimestampStringWithDistance } from '../../hooks/useFormattedTimestamp'
 import { styled } from '@mui/material/styles'
 import { useScreenSize } from '../../hooks/useScreensize'
@@ -119,6 +119,7 @@ export const RuntimeTransactionDetailPage: FC = () => {
             onSelectionChange={addressSwitch => setAddressSwitchOption(addressSwitch)}
           />
         }
+        mainTitle
       >
         <RuntimeTransactionDetailView
           isLoading={isLoading}
@@ -198,7 +199,6 @@ export const RuntimeTransactionDetailView: FC<{
                   hash={
                     hash || ((isOasisAddressFormat ? transaction?.eth_hash : transaction?.hash) as string)
                   }
-                  plain={!hash}
                   extraTooltip={
                     hash
                       ? isOasisAddressFormat
@@ -225,7 +225,7 @@ export const RuntimeTransactionDetailView: FC<{
 
           <dt>{t('common.type')}</dt>
           <dd>
-            <RuntimeTransactionLabel method={transaction.method} />
+            <RuntimeTransactionMethod method={transaction.method} />
           </dd>
 
           <dt>{t('transactions.encryption.format')}</dt>
@@ -254,7 +254,6 @@ export const RuntimeTransactionDetailView: FC<{
                     from ||
                     ((isOasisAddressFormat ? transaction?.sender_0_eth : transaction?.sender_0) as string)
                   }
-                  plain={!from}
                   extraTooltip={
                     from
                       ? isOasisAddressFormat
@@ -275,7 +274,6 @@ export const RuntimeTransactionDetailView: FC<{
                 <AccountLink
                   scope={transaction}
                   address={to || ((isOasisAddressFormat ? transaction?.to_eth : transaction?.to) as string)}
-                  plain={!to}
                   extraTooltip={
                     to
                       ? isOasisAddressFormat
@@ -332,6 +330,15 @@ export const RuntimeTransactionDetailView: FC<{
               <dt>{t('transaction.rawData')}</dt>
               <dd>
                 <LongDataDisplay data={base64ToHex(transaction.body.data)} />
+              </dd>
+            </>
+          )}
+
+          {!transaction.encryption_envelope && transaction.body?.init_code && (
+            <>
+              <dt>{t('transaction.rawData')}</dt>
+              <dd>
+                <LongDataDisplay data={base64ToHex(transaction.body.init_code)} />
               </dd>
             </>
           )}

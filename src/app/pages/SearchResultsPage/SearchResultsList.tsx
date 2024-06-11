@@ -4,10 +4,10 @@ import { ResultsGroupByType } from './ResultsGroupByType'
 import { RuntimeBlockDetailView } from '../RuntimeBlockDetailPage'
 import { RouteUtils } from '../../utils/route-utils'
 import { RuntimeTransactionDetailView } from '../RuntimeTransactionDetailPage'
-import { AccountDetailsView } from '../AccountDetailsPage/AccountDetailsView'
+import { RuntimeAccountDetailsView } from '../../components/Account/RuntimeAccountDetailsView'
+import { ConsensusAccountDetailsView } from '../../components/Account/ConsensusAccountDetailsView'
 import {
   AccountResult,
-  AccountAddressResult,
   BlockResult,
   ContractResult,
   ProposalResult,
@@ -15,16 +15,14 @@ import {
   TokenResult,
   TransactionResult,
 } from './hooks'
-import { getThemesForNetworks } from '../../../styles/theme'
+import { getThemeForScope } from '../../../styles/theme'
 import { Network } from '../../../types/network'
 import { SubPageCard } from '../../components/SubPageCard'
 import { AllTokenPrices } from '../../../coin-gecko/api'
 import { ResultListFrame } from './ResultListFrame'
 import { TokenDetails } from '../../components/Tokens/TokenDetails'
 import { ProposalDetailView } from '../ProposalDetailsPage'
-import { DeferredRuntimeAccountDetails } from '../AccountDetailsPage/DeferredRuntimeAccountDetails'
-import { Layer } from '../../../oasis-nexus/api'
-import { DeferredConsensusAccountDetails } from '../AccountDetailsPage/DeferredConsensusAccountDetails'
+import { Account, Layer, RuntimeAccount } from '../../../oasis-nexus/api'
 
 /**
  * Component for displaying a list of search results
@@ -46,7 +44,7 @@ export const SearchResultsList: FC<{
   if (!numberOfResults) {
     return null
   }
-  const theme = getThemesForNetworks()[networkForTheme]
+  const theme = getThemeForScope(networkForTheme)
 
   return (
     <ResultListFrame theme={theme}>
@@ -85,45 +83,27 @@ export const SearchResultsList: FC<{
         <ResultsGroupByType
           title={t('search.results.accounts.title')}
           results={searchResults.filter((item): item is AccountResult => item.resultType === 'account')}
-          resultComponent={item => (
-            <AccountDetailsView
-              isLoading={false}
-              isError={false}
-              account={item}
-              tokenPrices={tokenPrices}
-              showLayer={true}
-            />
-          )}
-          link={acc => RouteUtils.getAccountRoute(acc, acc.address_eth ?? acc.address)}
-          linkLabel={t('search.results.accounts.viewLink')}
-        />
-
-        <ResultsGroupByType
-          title={t('search.results.accounts.title')}
-          results={searchResults.filter(
-            (item): item is AccountAddressResult => item.resultType === 'accountAddress',
-          )}
           resultComponent={item =>
             item.layer === Layer.consensus ? (
-              <DeferredConsensusAccountDetails
-                network={item.network}
-                address={item.address}
-                tokenPrices={tokenPrices}
-                highlightedPartOfName={searchTerm}
+              <ConsensusAccountDetailsView
+                isLoading={false}
+                isError={false}
+                account={item as Account}
                 showLayer={true}
+                highlightedPartOfName={searchTerm}
               />
             ) : (
-              <DeferredRuntimeAccountDetails
-                network={item.network}
-                layer={item.layer}
-                address={item.address}
+              <RuntimeAccountDetailsView
+                isLoading={false}
+                isError={false}
+                account={item as RuntimeAccount}
                 tokenPrices={tokenPrices}
-                highlightedPartOfName={searchTerm}
                 showLayer={true}
+                highlightedPartOfName={searchTerm}
               />
             )
           }
-          link={acc => RouteUtils.getAccountRoute(acc, acc.address)}
+          link={acc => RouteUtils.getAccountRoute(acc, (acc as RuntimeAccount).address_eth ?? acc.address)}
           linkLabel={t('search.results.accounts.viewLink')}
         />
 
@@ -131,12 +111,13 @@ export const SearchResultsList: FC<{
           title={t('search.results.contracts.title')}
           results={searchResults.filter((item): item is ContractResult => item.resultType === 'contract')}
           resultComponent={item => (
-            <AccountDetailsView
+            <RuntimeAccountDetailsView
               isLoading={false}
               isError={false}
               account={item}
               tokenPrices={tokenPrices}
               showLayer={true}
+              highlightedPartOfName={searchTerm}
             />
           )}
           link={acc => RouteUtils.getAccountRoute(acc, acc.address_eth ?? acc.address)}

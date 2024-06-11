@@ -49,7 +49,11 @@ export const AdaptiveDynamicTrimmer: FC<AdaptiveDynamicTrimmerProps> = ({
   }, [])
 
   const attemptShortenedContent = useCallback(
-    (wantedLength: number) => attemptContent(getShortenedContent(wantedLength), wantedLength),
+    (length: number) => {
+      const content = getShortenedContent(length)
+
+      attemptContent(content, length)
+    },
     [attemptContent, getShortenedContent],
   )
 
@@ -76,7 +80,6 @@ export const AdaptiveDynamicTrimmer: FC<AdaptiveDynamicTrimmerProps> = ({
         return
       }
       const isOverflow = textRef.current.scrollWidth > textRef.current.clientWidth
-      // log('Overflow?', isOverflow)
 
       if (isOverflow) {
         // This is too much

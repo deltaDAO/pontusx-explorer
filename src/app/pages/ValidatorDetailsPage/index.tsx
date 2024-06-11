@@ -1,10 +1,14 @@
 import { FC } from 'react'
+import { styled } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
+import { useHref, useLoaderData } from 'react-router-dom'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Divider from '@mui/material/Divider'
+import Grid from '@mui/material/Grid'
 import { useScreenSize } from '../../hooks/useScreensize'
-import { Validator, useGetConsensusValidatorsEntityId } from '../../../oasis-nexus/api'
+import { Validator, useGetConsensusValidatorsAddress } from '../../../oasis-nexus/api'
+import { RouterTabs } from '../../components/RouterTabs'
 import { StyledDescriptionList } from '../../components/StyledDescriptionList'
 import { PageLayout } from '../../components/PageLayout'
 import { TextSkeleton } from '../../components/Skeleton'
@@ -14,18 +18,32 @@ import { ValidatorCommission } from '../../components/Validators/ValidatorCommis
 import { ValidatorCumulativeVoting } from '../../components/Validators/ValidatorCumulativeVoting'
 import { ValidatorTitleCard } from './ValidatorTitleCard'
 import { useRequiredScopeParam } from 'app/hooks/useScopeParam'
-import { useLoaderData } from 'react-router-dom'
 import { AddressLoaderData } from 'app/utils/route-utils'
 import { ValidatorSnapshot } from './ValidatorSnapshot'
+import { SignedBlocks } from './SignedBlocks'
+import { StakingTrend } from './StakingTrend'
+import { ProposedBlocks } from './ProposedBlocks'
+import { ValidatorDetailsContext } from './hooks'
+import { debondingContainerId, delegatorsContainerId } from './tabAnchors'
+
+export const StyledGrid = styled(Grid)(({ theme }) => ({
+  [theme.breakpoints.up('sm')]: {
+    display: 'flex',
+  },
+}))
 
 export const ValidatorDetailsPage: FC = () => {
+  const { t } = useTranslation()
   const { isMobile } = useScreenSize()
   const scope = useRequiredScopeParam()
-  // TODO: currently API does not work with address query param. Wait for API update or switch to entity_id
   const { address } = useLoaderData() as AddressLoaderData
-  const validatorQuery = useGetConsensusValidatorsEntityId(scope.network, address)
+  const validatorQuery = useGetConsensusValidatorsAddress(scope.network, address)
   const { isLoading, data } = validatorQuery
   const validator = data?.data
+  const transactionsLink = useHref('')
+  const delegatorsLink = useHref(`delegators#${delegatorsContainerId}`)
+  const debondingDelegationsLink = useHref(`debonding-delegations#${debondingContainerId}`)
+  const context: ValidatorDetailsContext = { scope, address }
 
   return (
     <PageLayout>
@@ -33,6 +51,23 @@ export const ValidatorDetailsPage: FC = () => {
       <ValidatorSnapshot scope={scope} validator={validator} />
       <Divider variant="layout" sx={{ mt: isMobile ? 4 : 0 }} />
       <ValidatorDetailsCard isLoading={isLoading} validator={validator} />
+      <Grid container spacing={4}>
+        <StyledGrid item xs={12} md={6}>
+          <StakingTrend scope={scope} />
+        </StyledGrid>
+        <StyledGrid item xs={12} md={6}>
+          <SignedBlocks />
+        </StyledGrid>
+      </Grid>
+      <ProposedBlocks scope={scope} />
+      <RouterTabs
+        tabs={[
+          { label: t('common.transactions'), to: transactionsLink },
+          { label: t('validator.delegators'), to: delegatorsLink },
+          { label: t('validator.undelegations'), to: debondingDelegationsLink },
+        ]}
+        context={context}
+      />
     </PageLayout>
   )
 }
@@ -134,7 +169,7 @@ export const ValidatorDetailsView: FC<{
           </dd>
           <dt>{t('validator.voting')}</dt>
           <dd>-</dd>
-          <dt>{t('validator.staked')}</dt>
+          <dt>{t('common.staked')}</dt>
           <dd>-</dd>
           <dt>{t('validator.change')}</dt>
           <dd>-</dd>

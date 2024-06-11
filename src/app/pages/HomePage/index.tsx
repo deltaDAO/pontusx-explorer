@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next'
 import { ParaTimeSelectorStep } from './Graph/types'
 import { BuildBanner } from '../../components/BuildBanner'
 import { useSearchQueryNetworkParam } from '../../hooks/useSearchQueryNetworkParam'
-import { ThemeByNetwork } from '../../components/ThemeByNetwork'
+import { ThemeByScope } from '../../components/ThemeByScope'
 import { NetworkOfflineBanner } from '../../components/OfflineBanner'
 import { useIsApiReachable } from '../../components/OfflineBanner/hook'
 
@@ -106,10 +106,10 @@ const SearchInputBox = styled(Box)(({ theme }) => ({
 const FooterStyled = styled(Box)(({ theme }) => ({
   width: '100%',
   flex: '0 0 0',
+  padding: `0 ${theme.spacing(6)}`,
   [theme.breakpoints.up('md')]: {
     // needed to make footer elements clickable
     zIndex: zIndexHomePage.paraTimeSelector,
-    padding: `0 ${theme.spacing(6)}`,
   },
 }))
 
@@ -122,7 +122,7 @@ const InfoScreenBtn = styled(IconButton)(({ theme }) => ({
 export const HomePage: FC = () => {
   const { t } = useTranslation()
   const infoAriaLabel = t('home.helpScreen.infoIconAria')
-  const { isMobile, isTablet } = useScreenSize()
+  const { isMobile } = useScreenSize()
   const { network } = useSearchQueryNetworkParam()
   const isApiReachable = useIsApiReachable(network).reachable
 
@@ -168,7 +168,7 @@ export const HomePage: FC = () => {
               </InfoScreenBtn>
             )}
           </SearchInputContainer>
-          <ThemeByNetwork network={network}>
+          <ThemeByScope isRootTheme={false} network={network}>
             <Box sx={{ zIndex: zIndexHomePage.paraTimeSelector }}>
               <ParaTimeSelector
                 step={step}
@@ -179,14 +179,12 @@ export const HomePage: FC = () => {
                 onGraphZoomedIn={setIsGraphZoomedIn}
               />
             </Box>
-          </ThemeByNetwork>
+          </ThemeByScope>
         </Content>
 
-        {!isTablet && (
-          <FooterStyled>
-            <Footer />
-          </FooterStyled>
-        )}
+        <FooterStyled>
+          <Footer enableMobileSearch={false} />
+        </FooterStyled>
       </HomepageLayout>
     </>
   )
