@@ -5,7 +5,6 @@ import Link from '@mui/material/Link'
 import { useTheme } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 import { Link as RouterLink } from 'react-router-dom'
-import { ExplorerIcon } from '../CustomIcons/ExplorerIcon'
 import pontusxIcon from '../CustomIcons/pontusx_horizontal_white.svg'
 import { PontusxIcon } from '../CustomIcons/PontusxIcon'
 
