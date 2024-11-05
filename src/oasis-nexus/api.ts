@@ -16,7 +16,13 @@ import {
   RuntimeAccount,
   RuntimeEventType,
 } from './generated/api'
-import { getAccountSize, getEthAddressForAccount, getOasisAddressOrNull } from '../app/utils/helpers'
+import {
+  getAccountSize,
+  getEthAccountAddressFromPreimage,
+  getOasisAddressOrNull,
+  isValidEthAddress,
+} from '../app/utils/helpers'
+import { getCancelTitle, getParameterChangeTitle, getProposalTitle } from '../app/utils/proposals'
 import { Network } from '../types/network'
 import { SearchScope } from '../types/searchScope'
 import { Ticker } from '../types/ticker'
@@ -30,6 +36,17 @@ export type { RuntimeEvmBalance as Token } from './generated/api'
 
 export type HasScope = SearchScope
 
+// TODO: Remove when API is updated
+export interface EntityMetadata {
+  v: number
+  serial: number
+  name?: string
+  url?: string
+  email?: string
+  keybase?: string
+  twitter?: string
+}
+
 declare module './generated/api' {
   export interface Transaction {
     amount: string | undefined
@@ -42,7 +59,6 @@ declare module './generated/api' {
   export interface RuntimeTransaction {
     network: Network
     layer: Layer
-    ticker: Ticker
   }
 
   export interface Block {
@@ -75,6 +91,10 @@ declare module './generated/api' {
     layer: Layer
   }
 
+  export interface ConsensusEvent {
+    network: Network
+  }
+
   export interface EvmToken {
     network: Network
     layer: Layer
@@ -84,10 +104,6 @@ declare module './generated/api' {
     network: Network
     layer: Layer
     rank: number
-  }
-
-  export interface Validator {
-    ticker: Ticker
   }
 
   export interface Proposal {
@@ -104,6 +120,24 @@ declare module './generated/api' {
   export interface DebondingDelegation {
     layer: typeof Layer.consensus
     network: Network
+    ticker: Ticker
+  }
+
+  export interface ValidatorHistoryPoint {
+    layer: typeof Layer.consensus
+    network: Network
+    ticker: Ticker
+  }
+
+  export interface Escrow {
+    otherBalance: TextBigInt | undefined
+  }
+
+  export interface Validator {
+    ticker: Ticker
+  }
+
+  export interface ValidatorAggStats {
     ticker: Ticker
   }
 }
@@ -205,6 +239,28 @@ const adjustRuntimeTransactionMethod = (
   isLikelyNativeTokenTransfer: boolean | undefined,
 ) => (isLikelyNativeTokenTransfer ? 'accounts.Transfer' : method)
 
+/** Replace "" with native denomination, and prohibit unknown denominations */
+function normalizeSymbol(rawSymbol: string | '' | undefined, scope: SearchScope) {
+  const symbol = rawSymbol || getTokensForScope(scope)[0].ticker
+  const whitelistedTickers = getTokensForScope(scope).map(a => a.ticker)
+  return whitelistedTickers.includes(symbol as Ticker) ? symbol : 'n/a'
+}
+
+/** Returns checksummed maybeMatchingEthAddr if it matches oasisAddress when converted */
+function fallbackEthAddress(
+  oasisAddress: generated.Address | undefined,
+  maybeMatchingEthAddr: generated.EthOrOasisAddress | undefined,
+): `0x${string}` | undefined {
+  if (
+    oasisAddress &&
+    maybeMatchingEthAddr &&
+    isValidEthAddress(maybeMatchingEthAddr) &&
+    getOasisAddressOrNull(maybeMatchingEthAddr) === oasisAddress
+  ) {
+    return toChecksumAddress(maybeMatchingEthAddr)
+  }
+}
+
 export const useGetRuntimeTransactions: typeof generated.useGetRuntimeTransactions = (
   network,
   runtime,
@@ -224,17 +280,18 @@ export const useGetRuntimeTransactions: typeof generated.useGetRuntimeTransactio
             transactions: data.transactions.map(tx => {
               return {
                 ...tx,
+                to_eth: tx.to_eth || fallbackEthAddress(tx.to, params?.rel),
                 eth_hash: tx.eth_hash ? `0x${tx.eth_hash}` : undefined,
-                // TODO: Decimals may not be correct, should not depend on ParaTime decimals, but tx itself
+                // TODO: Decimals may not be correct, should not depend on ParaTime decimals, but fee_symbol
                 fee: fromBaseUnits(tx.fee, paraTimesConfig[runtime].decimals),
-                // TODO: Decimals may not be correct, should not depend on ParaTime decimals, but tx itself
+                fee_symbol: normalizeSymbol(tx.fee_symbol, { network, layer: runtime }),
+                // TODO: Decimals may not be correct, should not depend on ParaTime decimals, but fee_symbol
                 charged_fee: fromBaseUnits(tx.charged_fee, paraTimesConfig[runtime].decimals),
-                // TODO: Decimals may not be correct, should not depend on ParaTime decimals, but tx itself
+                // TODO: Decimals may not be correct, should not depend on ParaTime decimals, but amount_symbol
                 amount: tx.amount ? fromBaseUnits(tx.amount, paraTimesConfig[runtime].decimals) : undefined,
+                amount_symbol: normalizeSymbol(tx.amount_symbol, { network, layer: runtime }),
                 layer: runtime,
                 network,
-                ticker:
-                  tx.body?.amount?.Denomination || getTokensForScope({ network, layer: runtime })[0].ticker,
                 method: adjustRuntimeTransactionMethod(tx.method, tx.is_likely_native_token_transfer),
               }
             }),
@@ -258,26 +315,40 @@ export const useGetConsensusTransactionsTxHash: typeof generated.useGetConsensus
       ...options?.request,
       transformResponse: [
         ...arrayify(axios.defaults.transformResponse),
-        (transaction: generated.Transaction, headers, status) => {
-          if (status !== 200) return transaction
-          const amount = getConsensusTransactionAmount(transaction)
-          const to = getConsensusTransactionToAddress(transaction)
+        (data: generated.TransactionList, headers, status) => {
+          if (status !== 200) return data
+
+          // Temporary workaround for old Nexus instances
+          if (!('transactions' in data)) {
+            data = {
+              is_total_count_clipped: false,
+              total_count: 1,
+              transactions: [data],
+            }
+          }
+
           return {
-            ...transaction,
-            amount: amount ? fromBaseUnits(amount, consensusDecimals) : undefined,
-            to,
-            body: {
-              ...transaction.body,
-              amount: transaction.body?.amount
-                ? fromBaseUnits(transaction.body.amount, consensusDecimals)
-                : undefined,
-              amount_change: transaction.body?.amount_change
-                ? fromBaseUnits(transaction.body.amount_change, consensusDecimals)
-                : undefined,
-            },
-            layer: Layer.consensus,
-            network,
-            ticker,
+            ...data,
+            transactions: data.transactions.map(tx => {
+              const amount = getConsensusTransactionAmount(tx)
+              const to = getConsensusTransactionToAddress(tx)
+
+              return {
+                ...tx,
+                amount: amount ? fromBaseUnits(amount, consensusDecimals) : undefined,
+                to,
+                body: {
+                  ...tx.body,
+                  amount: tx.body?.amount ? fromBaseUnits(tx.body.amount, consensusDecimals) : undefined,
+                  amount_change: tx.body?.amount_change
+                    ? fromBaseUnits(tx.body.amount_change, consensusDecimals)
+                    : undefined,
+                },
+                layer: Layer.consensus,
+                network,
+                ticker,
+              }
+            }),
           }
         },
         ...arrayify(options?.request?.transformResponse),
@@ -308,13 +379,16 @@ export const useGetRuntimeTransactionsTxHash: typeof generated.useGetRuntimeTran
               return {
                 ...tx,
                 eth_hash: tx.eth_hash ? `0x${tx.eth_hash}` : undefined,
+                // TODO: Decimals may not be correct, should not depend on ParaTime decimals, but fee_symbol
                 fee: fromBaseUnits(tx.fee, paraTimesConfig[runtime].decimals),
+                fee_symbol: normalizeSymbol(tx.fee_symbol, { network, layer: runtime }),
+                // TODO: Decimals may not be correct, should not depend on ParaTime decimals, but fee_symbol
                 charged_fee: fromBaseUnits(tx.charged_fee, paraTimesConfig[runtime].decimals),
+                // TODO: Decimals may not be correct, should not depend on ParaTime decimals, but amount_symbol
                 amount: tx.amount ? fromBaseUnits(tx.amount, paraTimesConfig[runtime].decimals) : undefined,
+                amount_symbol: normalizeSymbol(tx.amount_symbol, { network, layer: runtime }),
                 layer: runtime,
                 network,
-                ticker:
-                  tx.body?.amount?.Denomination || getTokensForScope({ network, layer: runtime })[0].ticker,
                 method: adjustRuntimeTransactionMethod(tx.method, tx.is_likely_native_token_transfer),
               }
             }),
@@ -336,7 +410,7 @@ export const useGetConsensusAccountsAddress: typeof generated.useGetConsensusAcc
     ...options,
     query: {
       ...(options?.query ?? {}),
-      enabled: !!address && (options?.query?.enabled ?? true),
+      enabled: options?.query?.enabled ?? true,
     },
     request: {
       ...options?.request,
@@ -375,14 +449,11 @@ export const useGetRuntimeAccountsAddress: typeof generated.useGetRuntimeAccount
   address,
   options,
 ) => {
-  // console.log('Should we get', runtime, '/', address, '?', options?.query?.enabled)
-  const oasisAddress = getOasisAddressOrNull(address)
-
-  const query = generated.useGetRuntimeAccountsAddress(network, runtime, oasisAddress!, {
+  const query = generated.useGetRuntimeAccountsAddress(network, runtime, address, {
     ...options,
     query: {
       ...(options?.query ?? {}),
-      enabled: !!oasisAddress && (options?.query?.enabled ?? true),
+      enabled: !!address && (options?.query?.enabled ?? true),
     },
     request: {
       ...options?.request,
@@ -392,7 +463,9 @@ export const useGetRuntimeAccountsAddress: typeof generated.useGetRuntimeAccount
           if (status !== 200) return data
           return groupAccountTokenBalances({
             ...data,
-            address_eth: getEthAddressForAccount(data, address),
+            address_eth:
+              getEthAccountAddressFromPreimage(data.address_preimage) ||
+              fallbackEthAddress(data.address, address),
             evm_contract: data.evm_contract && {
               ...data.evm_contract,
               eth_creation_tx: data.evm_contract.eth_creation_tx
@@ -439,6 +512,7 @@ export const useGetRuntimeAccountsAddress: typeof generated.useGetRuntimeAccount
   const runtimeAccount = query.data?.data
 
   // TODO: Remove after account balances on Nexus are in sync with the node
+  const oasisAddress = getOasisAddressOrNull(address)
   const rpcAccountBalances = useQuery({
     enabled: !!oasisAddress,
     queryKey: [oasisAddress, network, runtime],
@@ -760,13 +834,11 @@ export const useGetRuntimeEvmTokensAddress: typeof generated.useGetRuntimeEvmTok
   address,
   options,
 ) => {
-  const oasisAddress = getOasisAddressOrNull(address)
-
-  return generated.useGetRuntimeEvmTokensAddress(network, runtime, oasisAddress!, {
+  return generated.useGetRuntimeEvmTokensAddress(network, runtime, address, {
     ...options,
     query: {
       ...(options?.query ?? {}),
-      enabled: !!oasisAddress && (options?.query?.enabled ?? true),
+      enabled: options?.query?.enabled ?? true,
     },
     request: {
       ...options?.request,
@@ -813,47 +885,83 @@ export const useGetRuntimeEvents: typeof generated.useGetRuntimeEvents = (
           if (status !== 200) return data
           return {
             ...data,
-            events: data.events.map(event => {
-              const adjustedHash = event.eth_tx_hash ? `0x${event.eth_tx_hash}` : undefined
-              if (
-                event.type === RuntimeEventType.accountstransfer ||
-                event.type === RuntimeEventType.accountsmint ||
-                event.type === RuntimeEventType.accountsburn ||
-                event.type === RuntimeEventType.consensus_accountsdeposit ||
-                event.type === RuntimeEventType.consensus_accountswithdraw ||
-                event.type === RuntimeEventType.consensus_accountsdelegate ||
-                event.type === RuntimeEventType.consensus_accountsundelegate_done
-              ) {
+            events: data.events
+              .map((event): generated.RuntimeEvent => {
                 return {
                   ...event,
-                  evm_log_params: event.evm_log_params?.map(fixChecksumAddressInEvmEventParam),
-                  eth_tx_hash: adjustedHash,
                   body: {
                     ...event.body,
-                    amount:
-                      // If there's no denomination then use runtime's native. Otherwise unknown (would have to get by token name?).
-                      event.body.amount.Denomination === ''
-                        ? {
-                            ...event.body.amount,
-                            Amount: fromBaseUnits(
-                              event.body.amount.Amount,
-                              paraTimesConfig[runtime].decimals,
-                            ),
-                            Denomination:
-                              event.body?.Denomination ??
-                              getTokensForScope({ network, layer: runtime })[0].ticker,
-                          }
-                        : event.body.amount,
+                    owner_eth: event.body?.owner_eth || fallbackEthAddress(event.body.owner, params?.rel),
+                    from_eth: event.body?.from_eth || fallbackEthAddress(event.body.from, params?.rel),
+                    to_eth: event.body?.to_eth || fallbackEthAddress(event.body.to, params?.rel),
                   },
+                  evm_log_params: event.evm_log_params?.map(fixChecksumAddressInEvmEventParam),
+                  eth_tx_hash: event.eth_tx_hash ? `0x${event.eth_tx_hash}` : undefined,
                   layer: runtime,
                   network,
                 }
-              }
+              })
+              .map((event): generated.RuntimeEvent => {
+                if (
+                  event.type === RuntimeEventType.accountstransfer ||
+                  event.type === RuntimeEventType.accountsmint ||
+                  event.type === RuntimeEventType.accountsburn ||
+                  event.type === RuntimeEventType.consensus_accountsdeposit ||
+                  event.type === RuntimeEventType.consensus_accountswithdraw ||
+                  event.type === RuntimeEventType.consensus_accountsdelegate ||
+                  event.type === RuntimeEventType.consensus_accountsundelegate_done
+                  // consensus_accountsundelegate_start doesn't contain amount
+                ) {
+                  return {
+                    ...event,
+                    body: {
+                      ...event.body,
+                      amount: {
+                        // If denomination="" or missing then use runtime's native. Otherwise unknown (would have to get by token name?).
+                        ...event.body.amount,
+                        Amount: fromBaseUnits(event.body.amount.Amount, paraTimesConfig[runtime].decimals),
+                        Denomination: event.body.amount.Denomination || getTokensForScope(event)[0].ticker,
+                      },
+                    },
+                  }
+                }
+                return event
+              }),
+          }
+        },
+        ...arrayify(options?.request?.transformResponse),
+      ],
+    },
+  })
+}
+
+export const useGetConsensusEvents: typeof generated.useGetConsensusEvents = (network, params, options) => {
+  return generated.useGetConsensusEvents(network, params, {
+    ...options,
+    request: {
+      ...options?.request,
+      transformResponse: [
+        ...arrayify(axios.defaults.transformResponse),
+        (data: generated.ConsensusEventList, headers, status) => {
+          if (status !== 200) return data
+          return {
+            ...data,
+            events: data.events.map(event => {
               return {
                 ...event,
-                evm_log_params: event.evm_log_params?.map(fixChecksumAddressInEvmEventParam),
-                eth_tx_hash: adjustedHash,
-                layer: runtime,
+                body: {
+                  ...event.body,
+                  // staking.transfer, staking.escrow.take, staking.escrow.reclaim, staking.escrow.debonding_start, staking.escrow.add
+                  amount: event.body.amount ? fromBaseUnits(event.body.amount, consensusDecimals) : undefined,
+                  // staking.allowance_change
+                  allowance: event.body.allowance
+                    ? fromBaseUnits(event.body.allowance, consensusDecimals)
+                    : undefined,
+                  // staking.allowance_change
+                  amount_change: event.body.amount_change
+                    ? fromBaseUnits(event.body.amount_change, consensusDecimals)
+                    : undefined,
+                },
                 network,
               }
             }),
@@ -919,6 +1027,7 @@ export const useGetConsensusProposals: typeof generated.useGetConsensusProposals
                 network,
                 layer: Layer.consensus,
                 deposit: fromBaseUnits(proposal.deposit, consensusDecimals),
+                title: getProposalTitle(proposal),
               }
             }),
           }
@@ -947,6 +1056,7 @@ export const useGetConsensusProposalsProposalId: typeof generated.useGetConsensu
             network,
             layer: Layer.consensus,
             deposit: fromBaseUnits(data.deposit, consensusDecimals),
+            title: getProposalTitle(data),
           }
         },
         ...arrayify(options?.request?.transformResponse),
@@ -959,8 +1069,26 @@ export const useGetConsensusProposalsByName = (network: Network, nameFragment: s
   const query = useGetConsensusProposals(network, {}, { query: { enabled: !!nameFragment } })
   const { isError, isLoading, isInitialLoading, data, status, error } = query
   const textMatcher = nameFragment
-    ? (proposal: generated.Proposal): boolean =>
-        !!proposal.handler && proposal.handler?.includes(nameFragment)
+    ? (proposal: generated.Proposal): boolean => {
+        if (proposal.title?.includes(nameFragment)) {
+          return true
+        }
+
+        if (proposal.handler?.includes(nameFragment)) {
+          return true
+        }
+
+        if (getCancelTitle(proposal.cancels).includes(nameFragment)) {
+          return true
+        }
+
+        return (
+          !!proposal.parameters_change &&
+          getParameterChangeTitle(proposal.parameters_change_module, proposal.parameters_change).includes(
+            nameFragment,
+          )
+        )
+      }
     : () => false
   const results = data ? query.data.data.proposals.filter(textMatcher) : undefined
   return {
@@ -975,6 +1103,35 @@ export const useGetConsensusProposalsByName = (network: Network, nameFragment: s
 
 export type ExtendedValidatorList = generated.ValidatorList & {
   map?: Map<string, generated.Validator>
+}
+
+export type ValidatorAddressNameMap = { [oasisAddress: string]: string | undefined }
+
+export const useGetConsensusValidatorsAddressNameMap: typeof generated.useGetConsensusValidators<
+  AxiosResponse<ValidatorAddressNameMap>
+> = (network, params?, options?) => {
+  return generated.useGetConsensusValidators(network, params, {
+    ...options,
+    query: {
+      staleTime: options?.query?.staleTime ?? 5 * 60 * 1000, // Defaults to 5 minutes
+      ...options?.query,
+    },
+    request: {
+      ...options?.request,
+      transformResponse: [
+        ...arrayify(axios.defaults.transformResponse),
+        (data: generated.ValidatorList, headers, status) => {
+          if (status !== 200) return data
+          const validators: ValidatorAddressNameMap = {}
+          data.validators.forEach(validator => {
+            validators[validator.entity_address] = validator.media?.name
+          })
+          return validators
+        },
+        ...arrayify(options?.request?.transformResponse),
+      ],
+    },
+  })
 }
 
 export const useGetConsensusValidators: typeof generated.useGetConsensusValidators = (
@@ -1016,8 +1173,103 @@ export const useGetConsensusValidators: typeof generated.useGetConsensusValidato
           validators.forEach(validator => map.set(validator.entity_address, validator))
           return {
             ...data,
+            stats: {
+              ...data.stats,
+              total_staked_balance: fromBaseUnits(data.stats.total_staked_balance, consensusDecimals),
+              ticker,
+            },
             validators,
             map,
+          }
+        },
+        ...arrayify(options?.request?.transformResponse),
+      ],
+    },
+  })
+}
+
+export const useGetConsensusValidatorsAddressHistory: typeof generated.useGetConsensusValidatorsAddressHistory =
+  (network, address, params?, options?) => {
+    const ticker = getTokensForScope({ network, layer: Layer.consensus })[0].ticker
+    return generated.useGetConsensusValidatorsAddressHistory(network, address, params, {
+      ...options,
+      request: {
+        ...options?.request,
+        transformResponse: [
+          ...arrayify(axios.defaults.transformResponse),
+          (data: generated.ValidatorHistory, headers, status) => {
+            if (status !== 200) return data
+            return {
+              ...data,
+              history: data.history.map(history => {
+                return {
+                  ...history,
+                  active_balance: history.active_balance
+                    ? fromBaseUnits(history.active_balance, consensusDecimals)
+                    : undefined,
+                  layer: Layer.consensus,
+                  network,
+                  ticker,
+                }
+              }),
+            }
+          },
+          ...arrayify(options?.request?.transformResponse),
+        ],
+      },
+    })
+  }
+export const useGetConsensusValidatorsAddress: typeof generated.useGetConsensusValidatorsAddress = (
+  network,
+  address,
+  options?,
+) => {
+  const ticker = getTokensForScope({ network, layer: Layer.consensus })[0].ticker
+  return generated.useGetConsensusValidatorsAddress(network, address, {
+    ...options,
+    request: {
+      ...options?.request,
+      transformResponse: [
+        ...arrayify(axios.defaults.transformResponse),
+        (data: generated.ValidatorList, headers, status): ExtendedValidatorList => {
+          if (status !== 200) return data
+          const validators = data.validators.map((validator): generated.Validator => {
+            const otherBalance =
+              validator.escrow.active_balance && validator.escrow.self_delegation_balance
+                ? BigInt(validator.escrow.active_balance) - BigInt(validator.escrow.self_delegation_balance)
+                : undefined
+
+            return {
+              ...validator,
+              escrow: {
+                ...validator.escrow,
+                active_balance: validator.escrow?.active_balance
+                  ? fromBaseUnits(validator.escrow.active_balance, consensusDecimals)
+                  : undefined,
+                active_balance_24: validator.escrow?.active_balance_24
+                  ? fromBaseUnits(validator.escrow.active_balance_24, consensusDecimals)
+                  : undefined,
+                debonding_balance: validator.escrow?.debonding_balance
+                  ? fromBaseUnits(validator.escrow.debonding_balance, consensusDecimals)
+                  : undefined,
+                self_delegation_balance: validator.escrow?.self_delegation_balance
+                  ? fromBaseUnits(validator.escrow.self_delegation_balance, consensusDecimals)
+                  : undefined,
+                otherBalance: otherBalance
+                  ? fromBaseUnits(otherBalance.toString(), consensusDecimals)
+                  : undefined,
+              },
+              ticker,
+            }
+          })
+          return {
+            ...data,
+            validators,
+            stats: {
+              ...data.stats,
+              total_staked_balance: fromBaseUnits(data.stats.total_staked_balance, consensusDecimals),
+              ticker,
+            },
           }
         },
         ...arrayify(options?.request?.transformResponse),

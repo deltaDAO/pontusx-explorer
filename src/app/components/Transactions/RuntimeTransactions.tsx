@@ -1,8 +1,6 @@
 import { FC } from 'react'
-import { styled } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import Box from '@mui/material/Box'
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import LockIcon from '@mui/icons-material/Lock'
 import { Table, TableCellAlign, TableColProps } from '../../components/Table'
 import { StatusIcon } from '../StatusIcon'
@@ -17,20 +15,7 @@ import { TransactionLink } from './TransactionLink'
 import { doesAnyOfTheseLayersSupportEncryptedTransactions } from '../../../types/layers'
 import { TransactionEncryptionStatus } from '../TransactionEncryptionStatus'
 import { Age } from '../Age'
-
-const iconSize = '28px'
-const StyledCircle = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  width: iconSize,
-  height: iconSize,
-  color: COLORS.eucalyptus,
-  backgroundColor: COLORS.lightGreen,
-  borderRadius: iconSize,
-  marginLeft: theme.spacing(3),
-  marginRight: `-${theme.spacing(4)}`,
-}))
+import { TransferIcon } from '../TransferIcon'
 
 type TableRuntimeTransaction = RuntimeTransaction & {
   markAsNew?: boolean
@@ -78,8 +63,8 @@ export const RuntimeTransactions: FC<TransactionsProps> = ({
           { key: 'type', content: t('common.type') },
           { key: 'from', content: t('common.from'), width: '150px' },
           { key: 'to', content: t('common.to'), width: '150px' },
-          { key: 'txnFee', content: t('common.transactionFee'), align: TableCellAlign.Right, width: '250px' },
-          { key: 'value', align: TableCellAlign.Right, content: t('common.value'), width: '250px' },
+          { key: 'value', align: TableCellAlign.Right, content: t('common.amount'), width: '250px' },
+          { key: 'txnFee', content: t('common.fee'), align: TableCellAlign.Right, width: '250px' },
         ]
       : []),
   ]
@@ -118,7 +103,7 @@ export const RuntimeTransactions: FC<TransactionsProps> = ({
         ...(verbose
           ? [
               {
-                content: <RuntimeTransactionMethod method={transaction.method} truncate />,
+                content: <RuntimeTransactionMethod transaction={transaction} truncate />,
                 key: 'type',
               },
               {
@@ -141,11 +126,7 @@ export const RuntimeTransactions: FC<TransactionsProps> = ({
                       address={transaction.sender_0_eth || transaction.sender_0}
                       alwaysTrim
                     />
-                    {targetAddress && (
-                      <StyledCircle>
-                        <ArrowForwardIcon fontSize="inherit" />
-                      </StyledCircle>
-                    )}
+                    {targetAddress && <TransferIcon />}
                   </Box>
                 ),
                 key: 'from',
@@ -165,13 +146,13 @@ export const RuntimeTransactions: FC<TransactionsProps> = ({
               },
               {
                 align: TableCellAlign.Right,
-                content: <RoundedBalance value={transaction.charged_fee} ticker={transaction.ticker} />,
-                key: 'fee_amount',
+                content: <RoundedBalance value={transaction.amount} ticker={transaction.amount_symbol} />,
+                key: 'value',
               },
               {
                 align: TableCellAlign.Right,
-                content: <RoundedBalance value={transaction.amount} ticker={transaction.ticker} />,
-                key: 'value',
+                content: <RoundedBalance value={transaction.charged_fee} ticker={transaction.fee_symbol} />,
+                key: 'fee_amount',
               },
             ]
           : []),

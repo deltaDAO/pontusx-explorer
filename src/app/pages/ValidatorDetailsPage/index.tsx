@@ -2,11 +2,12 @@ import { FC } from 'react'
 import { styled } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import { useHref, useLoaderData } from 'react-router-dom'
+import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Divider from '@mui/material/Divider'
 import Grid from '@mui/material/Grid'
-import { Validator, useGetConsensusValidatorsAddress } from '../../../oasis-nexus/api'
+import { Validator, ValidatorAggStats, useGetConsensusValidatorsAddress } from '../../../oasis-nexus/api'
 import { useScreenSize } from '../../hooks/useScreensize'
 import { useFormattedTimestampStringWithDistance } from '../../hooks/useFormattedTimestamp'
 import { RouterTabs } from '../../components/RouterTabs'
@@ -28,6 +29,10 @@ import { ValidatorDetailsContext } from './hooks'
 import { debondingContainerId, delegatorsContainerId } from './tabAnchors'
 import { ValidatorStatusBadge } from './ValidatorStatusBadge'
 import { eventsContainerId } from './../../pages/ConsensusAccountDetailsPage/ConsensusAccountEventsCard'
+import { PercentageValue } from '../../components/PercentageValue'
+import { UptimeStatus } from '../../components/UptimeStatus'
+import { BalancesDiff } from '../../components/BalancesDiff'
+import { RoundedBalance } from '../../components/RoundedBalance'
 
 export const StyledGrid = styled(Grid)(({ theme }) => ({
   [theme.breakpoints.up('sm')]: {
@@ -41,8 +46,9 @@ export const ValidatorDetailsPage: FC = () => {
   const scope = useRequiredScopeParam()
   const { address } = useLoaderData() as AddressLoaderData
   const validatorQuery = useGetConsensusValidatorsAddress(scope.network, address)
-  const { isLoading, data } = validatorQuery
-  const validator = data?.data
+  const { isLoading, isFetched, data } = validatorQuery
+  const validator = data?.data.validators[0]
+  const stats = data?.data.stats
   const transactionsLink = useHref('')
   const eventsLink = useHref(`events#${eventsContainerId}`)
   const delegatorsLink = useHref(`delegators#${delegatorsContainerId}`)
@@ -52,18 +58,18 @@ export const ValidatorDetailsPage: FC = () => {
   return (
     <PageLayout>
       <ValidatorTitleCard isLoading={isLoading} network={scope.network} validator={validator} />
-      <ValidatorSnapshot scope={scope} validator={validator} />
+      <ValidatorSnapshot scope={scope} validator={validator} stats={stats} />
       <Divider variant="layout" sx={{ mt: isMobile ? 4 : 0 }} />
-      <ValidatorDetailsCard isLoading={isLoading} validator={validator} />
+      <ValidatorDetailsCard isLoading={isLoading} validator={validator} stats={stats} />
       <Grid container spacing={4}>
         <StyledGrid item xs={12} md={6}>
-          <StakingTrend scope={scope} />
+          <StakingTrend address={address} scope={scope} />
         </StyledGrid>
         <StyledGrid item xs={12} md={6}>
-          <SignedBlocks />
+          <SignedBlocks isLoading={isLoading} isFetched={isFetched} signedBlocks={validator?.signed_blocks} />
         </StyledGrid>
       </Grid>
-      <ProposedBlocks scope={scope} />
+      <ProposedBlocks scope={scope} validator={validator} />
       <RouterTabs
         tabs={[
           { label: t('common.transactions'), to: transactionsLink },
@@ -80,13 +86,14 @@ export const ValidatorDetailsPage: FC = () => {
 type ValidatorDetailsCardProps = {
   isLoading: boolean
   validator: Validator | undefined
+  stats: ValidatorAggStats | undefined
 }
 
-const ValidatorDetailsCard: FC<ValidatorDetailsCardProps> = ({ isLoading, validator }) => {
+const ValidatorDetailsCard: FC<ValidatorDetailsCardProps> = ({ isLoading, validator, stats }) => {
   return (
     <Card>
       <CardContent>
-        <ValidatorDetailsView detailsPage isLoading={isLoading} validator={validator} />
+        <ValidatorDetailsView detailsPage isLoading={isLoading} validator={validator} stats={stats} />
       </CardContent>
     </Card>
   )
@@ -97,7 +104,8 @@ export const ValidatorDetailsView: FC<{
   isLoading?: boolean
   validator: Validator | undefined
   standalone?: boolean
-}> = ({ detailsPage, isLoading, validator, standalone = false }) => {
+  stats: ValidatorAggStats | undefined
+}> = ({ detailsPage, isLoading, validator, standalone = false, stats }) => {
   const { t } = useTranslation()
   const { isMobile } = useScreenSize()
   const formattedTime = useFormattedTimestampStringWithDistance(validator?.start_date)
@@ -140,19 +148,11 @@ export const ValidatorDetailsView: FC<{
               <dd>{validator.voting_power.toLocaleString()}</dd>
             </>
           )}
-          {typeof validator.voting_power === 'number' && validator.voting_power_total > 0 && (
+          {typeof validator.voting_power === 'number' && stats?.total_voting_power && (
             <>
               <dt>{t('validator.totalShare')}</dt>
               <dd>
-                {t('common.valuePair', {
-                  value: validator.voting_power / validator.voting_power_total,
-                  formatParams: {
-                    value: {
-                      style: 'percent',
-                      maximumFractionDigits: 2,
-                    } satisfies Intl.NumberFormatOptions,
-                  },
-                })}
+                <PercentageValue value={validator.voting_power} total={stats.total_voting_power} />
               </dd>
             </>
           )}
@@ -183,22 +183,43 @@ export const ValidatorDetailsView: FC<{
           <dd>{validator.rank}</dd>
           <dt>{t('validator.title')}</dt>
           <dd>
-            <ValidatorImage
-              address={validator.entity_address}
-              name={validator.media?.name}
-              logotype={validator.media?.logoUrl}
-            />
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <ValidatorImage
+                address={validator.entity_address}
+                name={validator.media?.name}
+                logotype={validator.media?.logoUrl}
+              />
+              <b>{validator.media?.name}</b>
+            </Box>
           </dd>
           <dt>{t('validator.cumulativeVoting')}</dt>
           <dd>
-            <ValidatorCumulativeVoting containerMarginThemeSpacing={4} value={0} />
+            <ValidatorCumulativeVoting
+              containerMarginThemeSpacing={5}
+              value={validator.voting_power_cumulative}
+              total={stats?.total_voting_power}
+            />
           </dd>
           <dt>{t('validator.voting')}</dt>
-          <dd>-</dd>
+          <dd>
+            <PercentageValue
+              value={validator.voting_power}
+              total={stats?.total_voting_power}
+              adaptMaximumFractionDigits
+            />
+          </dd>
           <dt>{t('common.staked')}</dt>
-          <dd>-</dd>
+          <dd>
+            <RoundedBalance value={validator.escrow?.active_balance} ticker={validator.ticker} />
+          </dd>
           <dt>{t('validator.change')}</dt>
-          <dd>-</dd>
+          <dd>
+            <BalancesDiff
+              before={validator.escrow.active_balance_24}
+              after={validator.escrow.active_balance}
+              ticker={validator.ticker}
+            />
+          </dd>
           <dt>{t('validator.delegators')}</dt>
           <dd>{validator.escrow?.num_delegators?.toLocaleString()}</dd>
           <dt>{t('validator.commission')}</dt>
@@ -210,7 +231,9 @@ export const ValidatorDetailsView: FC<{
             <StatusIcon success={validator.active} error={undefined} />
           </dd>
           <dt>{t('validator.uptime')}</dt>
-          <dd>-</dd>
+          <dd>
+            <UptimeStatus small percentage={94} status={[100, 100, 100, 50]} />
+          </dd>
         </>
       )}
     </StyledDescriptionList>

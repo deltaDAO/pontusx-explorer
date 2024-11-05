@@ -12,6 +12,8 @@ const config = {
   parser: '@typescript-eslint/parser',
 
   settings: {},
+  reportUnusedDisableDirectives: true,
+
   rules: {
     'no-restricted-imports': [
       'error',
@@ -28,7 +30,7 @@ const config = {
         ],
         patterns: [
           {
-            group: ['@mui/system'],
+            group: ['@mui/system', '@emotion/styled'],
             message: "Use '@mui/material/styles' instead.",
           },
           {

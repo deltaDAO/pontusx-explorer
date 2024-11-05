@@ -611,6 +611,10 @@ before?: string;
  * A filter on the block hash.
  */
 hash?: string;
+/**
+ * A filter on the proposer of the block.
+ */
+proposed_by?: string;
 };
 
 /**
@@ -1193,6 +1197,8 @@ export type ProposalVotesAllOf = {
   votes: ProposalVote[];
 };
 
+export type ProposalVotes = List & ProposalVotesAllOf;
+
 /**
  * The state of the proposal.
  */
@@ -1488,6 +1494,17 @@ export interface Escrow {
   self_delegation_shares?: TextBigInt;
 }
 
+/**
+ * Information whether a block was signed by the validator.
+
+ */
+export interface ValidatorSignedBlock {
+  /** The block height. */
+  height: number;
+  /** Whether the validator signed the block. */
+  signed: boolean;
+}
+
 export interface ValidatorMedia {
   /** An email address associated with the entity. */
   email?: string;
@@ -1533,23 +1550,43 @@ export interface Validator {
   node_id?: string;
   /** The rank of the validator, determined by voting power. */
   rank: number;
+  /** An array containing details of the last 100 consensus blocks, indicating whether each block was signed by the validator. Only available when querying a single validator. */
+  signed_blocks?: ValidatorSignedBlock[];
   /** The second-granular consensus time. */
   start_date: string;
   /** The voting power of this validator. */
   voting_power: number;
+  /** The cumulative voting power of this validator and all other validators ranked higher than itself. */
+  voting_power_cumulative?: number;
+}
+
+export interface ValidatorAggStats {
+  /** The total number of delegators in the network. */
+  total_delegators: number;
+  /** The total amount of token staked to validators. */
+  total_staked_balance: TextBigInt;
   /** The total voting power across all validators. */
-  voting_power_total: number;
+  total_voting_power: number;
 }
 
 /**
- * A list of validators registered at the consensus layer.
+ * A list of validators registered at the consensus layer, plus summary
+statistics across all consensus validators.
 
  */
 export type ValidatorListAllOf = {
+  /** Summary statistics across all consensus validators. */
+  stats: ValidatorAggStats;
   validators: Validator[];
 };
 
 export type ValidatorList = List & ValidatorListAllOf;
+
+export interface ValidatorsResponse {
+  /** Summary statistics across all consensus validators. */
+  stats: ValidatorAggStats;
+  validator_list: ValidatorList;
+}
 
 /**
  * An entity registered at the consensus layer.
@@ -1914,6 +1951,29 @@ export type DelegationListAllOf = {
 export type DelegationList = List & DelegationListAllOf;
 
 /**
+ * Light-weight entity information, containing only its ID, address and registry metadata.
+ */
+export interface EntityInfo {
+  /** Address of the entity owning the node, in Bech32 format (`oasis1...`). */
+  entity_address?: string;
+  /** The ID of the entity owning the node; this corresponds to the entity's public key in base64. */
+  entity_id?: string;
+  /** Metadata about an entity, if available. See [the metadata registry](https://github.com/oasisprotocol/metadata-registry) for details.
+
+When available, it is an object with some subset of the following fields:
+
+- `v`: The version of the metadata structure (always present).
+- `serial`: The serial number of the metadata statement (always present).
+- `name`: The name of the entity.
+- `url`: The URL associated with the entity.
+- `email`: The email address associated with the entity.
+- `keybase`: Tne entity's keybase.io handle.
+- `twitter`: The twitter handle associated with the entity.
+ */
+  entity_metadata?: unknown;
+}
+
+/**
  * A consensus block.
 
  */
@@ -1933,6 +1993,10 @@ restricted by byte size until an upgrade during Eden introduced a gas limit.
   num_transactions: number;
   /** The size limit for the block in bytes.
  */
+  /** The entity that proposed this block. */
+  proposer?: EntityInfo;
+  /** A list of the entities that signed the block. */
+  signers?: EntityInfo[];
   size_limit?: TextBigInt;
   /** The Merkle root of the state tree after applying the block. */
   state_root: string;
@@ -1965,8 +2029,6 @@ the query would return with limit=infinity.
  */
   total_count: number;
 }
-
-export type ProposalVotes = List & ProposalVotesAllOf;
 
 /**
  * A list of consensus blocks.
@@ -2341,7 +2403,7 @@ export const useGetConsensusTransactions = <TData = Awaited<ReturnType<typeof Ge
 
 
 /**
- * @summary Returns a consensus transaction.
+ * @summary Returns consensus transactions with the given transaction hash.
  */
 export const GetConsensusTransactionsTxHash = (
     network: 'mainnet' | 'testnet',
@@ -2350,7 +2412,7 @@ export const GetConsensusTransactionsTxHash = (
 ) => {
       
       
-      return GetConsensusTransactionsTxHashMutator<Transaction>(
+      return GetConsensusTransactionsTxHashMutator<TransactionList>(
       {url: `/${encodeURIComponent(String(network))}/consensus/transactions/${encodeURIComponent(String(txHash))}`, method: 'GET', signal
     },
       options);
@@ -2386,7 +2448,7 @@ export type GetConsensusTransactionsTxHashQueryResult = NonNullable<Awaited<Retu
 export type GetConsensusTransactionsTxHashQueryError = HumanReadableErrorResponse | NotFoundErrorResponse
 
 /**
- * @summary Returns a consensus transaction.
+ * @summary Returns consensus transactions with the given transaction hash.
  */
 export const useGetConsensusTransactionsTxHash = <TData = Awaited<ReturnType<typeof GetConsensusTransactionsTxHash>>, TError = HumanReadableErrorResponse | NotFoundErrorResponse>(
  network: 'mainnet' | 'testnet',
@@ -2885,7 +2947,7 @@ export const GetConsensusValidatorsAddress = (
 ) => {
       
       
-      return GetConsensusValidatorsAddressMutator<Validator>(
+      return GetConsensusValidatorsAddressMutator<ValidatorList>(
       {url: `/${encodeURIComponent(String(network))}/consensus/validators/${encodeURIComponent(String(address))}`, method: 'GET', signal
     },
       options);

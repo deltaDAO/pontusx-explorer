@@ -1,17 +1,14 @@
 import { FC } from 'react'
-import { styled } from '@mui/material/styles'
 import { Trans, useTranslation } from 'react-i18next'
 import Box from '@mui/material/Box'
 import { Table, TableCellAlign, TableColProps } from '../Table'
 import { EvmTokenType, RuntimeEvent } from '../../../oasis-nexus/api'
-import { COLORS } from '../../../styles/theme/colors'
 import { TablePaginationProps } from '../Table/TablePagination'
 import { BlockLink } from '../Blocks/BlockLink'
 import { AccountLink } from '../Account/AccountLink'
 import { trimLongString } from '../../utils/trimLongString'
 import Typography from '@mui/material/Typography'
 import { TransactionLink } from '../Transactions/TransactionLink'
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import { TokenTransferIcon } from './TokenTransferIcon'
 import { RoundedBalance } from '../RoundedBalance'
 import { getEthAccountAddressFromBase64 } from '../../utils/helpers'
@@ -21,20 +18,7 @@ import { TokenTypeTag } from './TokenList'
 import { parseEvmEvent } from '../../utils/parseEvmEvent'
 import { Age } from '../Age'
 import { fromBaseUnits } from '../../utils/number-utils'
-
-const iconSize = '28px'
-const StyledCircle = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  width: iconSize,
-  height: iconSize,
-  color: COLORS.eucalyptus,
-  backgroundColor: COLORS.lightGreen,
-  borderRadius: iconSize,
-  marginLeft: theme.spacing(3),
-  marginRight: `-${theme.spacing(4)}`,
-}))
+import { TransferIcon } from '../TransferIcon'
 
 type TableRuntimeEvent = RuntimeEvent & {
   markAsNew?: boolean
@@ -126,7 +110,7 @@ export const TokenTransfers: FC<TokenTransfersProps> = ({
     ...(differentTokens
       ? [{ key: 'tokenType', content: t('tokens.type'), align: TableCellAlign.Center }]
       : []),
-    { key: 'value', align: TableCellAlign.Right, content: t('common.value'), width: '250px' },
+    { key: 'value', align: TableCellAlign.Right, content: t('common.amount'), width: '250px' },
   ]
   const tableRows = transfers?.map((transfer, index) => {
     const { fromAddress, toAddress, isMinting, parsedEvmLogName } = parseEvmEvent(transfer)
@@ -170,7 +154,7 @@ export const TokenTransfers: FC<TokenTransfersProps> = ({
                   pr: 3,
                 }}
               >
-                {!!ownAddress && fromAddress.toLowerCase() === ownAddress.toLowerCase() ? (
+                {!!ownAddress && fromAddress === ownAddress ? (
                   <Typography
                     variant="mono"
                     component="span"
@@ -184,9 +168,7 @@ export const TokenTransfers: FC<TokenTransfersProps> = ({
                   <AccountLink scope={transfer} address={fromAddress} alwaysTrim />
                 )}
 
-                <StyledCircle>
-                  <ArrowForwardIcon fontSize="inherit" />
-                </StyledCircle>
+                <TransferIcon />
               </Box>
             ),
         },
@@ -194,7 +176,7 @@ export const TokenTransfers: FC<TokenTransfersProps> = ({
           key: 'to',
           content: !toAddress ? (
             ''
-          ) : !!ownAddress && toAddress.toLowerCase() === ownAddress.toLowerCase() ? (
+          ) : !!ownAddress && toAddress === ownAddress ? (
             <Typography
               variant="mono"
               component="span"

@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next'
-import { Block } from '../../../oasis-nexus/api'
+import { Block, EntityMetadata } from '../../../oasis-nexus/api'
 import { Table, TableCellAlign, TableColProps } from '../../components/Table'
 import { TablePaginationProps } from '../Table/TablePagination'
 import { BlockHashLink, BlockLink } from './BlockLink'
 import { useScreenSize } from '../../hooks/useScreensize'
 import { FC } from 'react'
-import { BlocksTableType } from './index'
 import { Age } from '../Age'
+import { ValidatorLink } from '../Validators/ValidatorLink'
 
 export type TableConsensusBlock = Block & {
   markAsNew?: boolean
@@ -22,32 +22,33 @@ type ConsensusBlocksProps = {
   blocks?: TableConsensusBlock[]
   isLoading: boolean
   limit: number
-  type?: BlocksTableType
   pagination: false | TablePaginationProps
+  showEpoch?: boolean
+  showHash?: boolean
+  showProposer?: boolean
 }
 
 export const ConsensusBlocks: FC<ConsensusBlocksProps> = ({
   isLoading,
   blocks,
-  type = BlocksTableType.Desktop,
   pagination,
   limit,
+  showEpoch = false,
+  showHash = true,
+  showProposer = false,
 }) => {
   const { t } = useTranslation()
   const { isLaptop } = useScreenSize()
   const tableColumns: TableColProps[] = [
     { key: 'height', content: t('common.height'), align: TableCellAlign.Left },
-    ...(type === BlocksTableType.Desktop ? [{ key: 'hash', content: t('common.hash') }] : []),
-    ...(type === BlocksTableType.Desktop || type === BlocksTableType.DesktopLite
-      ? [
-          {
-            key: 'transaction',
-            content: isLaptop ? t('common.transactionAbbreviation') : t('common.transactions'),
-            align: TableCellAlign.Right,
-          },
-        ]
-      : []),
-    // { key: 'proposer', content: t('common.proposer'), align: TableCellAlign.Left },
+    ...(showHash ? [{ key: 'hash', content: t('common.hash') }] : []),
+    ...(showEpoch ? [{ key: 'epoch', content: t('common.epoch') }] : []),
+    {
+      key: 'transaction',
+      content: isLaptop ? t('common.transactionAbbreviation') : t('common.transactions'),
+      align: TableCellAlign.Right,
+    },
+    ...(showProposer ? [{ key: 'proposer', content: t('common.proposer') }] : []),
     { key: 'age', content: t('common.age'), align: TableCellAlign.Right },
   ]
 
@@ -60,7 +61,7 @@ export const ConsensusBlocks: FC<ConsensusBlocksProps> = ({
           content: <BlockLink scope={block} height={block.height} />,
           key: 'block',
         },
-        ...(type === BlocksTableType.Desktop
+        ...(showHash
           ? [
               {
                 content: <BlockHashLink scope={block} hash={block.hash} height={block.height} alwaysTrim />,
@@ -68,21 +69,40 @@ export const ConsensusBlocks: FC<ConsensusBlocksProps> = ({
               },
             ]
           : []),
-
-        ...(type === BlocksTableType.Desktop || type === BlocksTableType.DesktopLite
+        ...(showEpoch
           ? [
               {
-                align: TableCellAlign.Right,
-                content: block.num_transactions.toLocaleString(),
-                key: 'txs',
+                content: block.epoch.toLocaleString(),
+                key: 'epoch',
               },
             ]
           : []),
-        // {
-        //   key: 'proposer',
-        //   content:
-        //     'The Validator Who Has Mined This Block Who Might Actually Have A Really Really Annoyingly Long Name',
-        // },
+        {
+          align: TableCellAlign.Right,
+          content: block.num_transactions.toLocaleString(),
+          key: 'txs',
+        },
+        ...(showProposer
+          ? [
+              {
+                content: (
+                  <>
+                    {block.proposer?.entity_address ? (
+                      <ValidatorLink
+                        name={(block.proposer?.entity_metadata as EntityMetadata)?.name}
+                        address={block.proposer?.entity_address}
+                        alwaysTrim
+                        network={block.network}
+                      />
+                    ) : (
+                      t('common.missing')
+                    )}
+                  </>
+                ),
+                key: 'proposer',
+              },
+            ]
+          : []),
         {
           align: TableCellAlign.Right,
           content: <Age sinceTimestamp={block.timestamp} />,

@@ -25,7 +25,7 @@ export const SnapshotEpoch: FC<{ scope: SearchScope }> = ({ scope }) => {
   const blockHeight = statusQuery?.data?.data.latest_block
   const epochsQuery = useGetConsensusEpochs(scope.network, { limit: epochsLimit })
   const epochs = epochsQuery.data?.data.epochs
-  const epoch = epochs && epochs[0].id
+  const epoch = epochs?.length && epochs[0].id
   let percentageValue = undefined
 
   if (epochs && epochs[1]?.end_height && blockHeight) {
@@ -38,7 +38,7 @@ export const SnapshotEpoch: FC<{ scope: SearchScope }> = ({ scope }) => {
     <SnapshotTextCard
       title={t('currentEpoch')}
       label={
-        blockHeight && (
+        blockHeight !== undefined && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
             <Typography sx={{ fontSize: 12, color: COLORS.grayMedium }}>
               <Trans
@@ -57,16 +57,16 @@ export const SnapshotEpoch: FC<{ scope: SearchScope }> = ({ scope }) => {
         )
       }
     >
-      {epoch && (
+      {epoch !== undefined && (
         <>
-          {percentageValue && (
+          {percentageValue !== undefined && (
             <StyledBox>
               <BrandProgressBar value={percentageValue * 100} variant="determinate" />
             </StyledBox>
           )}
           <Box gap={3} sx={{ display: 'flex', alignItems: 'baseline' }}>
             {epoch.toLocaleString()}
-            {percentageValue && (
+            {percentageValue !== undefined && (
               <Typography sx={{ fontSize: 12, color: COLORS.grayMedium }}>
                 (
                 {t('common.valuePair', {

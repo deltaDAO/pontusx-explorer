@@ -16,7 +16,7 @@ import { DashboardLink } from '../ParatimeDashboardPage/DashboardLink'
 import { useScreenSize } from '../../hooks/useScreensize'
 import { ProposalStatusIcon } from '../../components/Proposals/ProposalStatusIcon'
 import { TextSkeleton } from '../../components/Skeleton'
-import { AccountLink } from '../../components/Account/AccountLink'
+import { ConsensusAccountLink } from '../../components/Account/ConsensusAccountLink'
 import { HighlightedText } from '../../components/HighlightedText'
 import { ProposalIdLoaderData } from '../../utils/route-utils'
 import { COLORS } from 'styles/theme/colors'
@@ -70,7 +70,7 @@ const VoteLoadingProblemIndicator: FC = () => {
 }
 
 export const ProposalDetailView: FC<{
-  proposal: Proposal
+  proposal: Proposal | undefined
   highlightedPart?: string
   isLoading?: boolean
   totalVotesLoading?: boolean
@@ -91,6 +91,7 @@ export const ProposalDetailView: FC<{
   const { t } = useTranslation()
   const { isMobile } = useScreenSize()
   if (isLoading) return <TextSkeleton numberOfRows={7} />
+  if (!proposal) return null
 
   const proposalType = getTypeNameForProposal(t, proposal)
 
@@ -110,7 +111,7 @@ export const ProposalDetailView: FC<{
 
       <dt>{t('common.title')}</dt>
       <dd>
-        <HighlightedText text={proposal.handler} pattern={highlightedPart} />
+        <HighlightedText text={proposal.title} pattern={highlightedPart} />
       </dd>
 
       <dt>{t('common.type')}</dt>
@@ -118,7 +119,7 @@ export const ProposalDetailView: FC<{
 
       <dt>{t('common.submitter')}</dt>
       <dd>
-        <AccountLink scope={proposal} address={proposal.submitter} />
+        <ConsensusAccountLink network={proposal.network} address={proposal.submitter} alwaysTrim={false} />
       </dd>
 
       {(totalVotes || totalVotesLoading || totalVotesProblematic) && (

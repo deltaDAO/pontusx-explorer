@@ -1,22 +1,15 @@
-import { FC, useState } from 'react'
+import { FC } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import {
-  Layer,
-  RuntimeTransaction,
-  RuntimeTransactionList,
-  useGetRuntimeTransactionsTxHash,
-} from '../../../oasis-nexus/api'
+import { Layer, RuntimeTransaction, useGetRuntimeTransactionsTxHash } from '../../../oasis-nexus/api'
 import { StyledDescriptionList } from '../../components/StyledDescriptionList'
 import { PageLayout } from '../../components/PageLayout'
 import { SubPageCard } from '../../components/SubPageCard'
 import { StatusIcon } from '../../components/StatusIcon'
 import { RuntimeTransactionMethod } from '../../components/RuntimeTransactionMethod'
 import { useFormattedTimestampStringWithDistance } from '../../hooks/useFormattedTimestamp'
-import { styled } from '@mui/material/styles'
 import { useScreenSize } from '../../hooks/useScreensize'
 import { AccountLink } from '../../components/Account/AccountLink'
-import Alert from '@mui/material/Alert'
 import { CopyToClipboard } from '../../components/CopyToClipboard'
 import { AppErrors } from '../../../types/errors'
 import { TextSkeleton } from '../../components/Skeleton'
@@ -25,10 +18,8 @@ import { TransactionLink } from '../../components/Transactions/TransactionLink'
 import { RuntimeTransactionEvents } from '../../components/Transactions/RuntimeTransactionEvents'
 import { useRequiredScopeParam } from '../../hooks/useScopeParam'
 import { DashboardLink } from '../ParatimeDashboardPage/DashboardLink'
-import { getNameForTicker, Ticker } from '../../../types/ticker'
 import { AllTokenPrices, useAllTokenPrices } from '../../../coin-gecko/api'
 import { CurrentFiatValue } from '../../components/CurrentFiatValue'
-import { AddressSwitch, AddressSwitchOption } from '../../components/AddressSwitch'
 import { TransactionEncryptionStatus } from '../../components/TransactionEncryptionStatus'
 import Typography from '@mui/material/Typography'
 import { LongDataDisplay } from '../../components/LongDataDisplay'
@@ -37,42 +28,8 @@ import { base64ToHex } from '../../utils/helpers'
 import { DappBanner } from '../../components/DappBanner'
 import { getFiatCurrencyForScope, showFiatValues } from '../../../config'
 import { convertToNano, getGasPrice } from '../../utils/number-utils'
-
-type TransactionSelectionResult = {
-  wantedTransaction?: RuntimeTransaction
-  warningMultipleTransactionsSameHash?: boolean
-}
-
-/**
- * Find the wanted transaction, in case there are more.
- *
- * Normally we want the successful one. If there is none, then the latest.
- */
-function useWantedTransaction(
-  transactionsList: RuntimeTransactionList | undefined,
-): TransactionSelectionResult {
-  const transactions = transactionsList?.transactions ?? []
-
-  if (!transactions.length) {
-    // Loading or error
-    return {}
-  } else if (transactions.length === 1) {
-    return {
-      wantedTransaction: transactions[0],
-    }
-  } else {
-    const successfulOne = transactions.find(transaction => transaction.success)
-    const latestOne = transactions.sort((a, b) => b.round - a.round)[0]
-    return {
-      warningMultipleTransactionsSameHash: true,
-      wantedTransaction: successfulOne ?? latestOne,
-    }
-  }
-}
-
-const StyledAlert = styled(Alert)(() => ({
-  marginBottom: '1em',
-}))
+import { useWantedTransaction } from '../../hooks/useWantedTransaction'
+import { MultipleTransactionsWarning } from '../../components/Transactions/MultipleTransactionsWarning'
 
 export const RuntimeTransactionDetailPage: FC = () => {
   const { t } = useTranslation()
@@ -86,10 +43,6 @@ export const RuntimeTransactionDetailPage: FC = () => {
   }
 
   const hash = useParams().hash!
-
-  const [addressSwitchOption, setAddressSwitchOption] = useState<
-    AddressSwitchOption.Oasis | AddressSwitchOption.ETH
-  >(AddressSwitchOption.ETH)
 
   const { isLoading, data } = useGetRuntimeTransactionsTxHash(
     scope.network,
@@ -108,32 +61,19 @@ export const RuntimeTransactionDetailPage: FC = () => {
   }
   return (
     <PageLayout>
-      {warningMultipleTransactionsSameHash && (
-        <StyledAlert severity="error">{t('transaction.warningMultipleTransactionsSameHash')}</StyledAlert>
-      )}
-      <SubPageCard
-        featured
-        title={t('transaction.header')}
-        action={
-          <AddressSwitch
-            selected={addressSwitchOption}
-            onSelectionChange={addressSwitch => setAddressSwitchOption(addressSwitch)}
-          />
-        }
-        mainTitle
-      >
+      <MultipleTransactionsWarning enable={warningMultipleTransactionsSameHash} />
+      <SubPageCard featured title={t('transaction.header')} mainTitle>
         <RuntimeTransactionDetailView
           isLoading={isLoading}
           transaction={transaction}
           tokenPrices={tokenPrices}
-          addressSwitchOption={addressSwitchOption}
         />
       </SubPageCard>
       <DappBanner scope={scope} ethAddress={transaction?.sender_0_eth} />
       <DappBanner scope={scope} ethAddress={transaction?.to_eth} />
       {transaction && (
         <SubPageCard title={t('common.events')}>
-          <RuntimeTransactionEvents transaction={transaction} addressSwitchOption={addressSwitchOption} />
+          <RuntimeTransactionEvents transaction={transaction} />
         </SubPageCard>
       )}
     </PageLayout>
@@ -150,29 +90,12 @@ export const RuntimeTransactionDetailView: FC<{
   showLayer?: boolean
   standalone?: boolean
   tokenPrices: AllTokenPrices
-  addressSwitchOption?: AddressSwitchOption
-}> = ({
-  isLoading,
-  transaction,
-  showLayer,
-  standalone = false,
-  tokenPrices,
-  addressSwitchOption = AddressSwitchOption.ETH,
-}) => {
+}> = ({ isLoading, transaction, showLayer, standalone = false, tokenPrices }) => {
   const { t } = useTranslation()
   const { isMobile } = useScreenSize()
-
   const formattedTimestamp = useFormattedTimestampStringWithDistance(transaction?.timestamp)
-
-  const isOasisAddressFormat = addressSwitchOption === AddressSwitchOption.Oasis
-  const hash = isOasisAddressFormat ? transaction?.hash : transaction?.eth_hash
-  const from = isOasisAddressFormat ? transaction?.sender_0 : transaction?.sender_0_eth
-  const to = isOasisAddressFormat ? transaction?.to : transaction?.to_eth
-
-  const ticker = transaction?.ticker || Ticker.ROSE
-  const tickerName = getNameForTicker(t, ticker)
-  const tokenPriceInfo = tokenPrices[ticker]
-
+  // @ts-expect-error Ignore index type error
+  const amountSymbolPriceInfo = tokenPrices[transaction?.amount_symbol]
   const gasPrice = getGasPrice({ fee: transaction?.charged_fee, gasUsed: transaction?.gas_used.toString() })
 
   return (
@@ -199,19 +122,9 @@ export const RuntimeTransactionDetailView: FC<{
               <dd>
                 <TransactionLink
                   scope={transaction}
-                  hash={
-                    hash || ((isOasisAddressFormat ? transaction?.eth_hash : transaction?.hash) as string)
-                  }
-                  extraTooltip={
-                    hash
-                      ? isOasisAddressFormat
-                        ? t('transaction.tooltips.txTooltipOasis')
-                        : t('transaction.tooltips.txTooltipEth')
-                      : t('transaction.tooltips.txTooltipHashUnavailable')
-                  }
+                  hash={(transaction?.eth_hash || transaction?.hash) as string}
                 />
-
-                {hash && <CopyToClipboard value={hash} />}
+                <CopyToClipboard value={transaction?.eth_hash || transaction?.hash} />
               </dd>
             </>
           )}
@@ -228,7 +141,7 @@ export const RuntimeTransactionDetailView: FC<{
 
           <dt>{t('common.type')}</dt>
           <dd>
-            <RuntimeTransactionMethod method={transaction.method} />
+            <RuntimeTransactionMethod transaction={transaction} />
           </dd>
 
           <dt>{t('transactions.encryption.format')}</dt>
@@ -245,19 +158,9 @@ export const RuntimeTransactionDetailView: FC<{
               <dd>
                 <AccountLink
                   scope={transaction}
-                  address={
-                    from ||
-                    ((isOasisAddressFormat ? transaction?.sender_0_eth : transaction?.sender_0) as string)
-                  }
-                  extraTooltip={
-                    from
-                      ? isOasisAddressFormat
-                        ? t('transaction.tooltips.senderTooltipOasis')
-                        : t('transaction.tooltips.senderTooltipEth')
-                      : t('transaction.tooltips.senderTooltipUnavailable')
-                  }
+                  address={(transaction?.sender_0_eth ?? transaction?.sender_0) as string}
                 />
-                {from && <CopyToClipboard value={from} />}
+                <CopyToClipboard value={transaction?.sender_0_eth ?? transaction?.sender_0} />
               </dd>
             </>
           )}
@@ -268,49 +171,42 @@ export const RuntimeTransactionDetailView: FC<{
               <dd>
                 <AccountLink
                   scope={transaction}
-                  address={to || ((isOasisAddressFormat ? transaction?.to_eth : transaction?.to) as string)}
-                  extraTooltip={
-                    to
-                      ? isOasisAddressFormat
-                        ? t('transaction.tooltips.recipientTooltipOasis')
-                        : t('transaction.tooltips.recipientTooltipEth')
-                      : t('transaction.tooltips.recipientTooltipUnavailable')
-                  }
+                  address={(transaction?.to_eth || transaction?.to) as string}
                 />
-                {to && <CopyToClipboard value={to} />}
+                <CopyToClipboard value={(transaction?.to_eth || transaction?.to) as string} />
               </dd>
             </>
           )}
 
-          <dt>{t('common.value')}</dt>
+          <dt>{t('common.amount')}</dt>
           <dd>
             {transaction.amount != null
               ? t('common.valueInToken', {
                   ...getPreciseNumberFormat(transaction.amount),
-                  ticker: tickerName,
+                  ticker: transaction.amount_symbol,
                 })
               : t('common.missing')}
           </dd>
 
           {showFiatValues &&
             transaction.amount !== undefined &&
-            !!tokenPriceInfo &&
-            !tokenPriceInfo.isLoading &&
-            !tokenPriceInfo.isFree &&
-            tokenPriceInfo.price !== undefined && (
+            !!amountSymbolPriceInfo &&
+            !amountSymbolPriceInfo.isLoading &&
+            !amountSymbolPriceInfo.isFree &&
+            amountSymbolPriceInfo.price !== undefined && (
               <>
                 <dt>{t('currentFiatValue.title')}</dt>
                 <dd>
-                  <CurrentFiatValue amount={transaction.amount} {...tokenPriceInfo} />
+                  <CurrentFiatValue amount={transaction.amount} {...amountSymbolPriceInfo} />
                 </dd>
               </>
             )}
 
-          <dt>{t('common.transactionFee')}</dt>
+          <dt>{t('common.fee')}</dt>
           <dd>
             {t('common.valueInToken', {
               ...getPreciseNumberFormat(transaction.charged_fee),
-              ticker: tickerName,
+              ticker: transaction.fee_symbol,
             })}
           </dd>
 
@@ -320,7 +216,7 @@ export const RuntimeTransactionDetailView: FC<{
               <dd>
                 {t('common.valueInToken', {
                   ...getPreciseNumberFormat(convertToNano(gasPrice)),
-                  ticker: `n${tickerName}`,
+                  ticker: `n${transaction.fee_symbol}`,
                 })}
               </dd>
             </>
@@ -331,6 +227,11 @@ export const RuntimeTransactionDetailView: FC<{
 
           <dt>{t('common.gasLimit')}</dt>
           <dd>{transaction.gas_limit.toLocaleString()}</dd>
+
+          <dt>{t('common.nonce')}</dt>
+          <dd>
+            <>{transaction.nonce_0.toLocaleString()}</>
+          </dd>
 
           {!!transaction.body?.data && (
             <>

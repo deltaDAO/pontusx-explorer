@@ -21,6 +21,9 @@ import { tokenHoldersContainerId } from '../../pages/TokenDashboardPage/TokenHol
 import { RoundedBalance } from 'app/components/RoundedBalance'
 import { HighlightedText } from '../../components/HighlightedText'
 import { RuntimeBalanceDisplay } from '../../components/Balance/RuntimeBalanceDisplay'
+import { extractMinimalProxyERC1167 } from '../../components/ContractVerificationIcon/extractMinimalProxyERC1167'
+import { AbiPlaygroundLink } from '../../components/ContractVerificationIcon/AbiPlaygroundLink'
+import Box from '@mui/material/Box'
 
 export const TokenDetailsCard: FC<{ scope: SearchScope; address: string; searchTerm: string }> = ({
   scope,
@@ -66,6 +69,18 @@ export const TokenDetailsCard: FC<{ scope: SearchScope; address: string; searchT
               />
             </dd>
 
+            {extractMinimalProxyERC1167(account) && (
+              <>
+                <dt>{t('contract.verification.proxyERC1167')}</dt>
+                <dd>
+                  <Box>
+                    <AccountLink scope={account} address={extractMinimalProxyERC1167(account)!} />
+                    <AbiPlaygroundLink scope={account} address_eth={account.address_eth!} />
+                  </Box>
+                </dd>
+              </>
+            )}
+
             <dt>{t('common.type')} </dt>
             <dd>
               <TokenTypeTag tokenType={token.type} />
@@ -106,7 +121,7 @@ export const TokenDetailsCard: FC<{ scope: SearchScope; address: string; searchT
               </Link>
             </dd>
 
-            {token.num_transfers && (
+            {!!token.num_transfers && (
               <>
                 <dt>{t('common.transfers')}</dt>
                 <dd>

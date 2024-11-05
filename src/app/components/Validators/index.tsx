@@ -2,7 +2,7 @@ import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import Box from '@mui/material/Box'
 import { Table, TableCellAlign, TableColProps } from '../../components/Table'
-import { Validator } from '../../../oasis-nexus/api'
+import { Validator, ValidatorAggStats } from '../../../oasis-nexus/api'
 import { TablePaginationProps } from '../Table/TablePagination'
 import { StatusIcon } from '../StatusIcon'
 import { RoundedBalance } from '../RoundedBalance'
@@ -12,15 +12,18 @@ import { ValidatorCumulativeVoting } from './ValidatorCumulativeVoting'
 import { ValidatorLink } from './ValidatorLink'
 import { useRequiredScopeParam } from '../../hooks/useScopeParam'
 import { BalancesDiff } from '../BalancesDiff'
+import { PercentageValue } from '../PercentageValue'
+import { UptimeStatus } from '../UptimeStatus'
 
 type ValidatorsProps = {
   validators?: Validator[]
   isLoading: boolean
   limit: number
   pagination: false | TablePaginationProps
+  stats: ValidatorAggStats | undefined
 }
 
-export const Validators: FC<ValidatorsProps> = ({ isLoading, limit, pagination, validators }) => {
+export const Validators: FC<ValidatorsProps> = ({ isLoading, limit, pagination, validators, stats }) => {
   const { t } = useTranslation()
   const { network } = useRequiredScopeParam()
 
@@ -63,26 +66,23 @@ export const Validators: FC<ValidatorsProps> = ({ isLoading, limit, pagination, 
       },
       {
         align: TableCellAlign.Right,
-        // TODO: provide cumulative voting when it is implemented in the API
-        content: <ValidatorCumulativeVoting containerMarginThemeSpacing={5} value={0} />,
+        content: (
+          <ValidatorCumulativeVoting
+            containerMarginThemeSpacing={5}
+            value={validator.voting_power_cumulative}
+            total={stats?.total_voting_power}
+          />
+        ),
         key: 'cumulativeVoting',
       },
       {
         align: TableCellAlign.Right,
         content: (
-          <>
-            {typeof validator?.voting_power === 'number' && validator?.voting_power_total > 0
-              ? t('common.valuePair', {
-                  value: validator.voting_power / validator.voting_power_total,
-                  formatParams: {
-                    value: {
-                      style: 'percent',
-                      maximumFractionDigits: 2,
-                    } satisfies Intl.NumberFormatOptions,
-                  },
-                })
-              : t('common.missing')}
-          </>
+          <PercentageValue
+            value={validator.voting_power}
+            total={stats?.total_voting_power}
+            adaptMaximumFractionDigits
+          />
         ),
 
         key: 'voting',
@@ -96,8 +96,8 @@ export const Validators: FC<ValidatorsProps> = ({ isLoading, limit, pagination, 
         align: TableCellAlign.Right,
         content: (
           <BalancesDiff
-            before={validator.escrow.active_balance}
-            after={validator.escrow.active_balance_24}
+            before={validator.escrow.active_balance_24}
+            after={validator.escrow.active_balance}
             ticker={validator.ticker}
           />
         ),
@@ -130,7 +130,7 @@ export const Validators: FC<ValidatorsProps> = ({ isLoading, limit, pagination, 
       {
         // TODO: provide uptime when it is implemented in the API
         align: TableCellAlign.Right,
-        content: <>-</>,
+        content: <UptimeStatus small percentage={94} status={[100, 100, 100, 50]} />,
         key: 'uptime',
       },
     ],

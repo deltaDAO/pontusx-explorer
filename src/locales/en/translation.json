@@ -70,8 +70,6 @@
     "bytes": "{{value, number}}",
     "cancel": "Cancel",
     "collection": "Collection",
-    "consensusOnline": "Consensus Online",
-    "consensusOutOfDate": "Consensus out of date",
     "copy": "Copy",
     "data": "Data",
     "debonding": "Debonding",
@@ -138,12 +136,11 @@
     "totalVotes": "Total votes",
     "transactions": "Transactions",
     "transactionAbbreviation": "Txs",
-    "transactionFee": "Transaction Fee",
+    "fee": "Fee",
     "transfers": "Transfers",
     "type": "Type",
     "quantity": "Quantity",
     "unknown": "Unknown",
-    "value": "Value",
     "valueLong": "{{value, number}}",
     "valueInToken": "{{value, number}} {{ticker}}",
     "roundedValueInToken": "{{value, number}}… <TickerLink />",
@@ -153,8 +150,8 @@
     "vote": "Vote",
     "voter": "Voter",
     "votes": "Votes",
-    "paraTimeOnline": "ParaTime Online",
-    "paraTimeOutOfDate": "ParaTime Out of date",
+    "online": "Online",
+    "outOfDate": "Indexing out of date",
     "recipient": "Recipient",
     "mainnet": "Mainnet",
     "testnet": "Testnet",
@@ -176,7 +173,8 @@
       "openInAbiPlayground": "Interact in <AbiPlaygroundLink>ABI Playground</AbiPlaygroundLink>",
       "openInSourcify": "Open in <SourcifyLink>Sourcify</SourcifyLink>",
       "verifyInSourcify": "Verify through <SourcifyLink>Sourcify</SourcifyLink>",
-      "explainVerificationDelay": "If you have just verified a contract, it should take a few minutes to update here."
+      "explainVerificationDelay": "If you have just verified a contract, it should take a few minutes to update here.",
+      "proxyERC1167": "ERC-1167 proxy to"
     }
   },
   "consensusSnapshot": {
@@ -414,18 +412,18 @@
     "latest": "Latest Transactions",
     "method": {
       "stakingTransfer": "Transfer",
-      "stakingAddEscrow": "Start delegate",
-      "stakingReclaimEscrow": "Start undelegate",
-      "stakingAmendCommissionSchedule": "Amend commission schedule",
+      "stakingAddEscrow": "Start Delegate",
+      "stakingReclaimEscrow": "Start Undelegate",
+      "stakingAmendCommissionSchedule": "Amend Commission Schedule",
       "stakingAllow": "Allowance Change",
-      "stakingWithdraw": "Continued delegate",
-      "roothashExecutorCommit": "Executor commit",
-      "roothashExecutorProposerTimeout": "Executor proposer timeout",
-      "registryRegisterEntity": "Register entity",
-      "registryRegisterNode": "Register node",
-      "registryRegisterRuntime": "Register runtime",
-      "governanceCastVote": "Cast vote",
-      "governanceSubmitProposal": "Submit proposal",
+      "stakingWithdraw": "Continued Delegate",
+      "roothashExecutorCommit": "Executor Commit",
+      "roothashExecutorProposerTimeout": "Executor Proposer Timeout",
+      "registryRegisterEntity": "Register Entity",
+      "registryRegisterNode": "Register Node",
+      "registryRegisterRuntime": "Register Runtime",
+      "governanceCastVote": "Cast Vote",
+      "governanceSubmitProposal": "Submit Proposal",
       "beaconPVSSCommit": "PVSSCommit",
       "beaconPVSSReveal": "PVSSReveal",
       "beaconVRFProve": "VRFProve",
@@ -450,23 +448,19 @@
     "warningMultipleTransactionsSameHash": "Please make sure you're looking at the right transaction. There is more than one transaction with this hash, which is extremely rare. We are showing the most recent successful one.",
     "rawData": "Raw Data",
     "tooltips": {
-      "txTooltipEth": "Ethereum hash for the transaction",
-      "senderTooltipEth": "Ethereum address for the sender",
-      "recipientTooltipEth": "Ethereum address for the recipient",
-      "txTooltipOasis": "Oasis hash for the transaction",
-      "senderTooltipOasis": "Oasis address for the sender",
-      "recipientTooltipOasis": "Oasis address for the recipient",
-      "txTooltipHashUnavailable": "Hash not available in selected address format",
       "txEncrypted": "This transaction is encrypted.",
-      "txNotEncrypted": "This transaction is <strong>not</strong> encrypted.",
-      "senderTooltipUnavailable": "Sender not available in selected address format",
-      "recipientTooltipUnavailable": "Recipient not available in selected address format"
+      "txNotEncrypted": "This transaction is <strong>not</strong> encrypted."
+    }
+  },
+  "event": {
+    "cantLoadEvents": "Unfortunately we couldn't load the list of events. Please try again later.",
+    "cantFindMatchingEvents": "We can't find any matching events.",
+    "noEvents": "No events",
+    "fields": {
+      "emittingTransaction": "Transaction"
     }
   },
   "runtimeEvent": {
-    "cantLoadEvents": "Unfortunately we couldn't load the list of events. Please try again later.",
-    "noEvents": "No events",
-    "cantFindMatchingEvents": "We can't find any matching events.",
     "accountsburn": "Tokens burnt",
     "accountsmint": "Tokens minted",
     "accountstransfer": "Transfer",
@@ -554,7 +548,6 @@
     "link": "Oasis Explorer Home",
     "txns": "Txns",
     "zoomOutBtnText": "Zoom out",
-    "online": "Online",
     "offline": "Offline",
     "helpScreen": {
       "navigate": "Navigate using your finger",
@@ -585,7 +578,6 @@
     "listTitle": "ParaTimes",
     "noData": "No data available",
     "nodes": "Nodes:",
-    "online": "Online",
     "outdated": "Out-of-date"
   },
   "pontusx": {
@@ -599,7 +591,7 @@
     "placeholder": "Address, Block, Contract, Transaction hash, Token name, etc.",
     "error": {
       "tooShort": "Please enter either at least 3 characters or a number in order to perform a search.",
-      "privacy": "It seems like you might accidentally entered a keyphrase for a wallet. Please note that your mnemonic is a secret key that should never be shared, even not with our {{ appName }}.\nExecuting this search is highly unlikely to return any results. If you want to proceed nonetheless, please add “{{ wordsOfPower }}” in front of your search query to perform the search at your own risk."
+      "privacy": "It seems like you might accidentally entered a keyphrase for a wallet. Please note that your mnemonic is a secret key that should never be shared, even not with our {{ appName }}.\nExecuting this search is highly unlikely to return any results."
     },
     "mobilePlaceholder": "Search Address, Block, Txn, Token, etc",
     "noResults": {
@@ -644,8 +636,7 @@
     },
     "searchBtnText": "Search",
     "searchSuggestions": "Not sure what to look for? Try out a search: <OptionalBreak><BlockLink><BlockIcon/> Block</BlockLink>, <TransactionLink><TransactionIcon/> Transaction</TransactionLink>, <AccountLink><AccountIcon/> Address</AccountLink>, <TokenLink><TokenIcon/> Token</TokenLink> </OptionalBreak>.",
-    "searchSuggestionsForNoResults": "Alternatively, you can view a random <BlockLink><BlockIcon/> Block</BlockLink>, <OptionalBreak><TransactionLink><TransactionIcon/> Transaction</TransactionLink>, <AccountLink><AccountIcon/> Address</AccountLink> or <TokenLink><TokenIcon/> Token</TokenLink></OptionalBreak> <OptionalBreak>to discover our Explorer.</OptionalBreak>",
-    "wordsOfPower": "I COMMAND THEE TO SEARCH FOR"
+    "searchSuggestionsForNoResults": "Alternatively, you can view a random <BlockLink><BlockIcon/> Block</BlockLink>, <OptionalBreak><TransactionLink><TransactionIcon/> Transaction</TransactionLink>, <AccountLink><AccountIcon/> Address</AccountLink> or <TokenLink><TokenIcon/> Token</TokenLink></OptionalBreak> <OptionalBreak>to discover our Explorer.</OptionalBreak>"
   },
   "tableSearch": {
     "error": {
@@ -682,6 +673,7 @@
     "signed": "Signed",
     "signedBlocks": "Signed Blocks",
     "signedBlocksDescription": "Last 100 blocks",
+    "signedBlocksPercentage": "Percentage of blocks signed in the past 24h",
     "proposedBlocks": "Proposed Blocks",
     "snapshot": "Validator Snapshot",
     "self": "Self",
@@ -689,6 +681,7 @@
     "stakingTrend": "Staking Trend",
     "startDate": "Start Date",
     "title": "Validator",
+    "totalEscrow": " Total Escrow (100%)",
     "totalShare": "Total Share",
     "undelegations": "Undelegations",
     "uptime": "Uptime",

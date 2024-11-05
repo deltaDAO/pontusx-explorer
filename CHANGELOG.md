@@ -12,6 +12,173 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 1.14.0 (2024-10-17)
+
+### Features
+
+- Display EVM function name in verified contract calls
+  ([#1565](https://github.com/oasisprotocol/explorer/issues/1565))
+
+### Bug Fixes and Improvements
+
+- Remove eth/oasis address toggle
+  ([#1571](https://github.com/oasisprotocol/explorer/issues/1571))
+
+- Retain ETH address in details page for accounts with no EVM transactions
+  ([#1564](https://github.com/oasisprotocol/explorer/issues/1564))
+
+- Make lists with polling and pagination more stable
+  ([#1534](https://github.com/oasisprotocol/explorer/issues/1534))
+
+- Prohibit unknown denominations
+  ([#1546](https://github.com/oasisprotocol/explorer/issues/1546))
+
+- Swap fee and amount columns in txs tables
+  ([#1554](https://github.com/oasisprotocol/explorer/issues/1554))
+
+- Unify layer status labels and icons
+  ([#1561](https://github.com/oasisprotocol/explorer/issues/1561))
+
+- Fix duplicated events cards headers
+  ([#1570](https://github.com/oasisprotocol/explorer/issues/1570))
+
+### Process Changes
+
+- Cloudflare stable preview URLs
+  ([#1537](https://github.com/oasisprotocol/explorer/issues/1537))
+
+### Internal Changes
+
+- Update dependencies
+  ([#1507](https://github.com/oasisprotocol/explorer/issues/1507),
+   [#1508](https://github.com/oasisprotocol/explorer/issues/1508),
+   [#1549](https://github.com/oasisprotocol/explorer/issues/1549),
+   [#1550](https://github.com/oasisprotocol/explorer/issues/1550),
+   [#1551](https://github.com/oasisprotocol/explorer/issues/1551),
+   [#1557](https://github.com/oasisprotocol/explorer/issues/1557),
+   [#1560](https://github.com/oasisprotocol/explorer/issues/1560),
+   [#1562](https://github.com/oasisprotocol/explorer/issues/1562))
+
+## 1.13.0 (2024-09-18)
+
+### Features
+
+- Detect ERC-1167 Minimal Proxy contracts
+  ([#1538](https://github.com/oasisprotocol/explorer/issues/1538),
+  [#1540](https://github.com/oasisprotocol/explorer/issues/1540))
+
+- Show emitting transaction address in events
+  ([#1544](https://github.com/oasisprotocol/explorer/issues/1544))
+
+### Bug Fixes and Improvements
+
+- Fix displaying negative allowance changes
+  ([#1529](https://github.com/oasisprotocol/explorer/issues/1529))
+
+- Fix non-native event denominations
+  ([#1539](https://github.com/oasisprotocol/explorer/issues/1539))
+
+- Differentiate transaction amount and fee tickers
+  ([#1543](https://github.com/oasisprotocol/explorer/issues/1543))
+
+- Swap Fee and Value labels in columns in list of transactions
+  ([#1547](https://github.com/oasisprotocol/explorer/issues/1547))
+
+## 1.12.0 (2024-08-29)
+
+### Features
+
+- Support for Pontus-X devnet and testnet
+  ([#1435](https://github.com/oasisprotocol/explorer/issues/1435))
+
+- Link to ABI playground from verified contracts
+  ([#1492](https://github.com/oasisprotocol/explorer/issues/1492))
+
+### Bug Fixes and Improvements
+
+- Tweak events card layout
+  ([#1488](https://github.com/oasisprotocol/explorer/issues/1488))
+
+- Enable pagination in Events lists
+  ([#1489](https://github.com/oasisprotocol/explorer/issues/1489))
+
+- Support searching for Consensus accounts clean-up
+  ([#1423](https://github.com/oasisprotocol/explorer/issues/1423))
+
+- Remove total_received and total_sent from account
+  ([#1475](https://github.com/oasisprotocol/explorer/issues/1475))
+
+- Automatically throw on 5xx error responses
+  ([#1493](https://github.com/oasisprotocol/explorer/issues/1493),
+  [#1513](https://github.com/oasisprotocol/explorer/issues/1513))
+
+- Fix validator balance change
+  ([#1509](https://github.com/oasisprotocol/explorer/issues/1509))
+
+### Internal Changes
+
+- Enable Consensus testnet on dev deploys
+  ([#1432](https://github.com/oasisprotocol/explorer/issues/1432))
+
+- Add consensus account num_txns
+  ([#1433](https://github.com/oasisprotocol/explorer/issues/1433))
+
+- Add NFTs documentation
+  ([#1436](https://github.com/oasisprotocol/explorer/issues/1436))
+
+- Migrate from grpc.oasis.dev to grpc.oasis.io
+  ([#1437](https://github.com/oasisprotocol/explorer/issues/1437))
+
+- Add more configuration options for ParaTimes
+  ([#1441](https://github.com/oasisprotocol/explorer/issues/1441))
+
+- Remove redundancy, simplify tx encryption status
+  ([#1453](https://github.com/oasisprotocol/explorer/issues/1453))
+
+- Harden github workflow against injection
+  ([#1495](https://github.com/oasisprotocol/explorer/issues/1495))
+
+- Sync PontusX with API changes
+  ([#1497](https://github.com/oasisprotocol/explorer/issues/1497))
+
+- Revert hardcoding number of active nodes
+  ([#1521](https://github.com/oasisprotocol/explorer/issues/1521))
+
+- Update API bindings
+  ([#1446](https://github.com/oasisprotocol/explorer/issues/1446),
+  [#1457](https://github.com/oasisprotocol/explorer/issues/1457),
+  [#1467](https://github.com/oasisprotocol/explorer/issues/1467),
+  [#1425](https://github.com/oasisprotocol/explorer/issues/1425))
+
+- Update dependencies
+  ([#1273](https://github.com/oasisprotocol/explorer/issues/1273),
+  [#1393](https://github.com/oasisprotocol/explorer/issues/1393),
+  [#1407](https://github.com/oasisprotocol/explorer/issues/1407),
+  [#1416](https://github.com/oasisprotocol/explorer/issues/1416),
+  [#1417](https://github.com/oasisprotocol/explorer/issues/1417),
+  [#1419](https://github.com/oasisprotocol/explorer/issues/1419),
+  [#1421](https://github.com/oasisprotocol/explorer/issues/1421),
+  [#1429](https://github.com/oasisprotocol/explorer/issues/1429),
+  [#1430](https://github.com/oasisprotocol/explorer/issues/1430),
+  [#1431](https://github.com/oasisprotocol/explorer/issues/1431),
+  [#1438](https://github.com/oasisprotocol/explorer/issues/1438),
+  [#1439](https://github.com/oasisprotocol/explorer/issues/1439),
+  [#1440](https://github.com/oasisprotocol/explorer/issues/1440),
+  [#1448](https://github.com/oasisprotocol/explorer/issues/1448),
+  [#1449](https://github.com/oasisprotocol/explorer/issues/1449),
+  [#1450](https://github.com/oasisprotocol/explorer/issues/1450),
+  [#1455](https://github.com/oasisprotocol/explorer/issues/1455),
+  [#1458](https://github.com/oasisprotocol/explorer/issues/1458),
+  [#1463](https://github.com/oasisprotocol/explorer/issues/1463),
+  [#1464](https://github.com/oasisprotocol/explorer/issues/1464),
+  [#1473](https://github.com/oasisprotocol/explorer/issues/1473),
+  [#1485](https://github.com/oasisprotocol/explorer/issues/1485),
+  [#1487](https://github.com/oasisprotocol/explorer/issues/1487),
+  [#1499](https://github.com/oasisprotocol/explorer/issues/1499),
+  [#1500](https://github.com/oasisprotocol/explorer/issues/1500),
+  [#1504](https://github.com/oasisprotocol/explorer/issues/1504),
+  [#1505](https://github.com/oasisprotocol/explorer/issues/1505))
+
 ## 1.11.0 (2024-05-22)
 
 ### Features

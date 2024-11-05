@@ -6,7 +6,6 @@ import { LinkableCardLayout } from '../../components/LinkableCardLayout'
 import { useSearchParamsPagination } from '../../components/Table/useSearchParamsPagination'
 import { AppErrors } from '../../../types/errors'
 import { RuntimeEventsDetailedList } from '../../components/RuntimeEvents/RuntimeEventsDetailedList'
-import { AddressSwitchOption } from '../../components/AddressSwitch'
 import { EmptyState } from '../../components/EmptyState'
 import { RuntimeBlockDetailsContext } from '.'
 
@@ -34,11 +33,7 @@ const EventsList: FC<RuntimeBlockDetailsContext> = ({ scope, blockHeight }) => {
 
   if (!events?.length && !isLoading) {
     return (
-      <EmptyState
-        description={t('runtimeEvent.cantFindMatchingEvents')}
-        title={t('runtimeEvent.noEvents')}
-        light={true}
-      />
+      <EmptyState description={t('event.cantFindMatchingEvents')} title={t('event.noEvents')} light={true} />
     )
   }
 
@@ -48,7 +43,6 @@ const EventsList: FC<RuntimeBlockDetailsContext> = ({ scope, blockHeight }) => {
       events={events}
       isLoading={isLoading}
       isError={isError}
-      addressSwitchOption={AddressSwitchOption.ETH}
       pagination={{
         selectedPage: pagination.selectedPage,
         linkToPage: pagination.linkToPage,
@@ -56,6 +50,7 @@ const EventsList: FC<RuntimeBlockDetailsContext> = ({ scope, blockHeight }) => {
         isTotalCountClipped: data?.data.is_total_count_clipped,
         rowsPerPage: limit,
       }}
+      showTxHash
     />
   )
 }

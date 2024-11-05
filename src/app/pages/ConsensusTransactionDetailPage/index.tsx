@@ -17,12 +17,14 @@ import { BlockLink } from 'app/components/Blocks/BlockLink'
 import { ConsensusTransactionMethod } from 'app/components/ConsensusTransactionMethod'
 import { useFormattedTimestampStringWithDistance } from 'app/hooks/useFormattedTimestamp'
 import { RoundedBalance } from 'app/components/RoundedBalance'
-import { AccountLink } from 'app/components/Account/AccountLink'
+import { ConsensusAccountLink } from 'app/components/Account/ConsensusAccountLink'
 import { getPreciseNumberFormat } from 'locales/getPreciseNumberFormat'
 import { CurrentFiatValue } from '../../components/CurrentFiatValue'
 import { ConsensusTransactionEvents } from '../../components/Transactions/ConsensusTransactionEvents'
 import { AllTokenPrices, useAllTokenPrices } from 'coin-gecko/api'
 import { getFiatCurrencyForScope } from '../../../config'
+import { useWantedTransaction } from '../../hooks/useWantedTransaction'
+import { MultipleTransactionsWarning } from '../../components/Transactions/MultipleTransactionsWarning'
 
 const StyledDescriptionDetails = styled('dd')({
   '&&': { padding: 0 },
@@ -34,13 +36,16 @@ export const ConsensusTransactionDetailPage: FC = () => {
   const hash = useParams().hash!
   const { isLoading, data } = useGetConsensusTransactionsTxHash(scope.network, hash)
   const tokenPrices = useAllTokenPrices(getFiatCurrencyForScope(scope))
-  const transaction = data?.data
+  const { wantedTransaction: transaction, warningMultipleTransactionsSameHash } = useWantedTransaction(
+    data?.data,
+  )
   if (!transaction && !isLoading) {
     throw AppErrors.NotFoundTxHash
   }
 
   return (
     <PageLayout>
+      <MultipleTransactionsWarning enable={warningMultipleTransactionsSameHash} />
       <SubPageCard featured title={t('transaction.header')}>
         <ConsensusTransactionDetailView
           detailsPage
@@ -104,24 +109,21 @@ export const ConsensusTransactionDetailView: FC<{
       </dd>
       <dt>{t('common.from')}</dt>
       <dd>
-        <AccountLink scope={transaction} address={transaction.sender} />
+        <ConsensusAccountLink network={transaction.network} address={transaction.sender} alwaysTrim={false} />
         <CopyToClipboard value={transaction.sender} />
       </dd>
       {transaction.to && (
         <>
           <dt>{t('common.to')}</dt>
           <dd>
-            <AccountLink
-              scope={{ layer: transaction.layer, network: transaction.network }}
-              address={transaction.to}
-            />
+            <ConsensusAccountLink network={transaction.network} address={transaction.to} alwaysTrim={false} />
             <CopyToClipboard value={transaction.to} />
           </dd>
         </>
       )}
       {transaction.amount && (
         <>
-          <dt>{t('common.value')}</dt>
+          <dt>{t('common.amount')}</dt>
           <dd>
             {t('common.valueInToken', {
               ...getPreciseNumberFormat(transaction.amount),
@@ -152,7 +154,7 @@ export const ConsensusTransactionDetailView: FC<{
               </dd>
             </>
           )}
-          <dt>{t('common.transactionFee')}</dt>
+          <dt>{t('common.fee')}</dt>
           <dd>
             <RoundedBalance value={transaction.fee} ticker={transaction.ticker} />
           </dd>
