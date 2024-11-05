@@ -10,10 +10,10 @@ const faucetLinks: Partial<Record<Network, Partial<Record<Layer, Partial<Record<
     [Layer.sapphire]: { [Ticker.TEST]: `${faucets.oasisTestnet}?paratime=sapphire` },
     [Layer.cipher]: { [Ticker.TEST]: `${faucets.oasisTestnet}?paratime=cipher` },
     [Layer.pontusxdev]: {
-      [Ticker.EUROe]: `mailto:contact@delta-dao.com?subject=${encodeURIComponent('Request test tokens for Pontus-X Devnet')}`,
+      [Ticker.EUROe]: `https://portal.pontus-x.eu/faucet`,
     },
     [Layer.pontusxtest]: {
-      [Ticker.EUROe]: `mailto:contact@delta-dao.com?subject=${encodeURIComponent('Request test tokens for Pontus-X Testnet')}`,
+      [Ticker.EUROe]: `https://portal.pontus-x.eu/faucet`,
     },
   },
 }
