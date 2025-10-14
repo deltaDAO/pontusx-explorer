@@ -2,22 +2,21 @@ import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link as RouterLink } from 'react-router-dom'
 import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
-import Link from '@mui/material/Link'
 import { useGetConsensusBlocks } from '../../../oasis-nexus/api'
 import { ConsensusBlocks } from '../../components/Blocks'
-import { NUMBER_OF_ITEMS_ON_DASHBOARD } from '../../config'
-import { COLORS } from '../../../styles/theme/colors'
+import { NUMBER_OF_ITEMS_ON_DASHBOARD } from '../../../config'
 import { RouteUtils } from '../../utils/route-utils'
 import { useScreenSize } from '../../hooks/useScreensize'
-import { SearchScope } from '../../../types/searchScope'
+import { ConsensusScope } from '../../../types/searchScope'
+import { ErrorBoundary } from '../../components/ErrorBoundary'
+import { Typography } from '@oasisprotocol/ui-library/src/components/typography'
+import { Link } from '@oasisprotocol/ui-library/src/components/link'
 
 const limit = NUMBER_OF_ITEMS_ON_DASHBOARD
 
-export const LatestConsensusBlocks: FC<{ scope: SearchScope }> = ({ scope }) => {
+const LatestConsensusBlocksContent: FC<{ scope: ConsensusScope }> = ({ scope }) => {
   const { isMobile } = useScreenSize()
-  const { t } = useTranslation()
   const { network } = scope
   const blocksQuery = useGetConsensusBlocks(
     network,
@@ -28,31 +27,33 @@ export const LatestConsensusBlocks: FC<{ scope: SearchScope }> = ({ scope }) => 
       },
     },
   )
+  return (
+    <ConsensusBlocks
+      isLoading={blocksQuery.isLoading}
+      blocks={blocksQuery.data?.data.blocks}
+      limit={limit}
+      pagination={false}
+      showHash={!isMobile}
+    />
+  )
+}
+
+export const LatestConsensusBlocks: FC<{ scope: ConsensusScope }> = ({ scope }) => {
+  const { t } = useTranslation()
 
   return (
     <Card sx={{ flex: 1 }}>
-      <CardHeader
-        disableTypography
-        component="h3"
-        title={t('blocks.latest')}
-        action={
-          <Link
-            component={RouterLink}
-            to={RouteUtils.getLatestBlocksRoute(scope)}
-            sx={{ color: COLORS.brandDark }}
-          >
-            {t('common.viewAll')}
-          </Link>
-        }
-      />
+      <div className="flex justify-between items-center mb-4 pr-4 sm:pr-0">
+        <Typography variant="h3">{t('blocks.latest')}</Typography>
+        <Link asChild className="font-medium px-4" textColor="primary">
+          <RouterLink to={RouteUtils.getLatestBlocksRoute(scope)}>{t('common.viewAll')}</RouterLink>
+        </Link>
+      </div>
+
       <CardContent>
-        <ConsensusBlocks
-          isLoading={blocksQuery.isLoading}
-          blocks={blocksQuery.data?.data.blocks}
-          limit={limit}
-          pagination={false}
-          showHash={!isMobile}
-        />
+        <ErrorBoundary light={true}>
+          <LatestConsensusBlocksContent scope={scope} />
+        </ErrorBoundary>
       </CardContent>
     </Card>
   )

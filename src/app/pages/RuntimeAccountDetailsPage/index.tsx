@@ -6,28 +6,36 @@ import { RouterTabs } from '../../components/RouterTabs'
 import { useAllTokenPrices } from '../../../coin-gecko/api'
 import { EvmTokenType, RuntimeAccount } from '../../../oasis-nexus/api'
 import { useAccount } from './hook'
-import { useRequiredScopeParam } from '../../hooks/useScopeParam'
+import { useRuntimeScope } from '../../hooks/useScopeParam'
 import { useTokenInfo } from '../TokenDashboardPage/hook'
 import { getTokenTypePluralName } from '../../../types/tokens'
-import { SearchScope } from '../../../types/searchScope'
+import { RuntimeScope } from '../../../types/searchScope'
 import { RuntimeAccountDetailsCard } from './RuntimeAccountDetailsCard'
 import { DappBanner } from '../../components/DappBanner'
 import { AddressLoaderData } from '../../utils/route-utils'
 import { getFiatCurrencyForScope } from '../../../config'
-import { useRuntimeTxMethodParam } from '../../hooks/useCommonParams'
+import {
+  RuntimeEventFilteringType,
+  RuntimeTxMethodFilteringType,
+  useRuntimeEventTypeParam,
+  useRuntimeTxMethodParam,
+} from '../../hooks/useCommonParams'
 import {
   codeContainerId,
   eventsContainerId,
   tokenContainerId,
   transfersContainerId,
 } from '../../utils/tabAnchors'
+import { ParamSetterFunction } from '../../hooks/useTypedSearchParam'
 
 export type RuntimeAccountDetailsContext = {
-  scope: SearchScope
+  scope: RuntimeScope
   address: string
   account?: RuntimeAccount
-  method: string
-  setMethod: (value: string) => void
+  txMethod: RuntimeTxMethodFilteringType
+  setTxMethod: ParamSetterFunction<RuntimeTxMethodFilteringType>
+  eventType: RuntimeEventFilteringType
+  setEventType: ParamSetterFunction<RuntimeEventFilteringType>
 }
 
 export const useRuntimeAccountDetailsProps = () => useOutletContext<RuntimeAccountDetailsContext>()
@@ -35,9 +43,10 @@ export const useRuntimeAccountDetailsProps = () => useOutletContext<RuntimeAccou
 export const RuntimeAccountDetailsPage: FC = () => {
   const { t } = useTranslation()
 
-  const scope = useRequiredScopeParam()
-  const { address, searchTerm } = useLoaderData() as AddressLoaderData
-  const { method, setMethod } = useRuntimeTxMethodParam()
+  const scope = useRuntimeScope()
+  const { address } = useLoaderData() as AddressLoaderData
+  const { txMethod, setTxMethod } = useRuntimeTxMethodParam()
+  const { eventType, setEventType } = useRuntimeEventTypeParam()
   const { account, isLoading: isAccountLoading, isError } = useAccount(scope, address)
   const isContract = !!account?.evm_contract
   const { token, isLoading: isTokenLoading } = useTokenInfo(scope, address, { enabled: isContract })
@@ -55,7 +64,15 @@ export const RuntimeAccountDetailsPage: FC = () => {
 
   const isLoading = isAccountLoading || isTokenLoading
 
-  const context: RuntimeAccountDetailsContext = { scope, address, account, method, setMethod }
+  const context: RuntimeAccountDetailsContext = {
+    scope,
+    address,
+    account,
+    txMethod,
+    setTxMethod,
+    eventType,
+    setEventType,
+  }
 
   return (
     <PageLayout>
@@ -66,9 +83,8 @@ export const RuntimeAccountDetailsPage: FC = () => {
         account={account}
         token={token}
         tokenPrices={tokenPrices}
-        highlightedPartOfName={searchTerm}
       />
-      <DappBanner scope={scope} ethAddress={account?.address_eth} />
+      <DappBanner scope={scope} ethOrOasisAddress={address} />
       <RouterTabs
         tabs={[
           { label: t('common.transactions'), to: txLink },

@@ -1,5 +1,4 @@
 import {
-  Layer,
   RuntimeEvent,
   RuntimeEventList,
   useGetRuntimeEvents,
@@ -10,27 +9,24 @@ import {
   useGetRuntimeEvmTokensAddressNftsId,
   RuntimeEventType,
   GetRuntimeEventsParams,
-  Runtime,
 } from '../../../oasis-nexus/api'
 import { AppErrors } from '../../../types/errors'
-import { SearchScope } from '../../../types/searchScope'
+import { RuntimeScope } from '../../../types/searchScope'
 import { useSearchParamsPagination } from '../../components/Table/useSearchParamsPagination'
-import { NUMBER_OF_ITEMS_ON_SEPARATE_PAGE } from '../../config'
+import { NUMBER_OF_ITEMS_ON_SEPARATE_PAGE } from '../../../config'
 import { useComprehensiveSearchParamsPagination } from '../../components/Table/useComprehensiveSearchParamsPagination'
+import { getOasisAddress } from '../../utils/helpers'
 
 interface UseTokenInfoParams {
+  /** Defaults to true */
   enabled?: boolean
   useCaching?: boolean
 }
 
-export const useTokenInfo = (scope: SearchScope, address: string, params: UseTokenInfoParams = {}) => {
+export const useTokenInfo = (scope: RuntimeScope, address: string, params: UseTokenInfoParams = {}) => {
   const { network, layer } = scope
   const { enabled, useCaching } = params
-  if (enabled && layer === Layer.consensus) {
-    // There can be no ERC-20 or ERC-721 tokens on consensus
-    throw AppErrors.UnsupportedLayer
-  }
-  const query = useGetRuntimeEvmTokensAddress(network, layer as Runtime, address, {
+  const query = useGetRuntimeEvmTokensAddress(network, layer, getOasisAddress(address), {
     query: {
       enabled,
       staleTime: useCaching ? 3600000 : undefined,
@@ -40,37 +36,39 @@ export const useTokenInfo = (scope: SearchScope, address: string, params: UseTok
   const { isLoading, isError, isFetched } = query
   return {
     token,
-    isLoading: isLoading && !!enabled, // By default, we get true for isLoading on disabled queries. We don't want that.
+    isLoading: isLoading && enabled !== false, // By default, we get true for isLoading on disabled queries. We don't want that.
     isError,
     isFetched,
   }
 }
 
 export const useNFTInstanceTransfers = (
-  scope: SearchScope,
+  scope: RuntimeScope,
   params: { nft_id: string; contract_address: string },
 ) => {
   return useTokenTransfers(scope, { nft_id: params.nft_id, contract_address: params.contract_address })
 }
 
-export const useTokenTransfers = (scope: SearchScope, params: undefined | GetRuntimeEventsParams) => {
+export const useTokenTransfers = (
+  scope: undefined | RuntimeScope,
+  params: undefined | GetRuntimeEventsParams,
+  querySearchParamName?: string,
+) => {
   if (params && Object.values(params).some(value => value === undefined || value === null)) {
     throw new Error('Must set params=undefined while some values are unavailable')
   }
+  if (params && !scope) {
+    throw new Error('Must set params=undefined while scope is unavailable')
+  }
+  const mockScopeForDisabledQuery = { network: 'mainnet', layer: 'sapphire' } as const
 
-  const { network, layer } = scope
   const pagination = useComprehensiveSearchParamsPagination<RuntimeEvent, RuntimeEventList>({
-    paramName: 'page',
+    paramName: querySearchParamName ?? 'page',
     pageSize: NUMBER_OF_ITEMS_ON_SEPARATE_PAGE,
   })
-  if (layer === Layer.consensus) {
-    throw AppErrors.UnsupportedLayer
-    // Loading transactions on the consensus layer is not supported yet.
-    // We should use useGetConsensusTransactions()
-  }
   const query = useGetRuntimeEvents(
-    network,
-    layer, // This is OK since consensus has been handled separately
+    scope?.network ?? mockScopeForDisabledQuery.network,
+    scope?.layer ?? mockScopeForDisabledQuery.layer, // This is OK since consensus has been handled separately
     {
       ...pagination.paramsForQuery,
       type: RuntimeEventType.evmlog,
@@ -100,14 +98,10 @@ export const useTokenTransfers = (scope: SearchScope, params: undefined | GetRun
   }
 }
 
-export const useTokenHolders = (scope: SearchScope, address: string) => {
+export const useTokenHolders = (scope: RuntimeScope, address: string) => {
   const { network, layer } = scope
   const pagination = useSearchParamsPagination('page')
   const offset = (pagination.selectedPage - 1) * NUMBER_OF_ITEMS_ON_SEPARATE_PAGE
-  if (layer === Layer.consensus) {
-    throw AppErrors.UnsupportedLayer
-    // There are no token holders on the consensus layer.
-  }
 
   const query = useGetRuntimeEvmTokensAddressHolders(network, layer, address, {
     limit: NUMBER_OF_ITEMS_ON_SEPARATE_PAGE,
@@ -138,14 +132,10 @@ export const useTokenHolders = (scope: SearchScope, address: string) => {
 // specific to NFT gallery only
 const NUMBER_OF_INVENTORY_ITEMS = 15
 
-export const useTokenInventory = (scope: SearchScope, address: string) => {
+export const useTokenInventory = (scope: RuntimeScope, address: string) => {
   const { network, layer } = scope
   const pagination = useSearchParamsPagination('page')
   const offset = (pagination.selectedPage - 1) * NUMBER_OF_INVENTORY_ITEMS
-  if (layer === Layer.consensus) {
-    throw AppErrors.UnsupportedLayer
-    // There are no tokens on the consensus layer.
-  }
   const query = useGetRuntimeEvmTokensAddressNfts(network, layer, address, {
     limit: NUMBER_OF_INVENTORY_ITEMS,
     offset: offset,
@@ -173,14 +163,10 @@ export const useTokenInventory = (scope: SearchScope, address: string) => {
   }
 }
 
-export const useAccountTokenInventory = (scope: SearchScope, address: string, tokenAddress: string) => {
+export const useAccountTokenInventory = (scope: RuntimeScope, address: string, tokenAddress: string) => {
   const { network, layer } = scope
   const pagination = useSearchParamsPagination('page')
   const offset = (pagination.selectedPage - 1) * NUMBER_OF_INVENTORY_ITEMS
-  if (layer === Layer.consensus) {
-    throw AppErrors.UnsupportedLayer
-    // There are no tokens on the consensus layer.
-  }
 
   const query = useGetRuntimeAccountsAddressNfts(network, layer, address, {
     limit: NUMBER_OF_INVENTORY_ITEMS,
@@ -210,12 +196,8 @@ export const useAccountTokenInventory = (scope: SearchScope, address: string, to
   }
 }
 
-export const useNFTInstance = (scope: SearchScope, address: string, id: string) => {
+export const useNFTInstance = (scope: RuntimeScope, address: string, id: string) => {
   const { network, layer } = scope
-  if (layer === Layer.consensus) {
-    throw AppErrors.UnsupportedLayer
-    // There are no tokens on the consensus layer.
-  }
   const query = useGetRuntimeEvmTokensAddressNftsId(network, layer, address, id)
 
   const { data, isError, isFetched, isLoading } = query

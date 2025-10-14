@@ -1,40 +1,34 @@
 import { FC } from 'react'
 import { useGetConsensusTransactions } from '../../../oasis-nexus/api'
-import { NUMBER_OF_ITEMS_ON_SEPARATE_PAGE as limit } from '../../config'
+import { NUMBER_OF_ITEMS_ON_SEPARATE_PAGE as limit } from '../../../config'
 import { ConsensusTransactions } from '../../components/Transactions'
 import { useSearchParamsPagination } from '../../components/Table/useSearchParamsPagination'
 import { ConsensusAccountDetailsContext } from './hooks'
 import { LinkableCardLayout } from 'app/components/LinkableCardLayout'
 import { useScreenSize } from '../../hooks/useScreensize'
-import { ConsensusTransactionTypeFilter } from '../../components/Transactions/ConsensusTransactionTypeFilter'
-import Box from '@mui/material/Box'
+import { ConsensusTransactionMethodFilter } from '../../components/Transactions/ConsensusTransactionMethodFilter'
 import { transactionsContainerId } from '../../utils/tabAnchors'
 
 export const ConsensusAccountTransactionsCard: FC<ConsensusAccountDetailsContext> = context => {
   const { isMobile } = useScreenSize()
-  const { method, setMethod } = context
+  const { txMethod, setTxMethod } = context
 
   return (
     <LinkableCardLayout
       containerId={transactionsContainerId}
       title={
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'end',
-          }}
-        >
-          {!isMobile && <ConsensusTransactionTypeFilter value={method} setValue={setMethod} />}
-        </Box>
+        <div className="flex justify-end">
+          {!isMobile && <ConsensusTransactionMethodFilter value={txMethod} setValue={setTxMethod} />}
+        </div>
       }
     >
-      {isMobile && <ConsensusTransactionTypeFilter value={method} setValue={setMethod} expand />}
+      {isMobile && <ConsensusTransactionMethodFilter value={txMethod} setValue={setTxMethod} expand />}
       <ConsensusAccountTransactions {...context} />
     </LinkableCardLayout>
   )
 }
 
-const ConsensusAccountTransactions: FC<ConsensusAccountDetailsContext> = ({ scope, address, method }) => {
+const ConsensusAccountTransactions: FC<ConsensusAccountDetailsContext> = ({ scope, address, txMethod }) => {
   const { network } = scope
   const pagination = useSearchParamsPagination('page')
   const offset = (pagination.selectedPage - 1) * limit
@@ -42,7 +36,7 @@ const ConsensusAccountTransactions: FC<ConsensusAccountDetailsContext> = ({ scop
     limit,
     offset,
     rel: address,
-    method: method === 'any' ? undefined : method,
+    method: txMethod === 'any' ? undefined : txMethod,
   })
   const { isLoading, data } = transactionsQuery
   const transactions = data?.data.transactions
@@ -60,7 +54,7 @@ const ConsensusAccountTransactions: FC<ConsensusAccountDetailsContext> = ({ scop
         isTotalCountClipped: data?.data.is_total_count_clipped,
         rowsPerPage: limit,
       }}
-      filtered={method !== 'any'}
+      filtered={txMethod !== 'any'}
     />
   )
 }

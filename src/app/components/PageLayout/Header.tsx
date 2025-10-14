@@ -1,18 +1,21 @@
 import { FC } from 'react'
 import AppBar from '@mui/material/AppBar'
-import Grid from '@mui/material/Unstable_Grid2'
 import useScrollTrigger from '@mui/material/useScrollTrigger'
 import { useTheme } from '@mui/material/styles'
 import { HomePageLink } from './Logotype'
 import { NetworkSelector } from './NetworkSelector'
-import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import { useScopeParam } from '../../hooks/useScopeParam'
 import { useScreenSize } from '../../hooks/useScreensize'
 import { isScopeSelectorNeeded } from '../../utils/route-utils'
+import { useTranslation } from 'react-i18next'
+import { hideRoseAppButton } from '../../../config'
 
 export const Header: FC = () => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const { isMobile } = useScreenSize()
+  const { isDesktop } = useScreenSize()
   const scope = useScopeParam()
   const withScopeSelector = !!scope && isScopeSelectorNeeded(scope)
   const scrollTrigger = useScrollTrigger({
@@ -31,36 +34,38 @@ export const Header: FC = () => {
           ? theme.palette.layout.contrastSecondary
           : theme.palette.layout.secondary,
         borderRadius: 0,
-        boxShadow: scrollTrigger
-          ? '0px 4px 4px rgba(0, 0, 0, 0.25), 0px 34px 24px -9px rgba(50, 77, 171, 0.12)'
-          : 'none',
+        boxShadow: '0px 4px 6px -1px rgba(0, 0, 0, 0.10), 0px 2px 4px -1px rgba(0, 0, 0, 0.06)',
       }}
     >
-      <Box sx={{ px: '15px' }}>
-        <Grid
-          container
-          sx={{
-            px: isMobile ? 0 : '4%',
-            pt: isMobile ? 4 : '15px',
-            pb: 4,
-          }}
-        >
-          <Grid md={3} xs={4} sx={{ display: 'flex', alignItems: 'center' }}>
-            <HomePageLink
-              color={scrollTrigger ? theme.palette.layout.contrastMain : undefined}
-              showText={!scrollTrigger && !isMobile}
-            />
-          </Grid>
+      <div className="px-4">
+        <div className="grid grid-cols-12 pt-3 pb-4 px-0 md:px-[4%]">
+          <div className="col-span-6 xl:col-span-3 flex items-center">
+            <HomePageLink showText={!scrollTrigger && !isMobile} />
+          </div>
+
           {withScopeSelector && (
-            <>
-              <Grid lg={6} xs={8}>
-                <NetworkSelector layer={scope.layer} network={scope.network} />
-              </Grid>
-              <Grid lg={3} xs={0} />
-            </>
+            <div className="col-span-6 xl:col-span-6 flex justify-end xl:justify-center items-center">
+              <NetworkSelector layer={scope.layer} network={scope.network} />
+            </div>
           )}
-        </Grid>
-      </Box>
+
+          {isDesktop && !hideRoseAppButton && (
+            <div className="col-span-3 flex justify-end items-center">
+              <Button
+                component="a"
+                href="https://rose.oasis.io/"
+                target="_blank"
+                rel="noopener noreferrer"
+                color="secondary"
+                variant="outlined"
+                size="large"
+              >
+                {t('common.visitRoseApp')}
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
     </AppBar>
   )
 }

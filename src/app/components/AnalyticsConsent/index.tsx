@@ -1,13 +1,12 @@
 /* eslint-disable react-hooks/rules-of-hooks -- REACT_APP_ENABLE_OASIS_MATOMO_ANALYTICS won't change in runtime */
 import { createContext, FC, useContext, useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useBlocker, useLocation } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
 import Button from '@mui/material/Button'
-import Link from '@mui/material/Link'
+import { Link } from '@oasisprotocol/ui-library/src/components/link'
 import { Trans, useTranslation } from 'react-i18next'
 import * as matomo from './initializeMatomo'
 import { ThemeByScope } from '../ThemeByScope'
-import { Network } from '../../../types/network'
 import { AnalyticsIsBlocked } from './AnalyticsIsBlocked'
 import { AnalyticsDialogLayout } from './AnalyticsDialogLayout'
 
@@ -35,6 +34,10 @@ export const AnalyticsConsentProvider = (props: { children: React.ReactNode }) =
 
   const location = useLocation()
   const [previousURL, setPreviousURL] = useState(document.referrer)
+  useBlocker(({ currentLocation, nextLocation }) => {
+    setPreviousURL(currentLocation.pathname + currentLocation.search + currentLocation.hash)
+    return false // Not actually using this to block navigation
+  })
   useEffect(() => {
     const newURL = location.pathname + location.search + location.hash
     if (hasAccepted === 'opted-in') {
@@ -45,8 +48,7 @@ export const AnalyticsConsentProvider = (props: { children: React.ReactNode }) =
       window._paq.push(['trackPageView'])
       window._paq.push(['enableLinkTracking'])
     }
-    setPreviousURL(newURL)
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Trigger when URL changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Trigger on init, when URL changes, or opt-in clicked
   }, [location.key, hasAccepted])
 
   return (
@@ -63,7 +65,7 @@ export const AnalyticsConsentProvider = (props: { children: React.ReactNode }) =
     >
       {props.children}
       {/* Theme is needed because AnalyticsConsentProvider is outside network-themed routes */}
-      <ThemeByScope isRootTheme={false} network={Network.mainnet}>
+      <ThemeByScope isRootTheme={false} network={'mainnet'}>
         <AnalyticsConsentView
           isOpen={hasAccepted === 'not-chosen'}
           onAccept={async () => {
@@ -85,18 +87,10 @@ export const AnalyticsConsentProvider = (props: { children: React.ReactNode }) =
   )
 }
 
-const StyledPrivacyButton = styled(Button)(() => ({
-  padding: 0,
-  textAlign: 'left',
-  height: 'auto',
-  fontSize: 'inherit',
-  fontWeight: 700,
-}))
-
 export const PrivacyPolicyFooterLink: FC = () => {
   const { t } = useTranslation()
   return (
-    <Link href={process.env.REACT_APP_PRIVACY_POLICY} target="_blank" color="inherit">
+    <Link href={import.meta.env.REACT_APP_PRIVACY_POLICY} target="_blank" color="inherit">
       {t('analyticsConsent.privacyPolicy')}
     </Link>
   )
@@ -109,9 +103,11 @@ export const ReopenAnalyticsConsentButton = () => {
   const context = useContext(AnalyticsContext)
   if (context === null) throw new Error('must be used within AnalyticsContext')
   return (
-    <StyledPrivacyButton size="small" color="inherit" onClick={() => context.reopenAnalyticsConsent()}>
-      {t('analyticsConsent.settings')}
-    </StyledPrivacyButton>
+    <Link asChild textColor="inherit">
+      <button type="button" onClick={() => context.reopenAnalyticsConsent()}>
+        {t('analyticsConsent.settings')}
+      </button>
+    </Link>
   )
 }
 
@@ -135,11 +131,7 @@ export const AnalyticsConsentView = (props: {
           t={t}
           components={{
             PrivacyPolicyLink: (
-              <Link
-                href={process.env.REACT_APP_PRIVACY_POLICY}
-                target="_blank"
-                sx={{ fontWeight: 400, textDecoration: 'underline' }}
-              />
+              <Link href={import.meta.env.REACT_APP_PRIVACY_POLICY} target="_blank" className="underline" />
             ),
           }}
           values={{ acceptButtonLabel: t('analyticsConsent.acceptButtonLabel') }}

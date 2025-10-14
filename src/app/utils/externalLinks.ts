@@ -1,16 +1,16 @@
 /** @file Put all external links into this file so tests make sure links are still reachable */
 
 export const socialMedia = {
-  telegram: process.env.REACT_APP_SOCIAL_TELEGRAM,
-  twitter: process.env.REACT_APP_SOCIAL_TWITTER,
-  discord: process.env.REACT_APP_SOCIAL_DISCORD,
+  telegram: import.meta.env.REACT_APP_SOCIAL_TELEGRAM,
+  twitter: import.meta.env.REACT_APP_SOCIAL_TWITTER,
+  discord: import.meta.env.REACT_APP_SOCIAL_DISCORD,
   // This API link is for testing if invite is still valid.
   isDiscordStillValid: 'https://oasis.io/discord/invite-api-check',
-  youtube: process.env.REACT_APP_SOCIAL_YOUTUBE,
-  reddit: process.env.REACT_APP_SOCIAL_REDDIT,
-  linkedin: process.env.REACT_APP_SOCIAL_LINKEDIN,
-  docs: process.env.REACT_APP_SOCIAL_DOCS,
-  home: process.env.REACT_APP_SOCIAL_HOME,
+  youtube: import.meta.env.REACT_APP_SOCIAL_YOUTUBE,
+  reddit: import.meta.env.REACT_APP_SOCIAL_REDDIT,
+  linkedin: import.meta.env.REACT_APP_SOCIAL_LINKEDIN,
+  docs: import.meta.env.REACT_APP_SOCIAL_DOCS,
+  home: import.meta.env.REACT_APP_SOCIAL_HOME,
 }
 
 export const marketingPage = {
@@ -55,13 +55,31 @@ export const faucets = {
 }
 
 export const dapps = {
-  wRose: 'https://wrose.oasis.io/',
+  wRose: 'https://rose.oasis.io/wrap',
   sourcifyRoot: 'https://sourcify.dev/',
   abiPlayground: 'https://abi-playground.oasis.io/',
 }
 
 export const api = {
-  spec: `${process.env.REACT_APP_API}spec/v1.html`,
+  spec: `${import.meta.env.REACT_APP_API}spec/v1.html`,
+  oasis_named_addresses_mainnet_consensus:
+    'https://raw.githubusercontent.com/oasisprotocol/nexus/main/named-addresses/mainnet_consensus.json',
+  oasis_named_addresses_mainnet_emerald:
+    'https://raw.githubusercontent.com/oasisprotocol/nexus/main/named-addresses/mainnet_emerald.json',
+  oasis_named_addresses_mainnet_sapphire:
+    'https://raw.githubusercontent.com/oasisprotocol/nexus/main/named-addresses/mainnet_sapphire.json',
+  oasis_named_addresses_testnet_consensus:
+    'https://raw.githubusercontent.com/oasisprotocol/nexus/main/named-addresses/testnet_consensus.json',
+  oasis_named_addresses_testnet_emerald:
+    'https://raw.githubusercontent.com/oasisprotocol/nexus/main/named-addresses/testnet_emerald.json',
+  oasis_named_addresses_testnet_sapphire:
+    'https://raw.githubusercontent.com/oasisprotocol/nexus/main/named-addresses/testnet_sapphire.json',
+  oasis_named_addresses_testnet_pontusxdev:
+    'https://raw.githubusercontent.com/oasisprotocol/nexus/main/named-addresses/testnet_pontusxdev.json',
+  oasis_named_addresses_testnet_pontusxtest:
+    'https://raw.githubusercontent.com/oasisprotocol/nexus/main/named-addresses/testnet_pontusxtest.json',
+  deltadao_named_addresses:
+    'https://raw.githubusercontent.com/deltaDAO/mvg-portal/main/pontusxAddresses.json',
 }
 
 export const ipfs = {

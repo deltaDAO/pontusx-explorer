@@ -10,15 +10,15 @@ import { CopyToClipboard } from '../../components/CopyToClipboard'
 import { VerificationIcon } from '../../components/ContractVerificationIcon'
 import CardContent from '@mui/material/CardContent'
 import { TokenTypeTag } from '../../components/Tokens/TokenList'
-import { SearchScope } from '../../../types/searchScope'
-import { TokenLink } from '../../components/Tokens/TokenLink'
+import { RuntimeScope } from '../../../types/searchScope'
+import { TokenLinkWithIcon } from '../../components/Tokens/TokenLinkWithIcon'
 import { EvmNft } from 'oasis-nexus/api'
 
 type InstanceDetailsCardProps = {
   nft: EvmNft | undefined
   isFetched: boolean
   isLoading: boolean
-  scope: SearchScope
+  scope: RuntimeScope
   contractAddress: string
 }
 
@@ -53,11 +53,19 @@ export const InstanceDetailsCard: FC<InstanceDetailsCardProps> = ({
                 <dd>{nft.name}</dd>
               </>
             )}
+            {nft.description && (
+              <>
+                <dt>{t('common.description')}</dt>
+                <dd>
+                  <div className="whitespace-pre-line">{nft.description}</div>
+                </dd>
+              </>
+            )}
             <dt>{t('nft.instanceTokenId')}</dt>
             <dd>{nft.id}</dd>
             <dt>{t('common.collection')} </dt>
             <dd>
-              <TokenLink scope={scope} address={contractAddress} name={token?.name} />
+              <TokenLinkWithIcon scope={scope} address={contractAddress} name={token?.name} />
             </dd>
             <dt>{t('common.type')} </dt>
             <dd>
@@ -67,8 +75,10 @@ export const InstanceDetailsCard: FC<InstanceDetailsCardProps> = ({
               <>
                 <dt>{t('nft.owner')}</dt>
                 <dd>
-                  <AccountLink scope={scope} address={owner} />
-                  <CopyToClipboard value={owner} />
+                  <div className="inline-flex items-center">
+                    <AccountLink scope={scope} address={owner} />
+                    <CopyToClipboard value={owner} />
+                  </div>
                 </dd>
               </>
             )}
@@ -80,15 +90,17 @@ export const InstanceDetailsCard: FC<InstanceDetailsCardProps> = ({
             )}
             <dt>{t(isMobile ? 'common.smartContract_short' : 'common.smartContract')}</dt>
             <dd>
-              <AccountLink scope={account} address={account.address_eth || account.address} />
-              <CopyToClipboard value={account.address_eth || account.address} />
+              <div className="inline-flex items-center">
+                <AccountLink scope={account} address={account.address_eth || account.address} />
+                <CopyToClipboard value={account.address_eth || account.address} />
+              </div>
             </dd>
             <dt>{t('contract.verification.title')}</dt>
             <dd>
               <VerificationIcon
                 address_eth={token?.eth_contract_addr!}
                 scope={token!}
-                verified={!!token?.is_verified}
+                verificationLevel={token?.verification_level}
               />
             </dd>
           </StyledDescriptionList>

@@ -6,17 +6,13 @@ import { EvmTokenType, RuntimeEvent } from '../../../oasis-nexus/api'
 import { TablePaginationProps } from '../Table/TablePagination'
 import { BlockLink } from '../Blocks/BlockLink'
 import { AccountLink } from '../Account/AccountLink'
-import { trimLongString } from '../../utils/trimLongString'
-import Typography from '@mui/material/Typography'
 import { TransactionLink } from '../Transactions/TransactionLink'
 import { TokenTransferIcon } from './TokenTransferIcon'
 import { RoundedBalance } from '../RoundedBalance'
-import { getEthAccountAddressFromBase64 } from '../../utils/helpers'
 import { TokenLink } from './TokenLink'
 import { PlaceholderLabel } from '../../utils/PlaceholderLabel'
 import { TokenTypeTag } from './TokenList'
 import { parseEvmEvent } from '../../utils/parseEvmEvent'
-import { fromBaseUnits } from '../../utils/number-utils'
 import { TransferIcon } from '../TransferIcon'
 import { TableCellAge } from '../TableCellAge'
 import { TableHeaderAge } from '../TableHeaderAge'
@@ -34,17 +30,12 @@ export const EventBalance: FC<{
 }> = ({ event, tickerAsLink }) => {
   const { t } = useTranslation()
 
-  const base64address = event.body.address
-  const tokenEthAddress = getEthAccountAddressFromBase64(base64address)
+  const tokenEthAddress = event.body.address
   const tokenType = event.evm_token?.type
-  const tokenDecimals = event.evm_token?.decimals
   const ticker = event.evm_token?.symbol
 
   if (tokenType === EvmTokenType.ERC20) {
-    // We are calling it 'raw' since it's not yet normalized according to decimals.
-    const rawValue = event.evm_log_params?.find(param => param.name === 'value')?.value as string | undefined
-    const value = rawValue === undefined ? undefined : fromBaseUnits(rawValue, tokenDecimals || 0)
-
+    const value = event.evm_log_params?.find(param => param.name === 'value')?.value as string | undefined
     return (
       <RoundedBalance
         value={value}
@@ -152,23 +143,16 @@ export const TokenTransfers: FC<TokenTransfersProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   position: 'relative',
+                  justifyContent: 'space-between',
                   pr: 3,
                 }}
               >
-                {!!ownAddress && fromAddress === ownAddress ? (
-                  <Typography
-                    variant="mono"
-                    component="span"
-                    sx={{
-                      fontWeight: 700,
-                    }}
-                  >
-                    {trimLongString(fromAddress)}
-                  </Typography>
-                ) : (
-                  <AccountLink scope={transfer} address={fromAddress} alwaysTrim />
-                )}
-
+                <AccountLink
+                  scope={transfer}
+                  address={fromAddress}
+                  alwaysTrim
+                  labelOnly={!!ownAddress && fromAddress === ownAddress}
+                />
                 <TransferIcon />
               </Box>
             ),
@@ -177,18 +161,13 @@ export const TokenTransfers: FC<TokenTransfersProps> = ({
           key: 'to',
           content: !toAddress ? (
             ''
-          ) : !!ownAddress && toAddress === ownAddress ? (
-            <Typography
-              variant="mono"
-              component="span"
-              sx={{
-                fontWeight: 700,
-              }}
-            >
-              {trimLongString(toAddress)}
-            </Typography>
           ) : (
-            <AccountLink scope={transfer} address={toAddress} alwaysTrim />
+            <AccountLink
+              scope={transfer}
+              address={toAddress}
+              alwaysTrim
+              labelOnly={!!ownAddress && toAddress === ownAddress}
+            />
           ),
         },
         ...(differentTokens

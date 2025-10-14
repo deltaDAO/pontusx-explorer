@@ -1,6 +1,6 @@
 import { FC } from 'react'
 import { Network } from '../../../types/network'
-import { Layer, Validator } from '../../../oasis-nexus/api'
+import { Validator } from '../../../oasis-nexus/api'
 import { SearchScope } from '../../../types/searchScope'
 import { ValidatorLink } from './ValidatorLink'
 
@@ -9,20 +9,12 @@ export const DeferredValidatorLink: FC<{
   address: string
   validator: Validator | undefined
   isError: boolean
-  highlightedPart?: string | undefined
-}> = ({ network, address, validator, isError, highlightedPart }) => {
-  const scope: SearchScope = { network, layer: Layer.consensus }
+}> = ({ network, address, validator, isError }) => {
+  const scope: SearchScope = { network, layer: 'consensus' }
 
   if (isError) {
     console.log('Warning: failed to look up validators!')
   }
 
-  return (
-    <ValidatorLink
-      address={address}
-      network={scope.network}
-      name={validator?.media?.name}
-      highlightedPartOfName={highlightedPart}
-    />
-  )
+  return <ValidatorLink address={address} network={scope.network} name={validator?.media?.name} />
 }

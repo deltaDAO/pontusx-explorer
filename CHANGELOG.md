@@ -12,6 +12,480 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 1.24.2 (2025-10-13)
+
+### Bug Fixes and Improvements
+
+- Parse provider_instance_admin field in rofl.Create
+  ([#2156](https://github.com/oasisprotocol/explorer/issues/2156))
+
+- Fix responsiveness in paratime snapshot header
+  ([#2196](https://github.com/oasisprotocol/explorer/issues/2196))
+
+- Update font size of table search input
+  ([#2203](https://github.com/oasisprotocol/explorer/issues/2203))
+
+- Learning Materials content height update
+  ([#2205](https://github.com/oasisprotocol/explorer/issues/2205))
+
+- Remove duplicated hash column from blocks list table
+  ([#2214](https://github.com/oasisprotocol/explorer/issues/2214))
+
+- Add word wrapping for events code snippets on mobile
+  ([#2216](https://github.com/oasisprotocol/explorer/issues/2216))
+
+- Fix EVM log message data display
+  ([#2219](https://github.com/oasisprotocol/explorer/issues/2219))
+
+- Fix emitting contract alignment.
+  ([#2220](https://github.com/oasisprotocol/explorer/issues/2220))
+
+- Fix snapshot alignment for Pontus-x
+  ([#2227](https://github.com/oasisprotocol/explorer/issues/2227))
+
+### Internal Changes
+
+- Introduce Oasis UI Library
+  ([#2122](https://github.com/oasisprotocol/explorer/issues/2122),
+  [#2144](https://github.com/oasisprotocol/explorer/issues/2144),
+  [#2187](https://github.com/oasisprotocol/explorer/issues/2187),
+  [#2194](https://github.com/oasisprotocol/explorer/issues/2194),
+  [#2215](https://github.com/oasisprotocol/explorer/issues/2215),
+  [#2235](https://github.com/oasisprotocol/explorer/issues/2235),
+  [#2236](https://github.com/oasisprotocol/explorer/issues/2236),
+  [#2247](https://github.com/oasisprotocol/explorer/issues/2247),
+  [#2168](https://github.com/oasisprotocol/explorer/issues/2168))
+
+- Simplify hover highlighting
+  ([#2182](https://github.com/oasisprotocol/explorer/issues/2182))
+
+- Trigger workflows for stable/* branches
+  ([#2213](https://github.com/oasisprotocol/explorer/issues/2213))
+
+- Update dependencies
+  ([#2201](https://github.com/oasisprotocol/explorer/issues/2201))
+
+## 1.24.1 (2025-08-26)
+
+### Bug Fixes and Improvements
+
+- Enable validator uptime
+  ([#2123](https://github.com/oasisprotocol/explorer/issues/2123))
+
+- Fix headers colors after changing Explorer background
+  ([#2126](https://github.com/oasisprotocol/explorer/issues/2126))
+
+- Avoid query param conflict in tx details view
+  ([#2150](https://github.com/oasisprotocol/explorer/issues/2150))
+
+- Fix highlighting issues
+  ([#2108](https://github.com/oasisprotocol/explorer/issues/2108),
+  [#2107](https://github.com/oasisprotocol/explorer/issues/2107))
+
+### Internal Changes
+
+- Introduce Oasis UI Library
+  ([#1993](https://github.com/oasisprotocol/explorer/issues/1993),
+  [#2106](https://github.com/oasisprotocol/explorer/issues/2106),
+  [#2109](https://github.com/oasisprotocol/explorer/issues/2109),
+  [#2110](https://github.com/oasisprotocol/explorer/issues/2110),
+  [#2111](https://github.com/oasisprotocol/explorer/issues/2111),
+  [#2112](https://github.com/oasisprotocol/explorer/issues/2112),
+  [#2113](https://github.com/oasisprotocol/explorer/issues/2113),
+  [#2114](https://github.com/oasisprotocol/explorer/issues/2114),
+  [#2115](https://github.com/oasisprotocol/explorer/issues/2115),
+  [#2116](https://github.com/oasisprotocol/explorer/issues/2116),
+  [#2117](https://github.com/oasisprotocol/explorer/issues/2117),
+  [#2118](https://github.com/oasisprotocol/explorer/issues/2118),
+  [#2119](https://github.com/oasisprotocol/explorer/issues/2119),
+  [#2121](https://github.com/oasisprotocol/explorer/issues/2121)
+  [#2125](https://github.com/oasisprotocol/explorer/issues/2125),
+  [#2128](https://github.com/oasisprotocol/explorer/issues/2128),
+  [#2131](https://github.com/oasisprotocol/explorer/issues/2131))
+
+- Upgrade orval to 7.10.0
+  ([#2104](https://github.com/oasisprotocol/explorer/issues/2104))
+
+- Change how highlight pattern is communicated among components
+  ([#2124](https://github.com/oasisprotocol/explorer/issues/2124))
+
+## 1.24.0 (2025-07-29)
+
+### Features
+
+- Display evm_fn_params in transaction details
+  ([#2065](https://github.com/oasisprotocol/explorer/issues/2065))
+
+- Display subcall params
+  ([#2068](https://github.com/oasisprotocol/explorer/issues/2068))
+
+- Link to ROSE App
+  ([#2077](https://github.com/oasisprotocol/explorer/issues/2077))
+
+- Implement filtering for Runtime event type
+  ([#2078](https://github.com/oasisprotocol/explorer/issues/2078))
+
+- Implement filtering for Consensus event type
+  ([#2081](https://github.com/oasisprotocol/explorer/issues/2081))
+
+### Bug Fixes and Improvements
+
+- Fix machine ID serialization
+  ([#2059](https://github.com/oasisprotocol/explorer/issues/2059))
+
+- Support new endorsement fields
+  ([#2071](https://github.com/oasisprotocol/explorer/issues/2071))
+
+- Fix y-axis overflowing in Staking Trend line chart
+  ([#2076](https://github.com/oasisprotocol/explorer/issues/2076))
+
+- Obfuscate displayed email
+  ([#2080](https://github.com/oasisprotocol/explorer/issues/2080))
+
+- Don't crash on missing ROFL app author email
+  ([#2086](https://github.com/oasisprotocol/explorer/issues/2086))
+
+- Fix CSS module build config
+  ([#2087](https://github.com/oasisprotocol/explorer/issues/2087))
+
+- Take into account missing num_holders and num_transfers in tokens
+  ([#2088](https://github.com/oasisprotocol/explorer/issues/2088))
+
+- Support EIP-1167 0age/thirdweb proxy variant
+  ([#2090](https://github.com/oasisprotocol/explorer/issues/2090))
+
+- Fix 404 text color on testnet
+  ([#2094](https://github.com/oasisprotocol/explorer/issues/2094))
+
+- Fix regression in displaying Endorsements
+  ([#2097](https://github.com/oasisprotocol/explorer/issues/2097))
+
+- Improve spacing around addresses at some places
+  ([#2098](https://github.com/oasisprotocol/explorer/issues/2098))
+
+### Internal Changes
+
+- Clean up TX filtering and listing code
+  ([#2082](https://github.com/oasisprotocol/explorer/issues/2082))
+
+- Adjust some consensus event types
+  ([#2085](https://github.com/oasisprotocol/explorer/issues/2085))
+
+## 1.23.2 (2025-07-01)
+
+### Bug Fixes and Improvements
+
+- Quick fix for mobile opening screen on TestNet
+  ([#2056](https://github.com/oasisprotocol/explorer/issues/2056))
+
+- Fix color of info button on mobile opening screen
+  ([#2057](https://github.com/oasisprotocol/explorer/issues/2057))
+
+## 1.23.1 (2025-07-01)
+
+### Bug Fixes and Improvements
+
+- Inline copy button next to some account links using AdaptiveTrimmer
+  ([#2029](https://github.com/oasisprotocol/explorer/issues/2029))
+
+- Adjust the titleOnBackground color in the default theme
+  ([#2051](https://github.com/oasisprotocol/explorer/issues/2051))
+
+- Quick fix for mobile opening screen
+  ([#2053](https://github.com/oasisprotocol/explorer/issues/2053))
+
+## 1.23.0 (2025-06-27)
+
+### Features
+
+- Change explorer background, logo and card borders
+  ([#2033](https://github.com/oasisprotocol/explorer/issues/2033))
+
+### Bug Fixes and Improvements
+
+- Assume "unknown" method and status means encrypted so show a lock icon
+  ([#2032](https://github.com/oasisprotocol/explorer/issues/2032))
+
+- Improve transaction method labels
+  ([#2042](https://github.com/oasisprotocol/explorer/issues/2042))
+
+- Parse ROFL machine commands in transaction body
+  ([#2043](https://github.com/oasisprotocol/explorer/issues/2043))
+
+- Show method name in subcall transactions
+  ([#2044](https://github.com/oasisprotocol/explorer/issues/2044))
+
+- Estimate ROFL app instance expiration time based on epoch
+  ([#2045](https://github.com/oasisprotocol/explorer/issues/2045))
+
+## 1.22.1 (2025-06-14)
+
+### Bug Fixes and Improvements
+
+- Fix exhausted type error in production (should be a console warning)
+  ([#2037](https://github.com/oasisprotocol/explorer/issues/2037))
+
+## 1.22.0 (2025-06-11)
+
+### Features
+
+- Show first 10 ERC-20 and ERC-721 transfers on transaction details page.
+  ([#1939](https://github.com/oasisprotocol/explorer/issues/1939))
+
+- Basic support for searching for ROFL apps by app name fragment
+  ([#1973](https://github.com/oasisprotocol/explorer/issues/1973))
+
+- Add Monaco Editor for contract source code syntax highlighting
+  ([#1979](https://github.com/oasisprotocol/explorer/issues/1979))
+
+- Improve Consensus dashboard resilience
+  ([#2004](https://github.com/oasisprotocol/explorer/issues/2004))
+
+- Change border-radius to match new design
+  ([#2011](https://github.com/oasisprotocol/explorer/issues/2011))
+
+- Enable flexible multi-word searching in names
+  ([#2012](https://github.com/oasisprotocol/explorer/issues/2012))
+
+- Add support for filtering Rofl app list by name
+  ([#2013](https://github.com/oasisprotocol/explorer/issues/2013))
+
+- Improve runtime dashboard resilience
+  ([#2018](https://github.com/oasisprotocol/explorer/issues/2018))
+
+### Bug Fixes and Improvements
+
+- Fix LinkableDiv getting covered by sticky header
+  ([#1953](https://github.com/oasisprotocol/explorer/issues/1953))
+
+- Fix a regression in adaptive trimming
+  ([#1970](https://github.com/oasisprotocol/explorer/issues/1970))
+
+- Fix details view wrapping on mobile
+  ([#1974](https://github.com/oasisprotocol/explorer/issues/1974))
+
+- Fix validator delegations value in chart's tooltip
+  ([#1995](https://github.com/oasisprotocol/explorer/issues/1995))
+
+- Prevent WithHighlighting from taking up more space than original
+  ([#1997](https://github.com/oasisprotocol/explorer/issues/1997))
+
+- Inline copy button next to some account links using AdaptiveTrimmer
+  ([#1998](https://github.com/oasisprotocol/explorer/issues/1998))
+
+- Avoid twitching on window height changes
+  ([#2000](https://github.com/oasisprotocol/explorer/issues/2000))
+
+- Hide label of contract verification badge in a table for mobile screens
+  ([#2003](https://github.com/oasisprotocol/explorer/issues/2003))
+
+- Don't show fake fiat zero value on Gecko failures
+  ([#2017](https://github.com/oasisprotocol/explorer/issues/2017))
+
+- Improve tokens table on mobile
+  ([#2021](https://github.com/oasisprotocol/explorer/issues/2021))
+
+- Correctly mark validators accounts in search results
+  ([#2026](https://github.com/oasisprotocol/explorer/issues/2026))
+
+### Internal Changes
+
+- Update dependencies
+  ([#1484](https://github.com/oasisprotocol/explorer/issues/1484),
+   [#1967](https://github.com/oasisprotocol/explorer/issues/1967))
+
+- Speedup CI: use playwright container instead of installing system deps
+  ([#1956](https://github.com/oasisprotocol/explorer/issues/1956))
+
+- Migrate build and tests from parcel/jest to vite/vitest
+  ([#1975](https://github.com/oasisprotocol/explorer/issues/1975))
+
+- Update API bindings
+  ([#1977](https://github.com/oasisprotocol/explorer/issues/1977))
+
+- Migrate Cloudflare preview deploys to wrangler action
+  ([#1990](https://github.com/oasisprotocol/explorer/issues/1990))
+
+- Layer handling cleanup
+  ([#2002](https://github.com/oasisprotocol/explorer/issues/2002))
+
+- Prefer string literals instead of constants
+  ([#2016](https://github.com/oasisprotocol/explorer/issues/2016))
+
+## 1.21.0 (2025-05-21)
+
+### Features
+
+- Display contract Source Code and Contract Metadata fields
+  ([#1890](https://github.com/oasisprotocol/explorer/issues/1890),
+   [#1944](https://github.com/oasisprotocol/explorer/issues/1944))
+
+- Display token icons and origins from metadata
+  ([#1909](https://github.com/oasisprotocol/explorer/issues/1909))
+
+- Move dApp URLs into named-addresses
+  ([#1952](https://github.com/oasisprotocol/explorer/issues/1952))
+
+### Bug Fixes and Improvements
+
+- Improve detecting if API is out-of-date
+  ([#1876](https://github.com/oasisprotocol/explorer/issues/1876))
+
+- Improve token page while loading
+  ([#1926](https://github.com/oasisprotocol/explorer/issues/1926))
+
+- Handle rofl market event details
+  ([#1934](https://github.com/oasisprotocol/explorer/issues/1934))
+
+- Fix upside down staking trends
+  ([#1946](https://github.com/oasisprotocol/explorer/issues/1946))
+
+- Deduplicate contracts that are also tokens in search results
+  ([#1948](https://github.com/oasisprotocol/explorer/issues/1948))
+
+- Show address of Node ID
+  ([#1962](https://github.com/oasisprotocol/explorer/issues/1962))
+
+- Sanitize URL in metadata['net.oasis.rofl.repository']
+  ([#1965](https://github.com/oasisprotocol/explorer/issues/1965))
+
+### Internal Changes
+
+- Update dependencies
+  ([#1850](https://github.com/oasisprotocol/explorer/issues/1850),
+   [#1958](https://github.com/oasisprotocol/explorer/issues/1958))
+
+- Fix RoundedBalance prop combinations
+  ([#1902](https://github.com/oasisprotocol/explorer/issues/1902))
+
+- Merge config files
+  ([#1951](https://github.com/oasisprotocol/explorer/issues/1951))
+
+- Update API bindings
+  ([#1964](https://github.com/oasisprotocol/explorer/issues/1964))
+
+## 1.20.0 (2025-04-23)
+
+### Features
+
+- Differentiate partially and fully verified contracts
+  ([#1888](https://github.com/oasisprotocol/explorer/issues/1888))
+
+- Create ROFL app instance details page
+  ([#1895](https://github.com/oasisprotocol/explorer/issues/1895))
+
+### Bug Fixes and Improvements
+
+- Enable latest ROFL apps list in dashboard
+  ([#1894](https://github.com/oasisprotocol/explorer/issues/1894))
+
+- Fix date formatting in ROFL apps
+  ([#1891](https://github.com/oasisprotocol/explorer/issues/1891))
+
+- Format token values in wROSE deposit and withdraw events
+  ([#1884](https://github.com/oasisprotocol/explorer/issues/1884))
+
+- Format probable base unit values in events as #.##e18
+  ([#1885](https://github.com/oasisprotocol/explorer/issues/1885))
+
+- Fix multiple tooltip issue
+  ([#1887](https://github.com/oasisprotocol/explorer/issues/1887))
+
+- Display number of shares in Sapphire undelegate transactions
+  ([#1892](https://github.com/oasisprotocol/explorer/issues/1892))
+
+- Handle new roflmarket transaction methods
+  ([#1898](https://github.com/oasisprotocol/explorer/issues/1898))
+
+- Fix helpscreen visibility by changing homescreen background
+  ([#1906](https://github.com/oasisprotocol/explorer/issues/1906))
+
+- Fix HighlightedText gaps in search results (parent style `gap: 3`)
+  ([#1908](https://github.com/oasisprotocol/explorer/issues/1908))
+
+### Internal Changes
+
+- Move brand logos to assets.oasis.io
+  ([#1870](https://github.com/oasisprotocol/explorer/issues/1870))
+
+## 1.19.0 (2025-04-09)
+
+### Features
+
+- ROFL apps support
+  ([#1777](https://github.com/oasisprotocol/explorer/issues/1777))
+
+### Bug Fixes and Improvements
+
+- Fix labels in NFT inventory tab
+  ([#1869](https://github.com/oasisprotocol/explorer/issues/1869))
+
+## 1.18.0 (2025-04-03)
+
+### Features
+
+- Introduce highlighting matching addresses
+  ([#1776](https://github.com/oasisprotocol/explorer/issues/1776))
+
+### Bug Fixes and Improvements
+
+- Filter tokens list by a type
+  ([#1772](https://github.com/oasisprotocol/explorer/issues/1772))
+
+- Use new API fields to detect empty accounts in Consensus search
+  ([#1785](https://github.com/oasisprotocol/explorer/issues/1785))
+
+- Fix transaction Storybook errors
+  ([#1823](https://github.com/oasisprotocol/explorer/issues/1823))
+
+- Fix tracking referrer in matomo analytics
+  ([#1824](https://github.com/oasisprotocol/explorer/issues/1824))
+
+- Format token amounts in events
+  ([#1845](https://github.com/oasisprotocol/explorer/issues/1845))
+
+- Fix detecting burning events
+  ([#1846](https://github.com/oasisprotocol/explorer/issues/1846))
+
+- Handle transaction error raw message
+  ([#1849](https://github.com/oasisprotocol/explorer/issues/1849))
+
+- Prefix amount_change with "+" in allowance transactions
+  ([#1855](https://github.com/oasisprotocol/explorer/issues/1855))
+
+- Fix from label alignment in transaction table
+  ([#1860](https://github.com/oasisprotocol/explorer/issues/1860))
+
+- Prepare views for incoming ROFL apps feature
+  ([#1819](https://github.com/oasisprotocol/explorer/issues/1819),
+   [#1820](https://github.com/oasisprotocol/explorer/issues/1820),
+   [#1827](https://github.com/oasisprotocol/explorer/issues/1827),
+   [#1834](https://github.com/oasisprotocol/explorer/issues/1834),
+   [#1837](https://github.com/oasisprotocol/explorer/issues/1837),
+   [#1840](https://github.com/oasisprotocol/explorer/issues/1840),
+   [#1841](https://github.com/oasisprotocol/explorer/issues/1841),
+   [#1848](https://github.com/oasisprotocol/explorer/issues/1848),
+   [#1851](https://github.com/oasisprotocol/explorer/issues/1851))
+
+### Internal Changes
+
+- Update dependencies
+  ([#1654](https://github.com/oasisprotocol/explorer/issues/1654),
+   [#1674](https://github.com/oasisprotocol/explorer/issues/1674),
+   [#1788](https://github.com/oasisprotocol/explorer/issues/1788),
+   [#1792](https://github.com/oasisprotocol/explorer/issues/1792),
+   [#1799](https://github.com/oasisprotocol/explorer/issues/1799),
+   [#1854](https://github.com/oasisprotocol/explorer/issues/1854))
+
+- Update API bindings
+  ([#1781](https://github.com/oasisprotocol/explorer/issues/1781))
+
+- Generalize TableConfig as LocalSettings
+  ([#1793](https://github.com/oasisprotocol/explorer/issues/1793))
+
+- Remove Storybook
+  ([#1826](https://github.com/oasisprotocol/explorer/issues/1826))
+
 ## 1.17.0 (2025-03-11)
 
 ### Features

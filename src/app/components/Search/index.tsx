@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import TextField, { textFieldClasses } from '@mui/material/TextField'
 import InputAdornment, { inputAdornmentClasses } from '@mui/material/InputAdornment'
 import { styled } from '@mui/material/styles'
-import Button, { ButtonProps } from '@mui/material/Button'
+import MuiButton, { ButtonProps } from '@mui/material/Button'
 import Box from '@mui/material/Box'
 import SearchIcon from '@mui/icons-material/Search'
 import { useTranslation } from 'react-i18next'
@@ -13,7 +13,7 @@ import { useScreenSize } from '../../hooks/useScreensize'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff'
 import ErrorIcon from '@mui/icons-material/Error'
 import WarningIcon from '@mui/icons-material/Warning'
-import IconButton from '@mui/material/IconButton'
+import { Button } from '@oasisprotocol/ui-library/src/components/ui/button'
 import { SearchSuggestionsButtons } from './SearchSuggestionsButtons'
 import { formHelperTextClasses } from '@mui/material/FormHelperText'
 import { outlinedInputClasses } from '@mui/material/OutlinedInput'
@@ -73,7 +73,7 @@ const SearchForm = styled('form', {
 
 interface SearchButtonProps extends StyledBaseProps {}
 
-export const StyledSearchButton = styled(Button, {
+export const StyledSearchButton = styled(MuiButton, {
   shouldForwardProp: (prop: PropertyKey) =>
     !(['searchVariant'] as (keyof SearchButtonProps)[]).includes(prop as keyof SearchButtonProps),
 })<SearchButtonProps>(({ theme, searchVariant }) => ({
@@ -193,6 +193,7 @@ const SearchCmp: FC<SearchProps> = ({ scope, variant, disabled, onFocusChange: o
                 },
               }
             : {}),
+          border: `1px solid ${COLORS.grayLight}`,
         }}
         value={value}
         onChange={e => onChange(e.target.value)}
@@ -201,16 +202,21 @@ const SearchCmp: FC<SearchProps> = ({ scope, variant, disabled, onFocusChange: o
         onBlur={() => onFocusChange(false)}
         InputProps={{
           inputProps: {
-            sx: { p: 0 },
+            sx: { p: 0, fontSize: '14px' },
           },
           startAdornment,
           endAdornment: (
             <InputAdornment position="end">
               <>
                 {value && (
-                  <IconButton color="inherit" onClick={onClearValue}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onClearValue}
+                    className="hover:bg-black/[0.04] rounded-full"
+                  >
                     <HighlightOffIcon />
-                  </IconButton>
+                  </Button>
                 )}
                 <SearchButton disabled={disabled || hasProblem} searchVariant={variant} type="submit">
                   {searchButtonContent}

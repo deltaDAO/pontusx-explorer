@@ -10,15 +10,16 @@ import {
   getMonthlyWindowsDailyAverage,
 } from '../../utils/chart-utils'
 import { DurationPills } from '../../components/DurationPills'
-import { CardHeaderWithResponsiveActions } from '../../components/CardHeaderWithResponsiveActions'
 import { ChartDuration } from '../../utils/chart-utils'
-import { useScreenSize } from '../../hooks/useScreensize'
 import { SearchScope } from '../../../types/searchScope'
+import { ErrorBoundary } from '../ErrorBoundary'
+import { Typography } from '@oasisprotocol/ui-library/src/components/typography'
 
-export const TransactionsStats: FC<{ scope: SearchScope }> = ({ scope }) => {
-  const { isMobile } = useScreenSize()
+const TransactionsStatsContent: FC<{ scope: SearchScope; chartDuration: ChartDuration }> = ({
+  scope,
+  chartDuration,
+}) => {
   const { t } = useTranslation()
-  const [chartDuration, setChartDuration] = useState<ChartDuration>(ChartDuration.MONTH)
   const statsParams = durationToQueryParams[chartDuration]
 
   const dailyVolumeQuery = useGetLayerStatsTxVolume(scope.network, scope.layer, statsParams, {
@@ -41,33 +42,46 @@ export const TransactionsStats: FC<{ scope: SearchScope }> = ({ scope }) => {
     : undefined
 
   return (
-    <Card>
-      <CardHeaderWithResponsiveActions
-        action={<DurationPills handleChange={setChartDuration} value={chartDuration} />}
-        disableTypography
-        component="h3"
-        title={t('transactionStats.header')}
+    windows && (
+      <BarChart
+        barSize={chartDuration === ChartDuration.WEEK ? 125 : undefined}
+        barRadius={chartDuration === ChartDuration.WEEK ? 20 : undefined}
+        cartesianGrid
+        data={windows.slice().reverse()}
+        dataKey="tx_volume"
+        formatters={{
+          data: (value: number) => t('transactionStats.perDay', { value: value.toLocaleString() }),
+          label: (value: string) =>
+            t('common.formattedDateTime', {
+              timestamp: new Date(value),
+              formatParams,
+            }),
+        }}
+        withLabels
+        margin={{ bottom: 16, top: 16 }}
       />
+    )
+  )
+}
+
+export const TransactionsStats: FC<{ scope: SearchScope }> = ({ scope }) => {
+  const { t } = useTranslation()
+  const [chartDuration, setChartDuration] = useState<ChartDuration>(ChartDuration.MONTH)
+  return (
+    <Card>
+      <div className="flex flex-col mb-4 sm:flex-row sm:items-center sm:justify-between gap-1">
+        <Typography variant="h3" className="whitespace-nowrap">
+          {t('transactionStats.header')}
+        </Typography>
+
+        <div className="md:ml-4 md:flex-1 md:text-right">
+          <DurationPills handleChange={setChartDuration} value={chartDuration} />
+        </div>
+      </div>
       <CardContent sx={{ height: 450 }}>
-        {windows && (
-          <BarChart
-            barSize={chartDuration === ChartDuration.WEEK ? 125 : undefined}
-            barRadius={chartDuration === ChartDuration.WEEK ? 20 : undefined}
-            cartesianGrid
-            data={windows.slice().reverse()}
-            dataKey="tx_volume"
-            formatters={{
-              data: (value: number) => t('transactionStats.perDay', { value: value.toLocaleString() }),
-              label: (value: string) =>
-                t('common.formattedDateTime', {
-                  timestamp: new Date(value),
-                  formatParams,
-                }),
-            }}
-            withLabels
-            margin={{ bottom: 16, top: isMobile ? 0 : 16 }}
-          />
-        )}
+        <ErrorBoundary light={true}>
+          <TransactionsStatsContent scope={scope} chartDuration={chartDuration} />
+        </ErrorBoundary>
       </CardContent>
     </Card>
   )

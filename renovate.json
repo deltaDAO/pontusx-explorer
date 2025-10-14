@@ -8,7 +8,7 @@
     },
     {
       "groupName": "test dependencies",
-      "matchPackagePatterns": ["jest", "testing-library"]
+      "matchPackagePatterns": ["testing-library"]
     },
     {
       "groupName": "react dependencies",
@@ -21,10 +21,6 @@
     {
       "groupName": "TypeScript type definitions",
       "matchPackagePatterns": ["@types/"]
-    },
-    {
-      "groupName": "storybook dependencies",
-      "matchPackagePatterns": ["storybook"]
     },
     {
       "groupName": "CI github-actions",

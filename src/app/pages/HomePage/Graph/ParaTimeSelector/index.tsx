@@ -10,7 +10,6 @@ import Button from '@mui/material/Button'
 import { useTranslation } from 'react-i18next'
 import { ParaTimeSelectorStep } from '../types'
 import { ParaTimeSelectorUtils } from '../para-time-selector-utils'
-import Fade from '@mui/material/Fade'
 import { useScreenSize } from '../../../../hooks/useScreensize'
 import QuickPinchZoom, { make3dTransformValue, UpdateAction } from 'react-quick-pinch-zoom'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
@@ -18,13 +17,13 @@ import { GraphUtils } from '../Graph/graph-utils'
 import useResizeObserver from 'use-resize-observer'
 import HelpScreen from '../HelpScreen'
 import { NetworkSelector } from '../NetworkSelector'
-import { Layer } from '../../../../../oasis-nexus/api'
 import { Network } from '../../../../../types/network'
 import { useSearchQueryNetworkParam } from '../../../../hooks/useSearchQueryNetworkParam'
 import { storage } from '../../../../utils/storage'
 import { StorageKeys } from '../../../../../types/storage'
 import { GraphTooltipMobile } from '../GraphTooltipMobile'
 import { fixedNetwork } from '../../../../utils/route-utils'
+import { cn } from '@oasisprotocol/ui-library/src/lib/utils'
 
 interface ParaTimeSelectorBaseProps {
   disabled: boolean
@@ -39,9 +38,7 @@ const ParaTimeSelectorGlow = styled(Box, {
   width: '130vw',
   height: '130vw',
   marginTop: '-5vh',
-  backgroundImage: `url("${
-    network === Network.testnet ? paratimeSelectorGlowTestnet : paratimeSelectorGlow
-  }")`,
+  backgroundImage: `url("${network === 'testnet' ? paratimeSelectorGlowTestnet : paratimeSelectorGlow}")`,
   transitionProperty: 'background-image',
   transitionDuration: `${theme.transitions.duration.complex}ms`,
   transitionTimingFunction: theme.transitions.easing.easeInOut,
@@ -75,7 +72,7 @@ const ParaTimeSelectorGlobe = styled(Box, {
   transform: 'translateX(-50%)',
   color: theme.palette.layout.main,
   backgroundImage: `url("${
-    network === Network.testnet ? paratimeSelectorGlobeTestnet : paratimeSelectorGlobe
+    network === 'testnet' || network === 'localnet' ? paratimeSelectorGlobeTestnet : paratimeSelectorGlobe
   }")`,
   transitionProperty: 'background-image',
   transitionDuration: `${theme.transitions.duration.complex}ms`,
@@ -115,10 +112,6 @@ export const ZoomOutBtn = styled(Button)(({ theme }) => ({
   },
 }))
 
-const ZoomOutBtnFade = styled(Fade)(() => ({
-  transitionDelay: '500ms !important',
-}))
-
 // border affecting scale (quick-pinch-zoom)
 const QuickPinchZoomOuter = styled('div')(({ theme }) => ({
   '> div': {
@@ -156,12 +149,7 @@ const localStore = storage()
 // and see the whole universe.
 export const UniverseArea = 'Universe'
 
-export type SelectorArea =
-  | typeof UniverseArea
-  | typeof Layer.consensus
-  | typeof Layer.cipher
-  | typeof Layer.emerald
-  | typeof Layer.sapphire
+export type SelectorArea = typeof UniverseArea | 'consensus' | 'cipher' | 'emerald' | 'sapphire'
 
 const ParaTimeSelectorCmp: FC<ParaTimeSelectorProps> = ({
   disabled,
@@ -269,7 +257,12 @@ const ParaTimeSelectorCmp: FC<ParaTimeSelectorProps> = ({
             </QuickPinchZoom>
           </QuickPinchZoomOuter>
           {!isMobile && (
-            <ZoomOutBtnFade in={graphZoomedIn}>
+            <div
+              className={cn('transition-opacity duration-300 delay-300', {
+                'opacity-100': graphZoomedIn,
+                'opacity-0 pointer-events-none': !graphZoomedIn,
+              })}
+            >
               <ZoomOutBtn
                 color="primary"
                 variant="text"
@@ -279,7 +272,7 @@ const ParaTimeSelectorCmp: FC<ParaTimeSelectorProps> = ({
               >
                 {t('home.zoomOutBtnText')}
               </ZoomOutBtn>
-            </ZoomOutBtnFade>
+            </div>
           )}
           {isMobile && ParaTimeSelectorUtils.showExploreBtn(step) && (
             <ExploreBtn
@@ -297,7 +290,7 @@ const ParaTimeSelectorCmp: FC<ParaTimeSelectorProps> = ({
           )}
         </ParaTimeSelectorGlobe>
         {!fixedNetwork && step === ParaTimeSelectorStep.Explore && (
-          <NetworkSelector network={network} setNetwork={network => setNetwork(network ?? Network.mainnet)} />
+          <NetworkSelector network={network} setNetwork={network => setNetwork(network ?? 'mainnet')} />
         )}
       </ParaTimeSelectorGlow>
       {activeMobileGraphTooltip.current && (

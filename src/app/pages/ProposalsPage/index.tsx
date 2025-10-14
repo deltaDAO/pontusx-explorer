@@ -1,11 +1,10 @@
 import { FC, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import Divider from '@mui/material/Divider'
 import { useScreenSize } from '../../hooks/useScreensize'
 import { PageLayout } from '../../components/PageLayout'
 import { SubPageCard } from '../../components/SubPageCard'
 import { useGetConsensusProposals } from '../../../oasis-nexus/api'
-import { NUMBER_OF_ITEMS_ON_SEPARATE_PAGE as PAGE_SIZE } from '../../config'
+import { NUMBER_OF_ITEMS_ON_SEPARATE_PAGE as PAGE_SIZE } from '../../../config'
 import { useSearchParamsPagination } from '../../components/Table/useSearchParamsPagination'
 import { AppErrors } from '../../../types/errors'
 import { TableLayout, TableLayoutButton } from '../../components/TableLayoutButton'
@@ -15,6 +14,7 @@ import { NetworkProposalsList } from '../../components/NetworkProposalsList'
 import { CardHeaderWithCounter } from '../../components/CardHeaderWithCounter'
 import { VerticalList } from '../../components/VerticalList'
 import { ProposalDetailView } from '../ProposalDetailsPage'
+import { LayoutDivider } from '../../components/Divider'
 
 export const ProposalsPage: FC = () => {
   const [tableView, setTableView] = useState<TableLayout>(TableLayout.Horizontal)
@@ -47,11 +47,10 @@ export const ProposalsPage: FC = () => {
         tableView === TableLayout.Vertical && <LoadMoreButton pagination={pagination} isLoading={isLoading} />
       }
     >
-      {!isMobile && <Divider variant="layout" />}
+      {!isMobile && <LayoutDivider />}
       <SubPageCard
         title={
           <CardHeaderWithCounter
-            changeMobileColors
             label={t('networkProposal.listTitle')}
             totalCount={proposalsData?.total_count}
             isTotalCountClipped={proposalsData?.is_total_count_clipped}

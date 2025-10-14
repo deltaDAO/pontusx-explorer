@@ -4,7 +4,7 @@ import { TextSkeleton } from '../Skeleton'
 import { StyledDescriptionList } from '../StyledDescriptionList'
 import { useScreenSize } from '../../hooks/useScreensize'
 import { useTranslation } from 'react-i18next'
-import { TokenLink } from './TokenLink'
+import { TokenLinkWithIcon } from './TokenLinkWithIcon'
 import { CopyToClipboard } from '../CopyToClipboard'
 import { AccountLink } from '../Account/AccountLink'
 import { DashboardLink } from '../../pages/ParatimeDashboardPage/DashboardLink'
@@ -20,8 +20,7 @@ export const TokenDetails: FC<{
   token: EvmToken | undefined
   showLayer?: boolean
   standalone?: boolean
-  highlightedPartOfName: string | undefined
-}> = ({ isLoading, token, showLayer, standalone = false, highlightedPartOfName }) => {
+}> = ({ isLoading, token, showLayer, standalone = false }) => {
   const { t } = useTranslation()
   const { isMobile } = useScreenSize()
 
@@ -40,14 +39,13 @@ export const TokenDetails: FC<{
       )}
       <dt>{t('common.name')}</dt>
       <dd>
-        <TokenLink
+        <TokenLinkWithIcon
           scope={token}
           address={token.eth_contract_addr ?? token.contract_addr}
           name={token.name}
-          highlightedPart={highlightedPartOfName}
         />
         <Box sx={{ ml: 3, fontWeight: 700, color: COLORS.grayMedium, whiteSpace: 'nowrap' }}>
-          <HighlightedText text={token.symbol} pattern={highlightedPartOfName} />
+          <HighlightedText text={token.symbol} />
         </Box>
       </dd>
 
@@ -58,27 +56,33 @@ export const TokenDetails: FC<{
 
       <dt>{t(isMobile ? 'common.smartContract_short' : 'common.smartContract')}</dt>
       <dd>
-        <span>
+        <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
           <AccountLink
             showOnlyAddress
             scope={token}
             address={token.eth_contract_addr ?? token.contract_addr}
           />
           <CopyToClipboard value={token.eth_contract_addr ?? token.contract_addr} />
-        </span>
+        </Box>
       </dd>
       <dt>{t('contract.verification.title')}</dt>
       <dd>
-        <VerificationIcon address_eth={token.eth_contract_addr} scope={token} verified={token.is_verified} />
+        <VerificationIcon
+          address_eth={token.eth_contract_addr}
+          scope={token}
+          verificationLevel={token.verification_level}
+        />
       </dd>
 
       <dt>{t(isMobile ? 'tokens.holders' : 'tokens.holdersCount')}</dt>
-      <dd>{token.num_holders.toLocaleString()}</dd>
+      <dd>
+        {typeof token.num_holders === 'number' ? token.num_holders.toLocaleString() : t('common.missing')}
+      </dd>
 
       <dt>{t('tokens.totalSupply')}</dt>
       <dd>
         {token.total_supply ? (
-          <RoundedBalance compactLargeNumbers value={token.total_supply} />
+          <RoundedBalance compactLargeNumbers value={token.total_supply} ticker={token?.symbol} />
         ) : (
           t('common.missing')
         )}

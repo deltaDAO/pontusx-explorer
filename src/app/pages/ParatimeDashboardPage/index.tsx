@@ -1,7 +1,5 @@
 import { FC } from 'react'
-import Divider from '@mui/material/Divider'
-import Grid from '@mui/material/Grid'
-import { useScreenSize } from '../../hooks/useScreensize'
+import { DashboardDivider } from '../../components/Divider'
 import { isLocalnet } from '../../utils/route-utils'
 import { Social } from '../../components/Social'
 import { LearningMaterials } from './LearningMaterials'
@@ -12,44 +10,45 @@ import { TotalTransactions } from '../../components/TotalTransactions'
 import { PageLayout } from '../../components/PageLayout'
 import { ParaTimeSnapshot } from './ParaTimeSnapshot'
 import { TopTokens } from './TopTokens'
-import { useRequiredScopeParam } from '../../hooks/useScopeParam'
+import { useRuntimeScope } from '../../hooks/useScopeParam'
 import { useRuntimeTxMethodParam } from '../../hooks/useCommonParams'
+import { paraTimesConfig } from '../../../config'
+import { LatestRoflApps } from './LatestRoflApps'
 
 export const ParatimeDashboardPage: FC = () => {
-  const { isMobile } = useScreenSize()
-  const scope = useRequiredScopeParam()
+  const scope = useRuntimeScope()
   const isLocal = isLocalnet(scope.network)
-  const { method, setMethod } = useRuntimeTxMethodParam()
+  const { txMethod, setTxMethod } = useRuntimeTxMethodParam()
+
+  const { hideTokensFromDashboard } = paraTimesConfig[scope.layer]!
 
   return (
     <PageLayout>
       {!isLocal && <ParaTimeSnapshot scope={scope} />}
-      <Divider variant="layout" sx={{ mt: isMobile ? 4 : 0 }} />
-      <LatestRuntimeTransactions scope={scope} method={method} setMethod={setMethod} />
-      <Grid container spacing={4}>
-        <Grid item xs={12} md={6} sx={{ display: 'flex', order: isMobile ? 1 : 0 }}>
+      <DashboardDivider />
+      <LatestRuntimeTransactions scope={scope} txMethod={txMethod} setTxMethod={setTxMethod} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6">
+        <div className="flex order-1 md:order-0">
           <LearningMaterials scope={scope} />
-        </Grid>
-        <Grid item xs={12} md={6}>
+        </div>
+        <div className="flex">
           <LatestRuntimeBlocks scope={scope} />
-        </Grid>
-        {isMobile && (
-          <Grid item xs={12}>
-            <TopTokens scope={scope} />
-          </Grid>
-        )}
-      </Grid>
-      {!isMobile && <TopTokens scope={scope} />}
+        </div>
+        <div className="col-span-1 lg:col-span-2">
+          {!hideTokensFromDashboard && <TopTokens scope={scope} />}
+          {paraTimesConfig[scope.layer]?.offerRoflTxTypes && <LatestRoflApps scope={scope} />}
+        </div>
+      </div>
       {!isLocal && (
         <>
-          <Grid container spacing={4}>
-            <Grid item xs={12} lg={6}>
+          <div className="grid grid-cols-12 gap-x-6">
+            <div className="col-span-12 lg:col-span-6">
               <TransactionsStats scope={scope} />
-            </Grid>
-            <Grid item xs={12} lg={6}>
+            </div>
+            <div className="col-span-12 lg:col-span-6">
               <TotalTransactions scope={scope} />
-            </Grid>
-          </Grid>
+            </div>
+          </div>
           <Social />
         </>
       )}

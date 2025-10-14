@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs } from 'react-router-dom'
-import { isValidProposalId, isValidTxHash, isValidTxOasisHash } from './helpers'
+import { isValidProposalId, isValidRoflAppId, isValidTxHash, isValidTxOasisHash } from './helpers'
 import { isValidBlockHeight, isValidOasisAddress, isValidEthAddress } from './helpers'
 import { AppError, AppErrors } from '../../types/errors'
 import { EvmTokenType, HasScope, Layer } from '../../oasis-nexus/api'
@@ -10,9 +10,9 @@ import { getSearchTermFromRequest } from '../components/Search/search-utils'
 import { toChecksumAddress } from '@ethereumjs/util'
 import { orderByLayer } from '../../types/layers'
 
-export const fixedNetwork = process.env.REACT_APP_FIXED_NETWORK as Network | undefined
-export const fixedLayer = process.env.REACT_APP_FIXED_LAYER as Layer | undefined
-export const skipGraph = !!fixedLayer || !!(process.env.REACT_APP_SKIP_GRAPH as boolean | undefined)
+export const fixedNetwork = import.meta.env.REACT_APP_FIXED_NETWORK as Network | undefined
+export const fixedLayer = import.meta.env.REACT_APP_FIXED_LAYER as Layer | undefined
+export const skipGraph = !!fixedLayer || !!(import.meta.env.REACT_APP_SKIP_GRAPH as boolean | undefined)
 
 export type ScopeFreedom =
   | 'network' // We can select only the network
@@ -37,7 +37,7 @@ export type SpecifiedPerEnabledLayer<T = any, ExcludeLayers = never> = {
   }
 }
 
-export type SpecifiedPerEnabledRuntime<T = any> = SpecifiedPerEnabledLayer<T, typeof Layer.consensus>
+export type SpecifiedPerEnabledRuntime<T = any> = SpecifiedPerEnabledLayer<T, 'consensus'>
 
 export const specialScopeRecognition: Partial<Record<string, Partial<Record<string, SearchScope>>>> = {}
 
@@ -67,18 +67,26 @@ function invertSpecialScopePaths() {
 invertSpecialScopePaths()
 
 export const hiddenScopes: SearchScope[] = [
-  { network: Network.testnet, layer: Layer.pontusxdev },
-  { network: Network.mainnet, layer: Layer.pontusxdev },
-  { network: Network.mainnet, layer: Layer.pontusxtest },
+  { network: 'testnet', layer: Layer.consensus },
+  { network: 'testnet', layer: Layer.sapphire },
+  { network: 'testnet', layer: Layer.emerald },
+  { network: 'testnet', layer: Layer.cipher },
+  { network: 'mainnet', layer: Layer.consensus },
+  { network: 'mainnet', layer: Layer.emerald },
+  { network: 'mainnet', layer: Layer.cipher },
+  { network: 'mainnet', layer: Layer.pontusxdev },
+  { network: 'mainnet', layer: Layer.pontusxtest },
   // { network: Network.mainnet, layer: Layer.sapphire }, // This is only for testing
 ]
 
-export const mergeNetworksInLayerSelector = false
+export const mergeNetworksInLayerSelector = true
 
 export const isScopeHidden = (scope: SearchScope): boolean =>
   !!hiddenScopes.find(s => s.network === scope.network && s.layer === scope.layer)
 
 export const isNotInHiddenScope = (item: HasScope) => !isScopeHidden(item)
+
+export const encodeURIComponentPretty = (text: string) => encodeURIComponent(text).replace(/%20/g, '+')
 
 const formatPreservedParams = (searchParams: URLSearchParams | undefined, paramsToKeep: string[]): string => {
   if (!searchParams) return ''
@@ -93,29 +101,29 @@ const formatPreservedParams = (searchParams: URLSearchParams | undefined, params
 
 export abstract class RouteUtils {
   private static ENABLED_LAYERS_FOR_NETWORK = {
-    [Network.mainnet]: {
-      [Layer.emerald]: true,
-      [Layer.sapphire]: true,
-      [Layer.cipher]: false,
-      [Layer.pontusxdev]: false,
-      [Layer.pontusxtest]: false,
-      [Layer.consensus]: true,
+    mainnet: {
+      emerald: true,
+      sapphire: true,
+      cipher: false,
+      pontusxdev: false,
+      pontusxtest: false,
+      consensus: true,
     },
-    [Network.testnet]: {
-      [Layer.emerald]: true,
-      [Layer.sapphire]: true,
-      [Layer.cipher]: false,
-      [Layer.pontusxdev]: true,
-      [Layer.pontusxtest]: true,
-      [Layer.consensus]: true,
+    testnet: {
+      emerald: false,
+      sapphire: false,
+      cipher: false,
+      pontusxdev: true,
+      pontusxtest: true,
+      consensus: false,
     },
-    [Network.localnet]: {
-      [Layer.emerald]: process.env.REACT_APP_LOCALNET_EMERALD === 'true',
-      [Layer.sapphire]: process.env.REACT_APP_LOCALNET_SAPPHIRE === 'true',
-      [Layer.cipher]: false,
-      [Layer.pontusxdev]: false,
-      [Layer.pontusxtest]: false,
-      [Layer.consensus]: process.env.REACT_APP_LOCALNET_CONSENSUS === 'true',
+    localnet: {
+      emerald: import.meta.env.REACT_APP_LOCALNET_EMERALD === 'true',
+      sapphire: import.meta.env.REACT_APP_LOCALNET_SAPPHIRE === 'true',
+      cipher: false,
+      pontusxdev: false,
+      pontusxtest: false,
+      consensus: import.meta.env.REACT_APP_LOCALNET_CONSENSUS === 'true',
     },
   } satisfies Record<Network, Record<Layer, boolean>>
 
@@ -170,6 +178,18 @@ export abstract class RouteUtils {
     return `/${encodeURIComponent(network)}/consensus/validators/${encodeURIComponent(address)}`
   }
 
+  static getRoflAppsRoute = (network: Network) => {
+    return `/${encodeURIComponent(network)}/sapphire/rofl/app`
+  }
+
+  static getRoflAppRoute = (network: Network, id: string) => {
+    return `/${encodeURIComponent(network)}/sapphire/rofl/app/${encodeURIComponent(id)}`
+  }
+
+  static getRoflAppInstanceRoute = (network: Network, id: string, rak: string) => {
+    return `/${encodeURIComponent(network)}/sapphire/rofl/app/${encodeURIComponent(id)}/instance/${encodeURIComponent(rak)}`
+  }
+
   static getAccountTokensRoute = (
     scope: SearchScope,
     account: string,
@@ -188,7 +208,7 @@ export abstract class RouteUtils {
   static getSearchRoute = (scope: SearchScope | undefined, searchTerm: string) => {
     return scope
       ? `${this.getScopeRoute(scope)}/search?q=${encodeURIComponent(searchTerm)}`
-      : `/search?q=${encodeURIComponent(searchTerm)}`
+      : `/search?q=${encodeURIComponentPretty(searchTerm)}`
   }
 
   static getTokenRoute = (scope: SearchScope, tokenAddress: string) => {
@@ -287,6 +307,21 @@ const validateConsensusAddressParam = (address: string) => {
   return isValid
 }
 
+const validateRoflAppIdParam = (id: string) => {
+  const isValid = isValidRoflAppId(id)
+
+  if (!isValid) {
+    throw new AppError(AppErrors.InvalidRoflAppId)
+  }
+
+  return isValid
+}
+
+export type RoflAppLoaderData = {
+  id: string
+  searchQuery: string
+}
+
 const validateRuntimeAddressParam = (address: string) => {
   const isValid = isValidOasisAddress(address) || isValidEthAddress(address)
   if (!isValid) {
@@ -323,7 +358,7 @@ const validateRuntimeTxHashParam = (hash: string) => {
 
 export type AddressLoaderData = {
   address: string
-  searchTerm: string
+  searchQuery: string
 }
 
 const validateProposalIdParam = (proposalId: string) => {
@@ -341,7 +376,7 @@ export const consensusAddressParamLoader =
     validateConsensusAddressParam(params[queryParam]!)
     return {
       address: params[queryParam]!,
-      searchTerm: getSearchTermFromRequest(request),
+      searchQuery: getSearchTermFromRequest(request),
     }
   }
 
@@ -352,7 +387,17 @@ export const runtimeAddressParamLoader =
     validateRuntimeAddressParam(rawAddress)
     return {
       address: isValidEthAddress(rawAddress) ? toChecksumAddress(rawAddress) : rawAddress,
-      searchTerm: getSearchTermFromRequest(request),
+      searchQuery: getSearchTermFromRequest(request),
+    }
+  }
+
+export const roflAppParamLoader =
+  (queryParam: string = 'id') =>
+  ({ params, request }: LoaderFunctionArgs): RoflAppLoaderData => {
+    validateRoflAppIdParam(params[queryParam]!)
+    return {
+      id: params[queryParam]!,
+      searchQuery: getSearchTermFromRequest(request),
     }
   }
 
@@ -396,14 +441,14 @@ export const assertEnabledScope = (params: {
 
 export type ProposalIdLoaderData = {
   proposalId: number
-  searchTerm: string
+  searchQuery: string
 }
 
 export const proposalIdParamLoader = async ({ params, request }: LoaderFunctionArgs) => {
   validateProposalIdParam(params.proposalId!)
   return {
     proposalId: parseInt(params.proposalId!),
-    searchTerm: getSearchTermFromRequest(request),
+    searchQuery: getSearchTermFromRequest(request),
   }
 }
 

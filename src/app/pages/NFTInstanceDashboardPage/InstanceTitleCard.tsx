@@ -1,12 +1,10 @@
 import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
-import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import Skeleton from '@mui/material/Skeleton'
-import Typography from '@mui/material/Typography'
+import { Skeleton } from '@oasisprotocol/ui-library/src/components/ui/skeleton'
+import { Typography } from '@oasisprotocol/ui-library/src/components/typography'
 import { EvmNft } from 'oasis-nexus/api'
-import { COLORS } from '../../../styles/theme/colors'
 import { VerificationIcon } from '../../components/ContractVerificationIcon'
 import { AccountLink } from '../../components/Account/AccountLink'
 import { CopyToClipboard } from '../../components/CopyToClipboard'
@@ -27,54 +25,27 @@ export const InstanceTitleCard: FC<InstanceTitleCardProps> = ({ isFetched, isLoa
 
   return (
     <Card>
-      <CardContent>
-        {isLoading && <Skeleton variant="text" />}
+      <CardContent sx={{ paddingBottom: '0!important' }}>
+        {isLoading && <Skeleton className="h-8" />}
         {isFetched && token && (
-          <Box
-            sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'space-between',
-              alignItems: 'bottom',
-            }}
-          >
-            <Typography
-              variant="h2"
-              sx={{
-                fontWeight: 600,
-                paddingBottom: 3,
-              }}
-            >
+          <div className="flex flex-wrap justify-between items-center">
+            <Typography variant="h2">
               {getNftInstanceLabel(nft)}
               &nbsp;
-              <Typography
-                component="span"
-                noWrap
-                sx={{
-                  color: COLORS.grayMedium,
-                  fontWeight: 400,
-                }}
-              >
-                {t('nft.instanceTitleSuffix')}
-              </Typography>
+              <span className="font-normal text-muted-foreground">{t('nft.instanceTitleSuffix')}</span>
             </Typography>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
+            <div className="flex justify-center items-center">
               <VerificationIcon
                 address_eth={token.eth_contract_addr}
                 scope={token}
-                verified={token.is_verified}
-                noLink
+                verificationLevel={token.verification_level}
+                hideLink
               />
-              <AccountLink scope={scope} address={displayAddress!} alwaysTrim />
+              &nbsp;&nbsp;&nbsp;
+              <AccountLink scope={scope} address={displayAddress!} alwaysTrim showOnlyAddress />
               <CopyToClipboard value={displayAddress!} />
-            </Box>
-          </Box>
+            </div>
+          </div>
         )}
       </CardContent>
     </Card>

@@ -13,6 +13,7 @@ export enum AppErrors {
   UnsupportedNetwork = 'unsupported_network',
   UnsupportedLayer = 'unsupported_layer',
   InvalidAddress = 'invalid_address',
+  InvalidRoflAppId = 'invalid_rofl_app_id',
   InvalidBlockHeight = 'invalid_block_height',
   InvalidTxHash = 'invalid_tx_hash',
   InvalidProposalId = 'invalid_proposal_id',
@@ -20,6 +21,8 @@ export enum AppErrors {
   PageDoesNotExist = 'page_does_not_exist',
   NotFoundBlockHeight = 'not_found_block_height',
   NotFoundTxHash = 'not_found_tx_hash',
+  NotFoundRoflApp = 'not_found_rofl_app',
+  NotFoundRoflAppInstance = 'not_found_rofl_app_instance',
   NotFoundProposalId = 'not_found_proposal_id',
   InvalidUrl = 'invalid_url',
   InvalidVote = 'invalid_vote',
@@ -41,7 +44,7 @@ export function exhaustedTypeWarning(
   const message = `${messagePrefix}: Expected type to be exhausted, but this type was not handled: ${JSON.stringify(
     exhaustedType,
   )}`
-  if (process.env.NODE_ENV === 'production') {
+  if (import.meta.env.PROD) {
     console.warn(message)
   } else {
     throw new Error(message)

@@ -1,14 +1,13 @@
 import { FC, PropsWithChildren, ReactNode } from 'react'
-import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
+import { Typography } from '@oasisprotocol/ui-library/src/components/typography'
 import CardContent from '@mui/material/CardContent'
 import CardActions from '@mui/material/CardActions'
 import { styled } from '@mui/material/styles'
-import Typography from '@mui/material/Typography'
-import { COLORS } from 'styles/theme/colors'
 
-export const StyledCard = styled(Card)(({ theme }) => ({
+export const StyledCard = styled(Card, {
+  shouldForwardProp: prop => prop !== 'noBorder',
+})<{ noBorder?: boolean }>(({ theme, noBorder }) => ({
   display: 'flex',
   flex: 1,
   flexDirection: 'column',
@@ -18,6 +17,8 @@ export const StyledCard = styled(Card)(({ theme }) => ({
     margin: 0,
   },
   height: 186,
+  border: noBorder ? 0 : undefined,
+  backgroundColor: '#FAFAFA',
 }))
 
 const StyledCardContent = styled(CardContent, {
@@ -34,6 +35,7 @@ type SnapshotCardProps = PropsWithChildren & {
   title: ReactNode
   withContentPadding?: boolean
   alignWithCardsWithActions?: boolean
+  noBorder?: boolean
 }
 
 export const SnapshotCard: FC<SnapshotCardProps> = ({
@@ -43,34 +45,20 @@ export const SnapshotCard: FC<SnapshotCardProps> = ({
   label,
   withContentPadding = true,
   alignWithCardsWithActions = false,
+  noBorder = false,
 }) => {
   return (
-    <StyledCard>
-      <CardHeader component="h5" title={title} sx={{ pb: 0, pl: 4, pt: '10px' }} />
+    <StyledCard noBorder={noBorder}>
+      <Typography variant="h4" className="pl-4 pt-4 text-sm">
+        {title}
+      </Typography>
       <StyledCardContent withContentPadding={withContentPadding}>{children}</StyledCardContent>
       {(badge || label || alignWithCardsWithActions) && (
         <CardActions sx={{ minHeight: 60 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              width: '100%',
-              px: 3,
-              pb: 3,
-            }}
-          >
-            <Box>{badge}</Box>
-            <Typography
-              variant="h2"
-              sx={{
-                fontWeight: 400,
-                flex: 1,
-              }}
-            >
-              {label}
-            </Typography>
-          </Box>
+          <div className="flex justify-between items-center w-full px-4 pb-4">
+            <div>{badge}</div>
+            <div className="flex-1 text-muted-foreground">{label}</div>
+          </div>
         </CardActions>
       )}
     </StyledCard>
@@ -99,22 +87,9 @@ export const SnapshotTextCard: FC<SnapshotTextCardProps> = ({
       withContentPadding={withContentPadding}
       alignWithCardsWithActions={alignWithCardsWithActions}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-        <Typography
-          component="span"
-          sx={{
-            fontSize: '32px',
-            fontWeight: 700,
-            color: COLORS.brandDark,
-            flex: 1,
-            textAlign: 'center',
-            paddingLeft: 4,
-            paddingRight: 4,
-          }}
-        >
-          {children}
-        </Typography>
-      </Box>
+      <div className="h-full flex items-center justify-center">
+        <span className="text-2xl font-semibold text-primary flex-1 text-center px-4">{children}</span>
+      </div>
     </SnapshotCard>
   )
 }

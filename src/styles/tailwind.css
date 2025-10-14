@@ -1,0 +1,20 @@
+@import '@oasisprotocol/ui-library/src/styles/global.css';
+
+/* Specific fixes needed during migration to Oasis UI Library */
+
+/* Override MUI styles that are applied globally */
+[class*=' text-'] {
+  font-family: 'Inter Variable', sans-serif;
+}
+
+/* Override Tailwind's vertical-align reset for MUI SVG components */
+[class*='Mui'] img,
+[class*='Mui'] svg,
+[class*='Mui'] video,
+[class*='Mui'] canvas,
+[class*='Mui'] audio,
+[class*='Mui'] iframe,
+[class*='Mui'] embed,
+[class*='Mui'] object {
+  vertical-align: revert;
+}

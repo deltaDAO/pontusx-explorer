@@ -1,24 +1,25 @@
 import { EvmAbiParam, RuntimeEvent, RuntimeEventType } from '../../../oasis-nexus/api'
 import { FC } from 'react'
 import { TFunction } from 'i18next'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { StyledDescriptionList } from '../StyledDescriptionList'
 import { useScreenSize } from '../../hooks/useScreensize'
-import Table from '@mui/material/Table'
-import TableHead from '@mui/material/TableHead'
-import TableRow from '@mui/material/TableRow'
-import TableCell from '@mui/material/TableCell'
-import TableBody from '@mui/material/TableBody'
+import {
+  Table,
+  TableHeader,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+} from '@oasisprotocol/ui-library/src/components/table'
 import { AccountLink } from '../Account/AccountLink'
 import { CopyToClipboard } from '../CopyToClipboard'
 import { SearchScope } from '../../../types/searchScope'
-import { getOasisAddress } from '../../utils/helpers'
 import { exhaustedTypeWarning } from '../../../types/errors'
 import { LongDataDisplay } from '../LongDataDisplay'
 import { parseEvmEvent } from '../../utils/parseEvmEvent'
 import { TokenTransferIcon } from '../Tokens/TokenTransferIcon'
 import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 import StreamIcon from '@mui/icons-material/Stream'
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import { getPreciseNumberFormat } from '../../../locales/getPreciseNumberFormat'
@@ -29,10 +30,18 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
 import MemoryIcon from '@mui/icons-material/Memory'
 import LanIcon from '@mui/icons-material/Lan'
 import LanOutlinedIcon from '@mui/icons-material/LanOutlined'
+import DeveloperBoard from '@mui/icons-material/DeveloperBoard'
+import DeveloperBoardOffIcon from '@mui/icons-material/DeveloperBoardOff'
 import { MethodIcon } from '../ConsensusTransactionMethod'
 import { TransactionLink } from '../Transactions/TransactionLink'
+import Tooltip from '@mui/material/Tooltip'
+import { tooltipDelay } from '../../../styles/theme'
+import { PlaceholderLabel } from '../../utils/PlaceholderLabel'
+import { fromBaseUnits } from '../../utils/number-utils'
+import { RoflAppLink } from '../Rofl/RoflAppLink'
+import { RoflAppInstanceLink } from '../Rofl/RoflAppInstanceLink'
 
-const getRuntimeEventMethodLabel = (t: TFunction, method: string | undefined) => {
+export const getRuntimeEventMethodLabel = (t: TFunction, method: RuntimeEventType | undefined) => {
   switch (method) {
     case RuntimeEventType.accountstransfer:
       return t('runtimeEvent.accountstransfer')
@@ -60,7 +69,31 @@ const getRuntimeEventMethodLabel = (t: TFunction, method: string | undefined) =>
       return t('runtimeEvent.roflAppUpdated')
     case RuntimeEventType.roflapp_removed:
       return t('runtimeEvent.roflAppRemoved')
+    case RuntimeEventType.roflinstance_registered:
+      return t('runtimeEvent.replicaRegistered')
+    case RuntimeEventType.roflmarketprovider_created:
+      return t('runtimeEvent.roflmarketProviderCreated')
+    case RuntimeEventType.roflmarketprovider_updated:
+      return t('runtimeEvent.roflmarketProviderUpdated')
+    case RuntimeEventType.roflmarketprovider_removed:
+      return t('runtimeEvent.roflmarketProviderRemoved')
+    case RuntimeEventType.roflmarketinstance_created:
+      return t('runtimeEvent.roflmarketMachineCreated')
+    case RuntimeEventType.roflmarketinstance_updated:
+      return t('runtimeEvent.roflmarketMachineUpdated')
+    case RuntimeEventType.roflmarketinstance_accepted:
+      return t('runtimeEvent.roflmarketMachineAccepted')
+    case RuntimeEventType.roflmarketinstance_cancelled:
+      return t('runtimeEvent.roflmarketMachineCancelled')
+    case RuntimeEventType.roflmarketinstance_removed:
+      return t('runtimeEvent.roflmarketMachineRemoved')
+    case RuntimeEventType.roflmarketinstance_command_queued:
+      return t('runtimeEvent.roflmarketMachineCommandQueued')
+
+    case undefined:
+      return t('common.unknown')
     default:
+      exhaustedTypeWarning('Unexpected event type', method)
       return method || t('common.unknown')
   }
 }
@@ -98,6 +131,30 @@ export const EventTypeIcon: FC<{
     [RuntimeEventType.roflapp_created]: <MethodIcon color="green" icon={<MemoryIcon />} {...props} />,
     [RuntimeEventType.roflapp_removed]: <MethodIcon color="orange" icon={<MemoryIcon />} {...props} />,
     [RuntimeEventType.roflapp_updated]: <MethodIcon color="green" icon={<MemoryIcon />} {...props} />,
+    [RuntimeEventType.roflinstance_registered]: <MethodIcon color="green" icon={<MemoryIcon />} {...props} />,
+    [RuntimeEventType.roflmarketprovider_created]: (
+      <MethodIcon color="green" icon={<DeveloperBoard />} {...props} />
+    ),
+    [RuntimeEventType.roflmarketprovider_updated]: (
+      <MethodIcon color="green" icon={<DeveloperBoard />} {...props} />
+    ),
+    [RuntimeEventType.roflmarketprovider_removed]: (
+      <MethodIcon color="orange" icon={<DeveloperBoardOffIcon />} {...props} />
+    ),
+    [RuntimeEventType.roflmarketinstance_created]: (
+      <MethodIcon color="green" icon={<DeveloperBoard />} {...props} />
+    ),
+    [RuntimeEventType.roflmarketinstance_updated]: (
+      <MethodIcon color="green" icon={<DeveloperBoard />} {...props} />
+    ),
+    [RuntimeEventType.roflmarketinstance_accepted]: <MethodIcon icon={<DeveloperBoard />} {...props} />,
+    [RuntimeEventType.roflmarketinstance_cancelled]: (
+      <MethodIcon color="orange" icon={<DeveloperBoardOffIcon />} {...props} />
+    ),
+    [RuntimeEventType.roflmarketinstance_removed]: (
+      <MethodIcon color="orange" icon={<DeveloperBoardOffIcon />} {...props} />
+    ),
+    [RuntimeEventType.roflmarketinstance_command_queued]: <MethodIcon icon={<DeveloperBoard />} {...props} />,
   }
 
   return (
@@ -110,9 +167,9 @@ export const EventTypeIcon: FC<{
 const EvmEventParamData: FC<{
   scope: SearchScope
   param: EvmAbiParam
-  address?: string
   alwaysTrimOnTable?: boolean
-}> = ({ scope, param, address, alwaysTrimOnTable }) => {
+}> = ({ scope, param, alwaysTrimOnTable }) => {
+  const { t } = useTranslation()
   /**
    * According to the API docs:
    *
@@ -124,12 +181,69 @@ const EvmEventParamData: FC<{
   switch (param.evm_type) {
     // TODO: handle more EVM types
     case 'address':
-      return address ? (
-        <AccountLink address={address} scope={scope} alwaysTrimOnTablet={alwaysTrimOnTable} />
+      return param.value ? (
+        <AccountLink address={param.value as string} scope={scope} alwaysTrimOnTablet={alwaysTrimOnTable} />
       ) : null
-    case 'uint256':
-      // TODO: format with BigNumber
-      return <span>{param.value as string}</span>
+    case 'uint256': {
+      if (param.evm_token?.type === 'ERC20') {
+        return (
+          <Tooltip
+            arrow
+            placement="top"
+            title={t('common.valueLong', getPreciseNumberFormat(param.value_raw as string))}
+            enterDelay={tooltipDelay}
+            enterNextDelay={tooltipDelay}
+          >
+            <span>
+              {t('common.valueInToken', {
+                ...getPreciseNumberFormat(param.value as string),
+                ticker: param.evm_token.symbol,
+              })}
+            </span>
+          </Tooltip>
+        )
+      }
+      if (param.evm_token?.type === 'ERC721') {
+        return (
+          <Trans
+            t={t}
+            i18nKey="common.tokenInstance"
+            components={{
+              InstanceLink: <PlaceholderLabel label={param.value as string} />,
+              TickerLink: <PlaceholderLabel label={param.evm_token.symbol ?? t('common.missing')} />,
+            }}
+          />
+        )
+      }
+
+      const commonEvmContractDecimals = 18
+      const maybeParsedBaseUnits = fromBaseUnits(param.value as string, commonEvmContractDecimals)
+      if (!maybeParsedBaseUnits.startsWith('0.0000')) {
+        // Don't parse suspiciously low values.
+        return (
+          <Tooltip
+            arrow
+            placement="top"
+            title={t('common.valueLong', getPreciseNumberFormat(param.value as string))}
+            enterDelay={tooltipDelay}
+            enterNextDelay={tooltipDelay}
+          >
+            <span>
+              {t('common.valueLong', getPreciseNumberFormat(maybeParsedBaseUnits))}
+              {`e${commonEvmContractDecimals}`}
+            </span>
+          </Tooltip>
+        )
+      }
+
+      return (
+        <span>
+          {t('common.valueLong', {
+            ...getPreciseNumberFormat(param.value as string),
+          })}
+        </span>
+      )
+    }
     default:
       return <span>{JSON.stringify(param.value, null, '  ')}</span>
   }
@@ -139,27 +253,18 @@ const EvmLogRow: FC<{
   scope: SearchScope
   param: EvmAbiParam
 }> = ({ scope, param }) => {
-  const evmAddress = param.evm_type === 'address' ? (param.value as string) : undefined
-  const oasisAddress = evmAddress ? getOasisAddress(evmAddress) : undefined
-  const address = evmAddress || oasisAddress
-
-  const getCopyToClipboardValue = () => {
-    if (address) {
-      return address
-    }
-
-    return typeof param.value === 'string' ? (param.value as string) : JSON.stringify(param.value, null, '  ')
-  }
+  const clipboardValue =
+    typeof param.value === 'string' ? param.value : JSON.stringify(param.value, null, '  ')
 
   return (
     <TableRow>
       <TableCell>{param.name}</TableCell>
       <TableCell>{param.evm_type}</TableCell>
       <TableCell>
-        <EvmEventParamData scope={scope} param={param} address={address} alwaysTrimOnTable />{' '}
+        <EvmEventParamData scope={scope} param={param} alwaysTrimOnTable />{' '}
       </TableCell>
       <TableCell>
-        <CopyToClipboard value={getCopyToClipboardValue()} />
+        <CopyToClipboard value={clipboardValue} />
       </TableCell>
     </TableRow>
   )
@@ -181,30 +286,21 @@ const RuntimeEventDetailsInner: FC<{
       )
     case RuntimeEventType.evmlog: {
       const { parsedEvmLogName } = parseEvmEvent(event)
-      const emittingEthAddress = `0x${Buffer.from(event.body.address, 'base64').toString('hex')}`
-      const emittingOasisAddress = getOasisAddress(emittingEthAddress)
+      const emittingEthAddress = event.body.address
       if (!event.evm_log_name && !event.evm_log_params) {
         return (
           <div>
             <b>{eventName}</b>
             <br />
             {t('runtimeEvent.fields.topics')}:
-            <Typography
-              variant="mono"
-              fontWeight={400}
-              sx={{
-                display: 'block',
-                whiteSpace: 'pre-wrap',
-                overflowWrap: 'break-word',
-              }}
-            >
+            <span className="font-medium block whitespace-pre-wrap wrap-break-word">
               {event.body.topics
                 /* @ts-expect-error -- Event body is missing types */
                 .map((base64Topic, index) => {
                   return `${index}: 0x${Buffer.from(base64Topic, 'base64').toString('hex')}`
                 })
                 .join('\n')}
-            </Typography>
+            </span>
             <br />
             {t('runtimeEvent.fields.data')}:
             <LongDataDisplay
@@ -212,8 +308,10 @@ const RuntimeEventDetailsInner: FC<{
               fontWeight={400}
             />
             <br />
-            {t('runtimeEvent.fields.emittingContract')}:{' '}
-            <AccountLink scope={scope} alwaysTrim address={emittingEthAddress || emittingOasisAddress} />
+            <div className="flex items-center gap-1">
+              <span>{t('runtimeEvent.fields.emittingContract')}:</span>
+              <AccountLink scope={scope} alwaysTrim address={emittingEthAddress} />
+            </div>
           </div>
         )
       }
@@ -226,15 +324,15 @@ const RuntimeEventDetailsInner: FC<{
           </Box>
           <br />
           {event.evm_log_params && event.evm_log_params.length > 0 && (
-            <Table sx={{ border: '1px solid lightgray' }}>
-              <TableHead>
+            <Table className="border">
+              <TableHeader>
                 <TableRow>
-                  <TableCell>{t('common.name')}</TableCell>
-                  <TableCell>{t('common.type')}</TableCell>
-                  <TableCell>{t('common.data')}</TableCell>
+                  <TableHead>{t('common.name')}</TableHead>
+                  <TableHead>{t('common.type')}</TableHead>
+                  <TableHead>{t('common.data')}</TableHead>
                   <TableCell />
                 </TableRow>
-              </TableHead>
+              </TableHeader>
               <TableBody>
                 {event.evm_log_params.map((param, index) => (
                   <EvmLogRow scope={scope} key={`param-${index}`} param={param} />
@@ -243,8 +341,10 @@ const RuntimeEventDetailsInner: FC<{
             </Table>
           )}
           <br />
-          {t('runtimeEvent.fields.emittingContract')}:{' '}
-          <AccountLink scope={scope} alwaysTrim address={emittingEthAddress || emittingOasisAddress} />
+          <div className="flex items-center gap-1">
+            <span>{t('runtimeEvent.fields.emittingContract')}:</span>
+            <AccountLink scope={scope} alwaysTrim address={emittingEthAddress} />
+          </div>
         </div>
       )
     }
@@ -381,7 +481,70 @@ const RuntimeEventDetailsInner: FC<{
           <StyledDescriptionList titleWidth={isMobile ? '100px' : '200px'}>
             <MaybeEventErrorLine event={event} />
             <dt>{t('common.id')}</dt>
-            <dd>{event.body.id}</dd>
+            <dd>
+              <RoflAppLink id={event.body.id} network={scope.network} />
+            </dd>
+          </StyledDescriptionList>
+        </div>
+      )
+    case RuntimeEventType.roflinstance_registered:
+      return (
+        <div>
+          <EventTypeIcon eventType={event.type} />
+          <StyledDescriptionList titleWidth={isMobile ? '100px' : '200px'}>
+            <MaybeEventErrorLine event={event} />
+            <dt>{t('common.id')}</dt>
+            <dd>
+              <RoflAppLink id={event.body.app_id} network={scope.network} />
+            </dd>
+            {event.body?.rak?.PublicKey && (
+              <>
+                <dt>{t('rofl.rak')}</dt>
+                <dd>
+                  <RoflAppInstanceLink
+                    id={event.body.app_id}
+                    network={scope.network}
+                    rak={event.body?.rak?.PublicKey}
+                  />
+                </dd>
+              </>
+            )}
+          </StyledDescriptionList>
+        </div>
+      )
+    case RuntimeEventType.roflmarketprovider_created:
+    case RuntimeEventType.roflmarketprovider_updated:
+    case RuntimeEventType.roflmarketprovider_removed:
+      return (
+        <div>
+          <EventTypeIcon eventType={event.type} />
+          <StyledDescriptionList titleWidth={isMobile ? '100px' : '200px'}>
+            <MaybeEventErrorLine event={event} />
+            <dt>{t('common.address')}</dt>
+            <dd>
+              <AccountLink scope={scope} address={event.body.address} />
+            </dd>
+          </StyledDescriptionList>
+        </div>
+      )
+    case RuntimeEventType.roflmarketinstance_created:
+    case RuntimeEventType.roflmarketinstance_updated:
+    case RuntimeEventType.roflmarketinstance_accepted:
+    case RuntimeEventType.roflmarketinstance_cancelled:
+    case RuntimeEventType.roflmarketinstance_removed:
+    case RuntimeEventType.roflmarketinstance_command_queued:
+      return (
+        <div>
+          <EventTypeIcon eventType={event.type} />
+          <StyledDescriptionList titleWidth={isMobile ? '100px' : '200px'}>
+            <MaybeEventErrorLine event={event} />
+            <dt>{t('roflmarket.provider')}</dt>
+            <dd>
+              <AccountLink scope={scope} address={event.body.provider} />
+            </dd>
+            <dt>{t('roflmarket.machineId')}</dt>
+            {/* oasis-sdk serializes roflmarket provider machines id as an array */}
+            <dd>0x{Buffer.from(event.body.id).toString('hex')}</dd>
           </StyledDescriptionList>
         </div>
       )

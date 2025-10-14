@@ -1,6 +1,5 @@
 import { FC, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import Divider from '@mui/material/Divider'
 import { useScreenSize } from '../../hooks/useScreensize'
 import { PageLayout } from '../../components/PageLayout'
 import { SubPageCard } from '../../components/SubPageCard'
@@ -14,6 +13,7 @@ import { Validators } from '../../components/Validators'
 import { CardHeaderWithCounter } from '../../components/CardHeaderWithCounter'
 import { ValidatorDetailsView } from '../ValidatorDetailsPage'
 import { VerticalList } from '../../components/VerticalList'
+import { LayoutDivider } from '../../components/Divider'
 
 const PAGE_SIZE = 100
 
@@ -48,11 +48,10 @@ export const ValidatorsPage: FC = () => {
         tableView === TableLayout.Vertical && <LoadMoreButton pagination={pagination} isLoading={isLoading} />
       }
     >
-      {!isMobile && <Divider variant="layout" />}
+      {!isMobile && <LayoutDivider />}
       <SubPageCard
         title={
           <CardHeaderWithCounter
-            changeMobileColors
             label={t('validator.listTitle')}
             totalCount={validatorsData?.total_count}
             isTotalCountClipped={validatorsData?.is_total_count_clipped}
@@ -82,9 +81,11 @@ export const ValidatorsPage: FC = () => {
             {isLoading &&
               [...Array(PAGE_SIZE).keys()].map(key => (
                 <ValidatorDetailsView
+                  network={network}
                   key={key}
                   isLoading={true}
                   validator={undefined}
+                  account={undefined}
                   stats={undefined}
                   standalone
                 />
@@ -92,8 +93,10 @@ export const ValidatorsPage: FC = () => {
             {!isLoading &&
               validatorsData?.validators.map(validator => (
                 <ValidatorDetailsView
+                  network={network}
                   key={validator.entity_address}
                   validator={validator}
+                  account={undefined}
                   stats={validatorsQuery.data?.data.stats}
                   standalone
                 />

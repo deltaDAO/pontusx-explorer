@@ -1,16 +1,12 @@
 import { FC } from 'react'
 import { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
-import Grid from '@mui/material/Unstable_Grid2'
 import { docs } from '../../utils/externalLinks'
-import { Layer } from '../../../oasis-nexus/api'
 import { getLayerLabels } from '../../utils/content'
-import { Network } from '../../../types/network'
 import { SpecifiedPerEnabledRuntime } from '../../utils/route-utils'
-import { SearchScope } from '../../../types/searchScope'
+import { RuntimeScope } from '../../../types/searchScope'
 import { LearningMaterialsCard } from 'app/components/LearningMaterialsCard'
 import { LearningSection } from '../../components/LearningMaterialsCard/LearningSection'
-import { AppErrors } from 'types/errors'
 
 type Content = {
   description: string
@@ -26,8 +22,8 @@ const getContent = (t: TFunction) => {
   const labels = getLayerLabels(t)
 
   return {
-    [Network.mainnet]: {
-      [Layer.emerald]: {
+    mainnet: {
+      emerald: {
         primary: {
           description: t('learningMaterials.emerald.description'),
           header: t('learningMaterials.emerald.header'),
@@ -39,12 +35,12 @@ const getContent = (t: TFunction) => {
           url: docs.token,
         },
         tertiary: {
-          description: t('learningMaterials.transfer.description', { layer: labels['emerald'] }),
+          description: t('learningMaterials.transfer.description', { layer: labels.emerald }),
           header: t('learningMaterials.transfer.header'),
           url: docs.paraTimeTransfer,
         },
       },
-      [Layer.sapphire]: {
+      sapphire: {
         primary: {
           description: t('learningMaterials.sapphire.description'),
           header: t('learningMaterials.sapphire.header'),
@@ -56,17 +52,17 @@ const getContent = (t: TFunction) => {
           url: docs.token,
         },
         tertiary: {
-          description: t('learningMaterials.transfer.description', { layer: labels['sapphire'] }),
+          description: t('learningMaterials.transfer.description', { layer: labels.sapphire }),
           header: t('learningMaterials.transfer.header'),
           url: docs.paraTimeTransfer,
         },
       },
-      [Layer.cipher]: undefined,
-      [Layer.pontusxdev]: undefined,
-      [Layer.pontusxtest]: undefined,
+      cipher: undefined,
+      pontusxdev: undefined,
+      pontusxtest: undefined,
     },
-    [Network.testnet]: {
-      [Layer.emerald]: {
+    testnet: {
+      emerald: {
         primary: {
           description: t('learningMaterials.emerald.description'),
           header: t('learningMaterials.emerald.header'),
@@ -83,7 +79,7 @@ const getContent = (t: TFunction) => {
           url: docs.emeraldGateway,
         },
       },
-      [Layer.sapphire]: {
+      sapphire: {
         primary: {
           description: t('learningMaterials.sapphire.description'),
           header: t('learningMaterials.sapphire.header'),
@@ -96,12 +92,12 @@ const getContent = (t: TFunction) => {
         },
         tertiary: {
           description: t('learningMaterials.hardhat.description'),
-          header: t('learningMaterials.hardhat.header', { layer: labels['sapphire'] }),
+          header: t('learningMaterials.hardhat.header', { layer: labels.sapphire }),
           url: docs.sapphireTestnetHardhat,
         },
       },
-      [Layer.cipher]: undefined,
-      [Layer.pontusxdev]: {
+      cipher: undefined,
+      pontusxdev: {
         primary: {
           description: t('learningMaterials.pontusxdevnet.1.description'),
           header: t('learningMaterials.pontusxdevnet.1.header'),
@@ -118,7 +114,7 @@ const getContent = (t: TFunction) => {
           url: docs.pontusx3,
         },
       },
-      [Layer.pontusxtest]: {
+      pontusxtest: {
         primary: {
           description: t('learningMaterials.pontusxtestnet.1.description'),
           header: t('learningMaterials.pontusxtestnet.1.header'),
@@ -136,8 +132,8 @@ const getContent = (t: TFunction) => {
         },
       },
     },
-    [Network.localnet]: {
-      [Layer.emerald]: {
+    localnet: {
+      emerald: {
         primary: {
           description: t('learningMaterials.emerald.description'),
           header: t('learningMaterials.emerald.header'),
@@ -154,7 +150,7 @@ const getContent = (t: TFunction) => {
           url: docs.emeraldGateway,
         },
       },
-      [Layer.sapphire]: {
+      sapphire: {
         primary: {
           description: t('learningMaterials.sapphire.description'),
           header: t('learningMaterials.sapphire.header'),
@@ -167,23 +163,20 @@ const getContent = (t: TFunction) => {
         },
         tertiary: {
           description: t('learningMaterials.tools.description'),
-          header: t('learningMaterials.tools.header', { layer: labels['sapphire'] }),
+          header: t('learningMaterials.tools.header', { layer: 'sapphire' }),
           url: docs.tools,
         },
       },
-      [Layer.cipher]: undefined,
-      [Layer.pontusxdev]: undefined,
-      [Layer.pontusxtest]: undefined,
+      cipher: undefined,
+      pontusxdev: undefined,
+      pontusxtest: undefined,
     },
   } satisfies SpecifiedPerEnabledRuntime<LayerContent>
 }
 
-export const LearningMaterials: FC<{ scope: SearchScope }> = ({ scope }) => {
+export const LearningMaterials: FC<{ scope: RuntimeScope }> = ({ scope }) => {
   const { t } = useTranslation()
   const { layer, network } = scope
-  if (layer === Layer.consensus) {
-    throw AppErrors.UnsupportedLayer
-  }
   const content = getContent(t)[network][layer]
 
   if (!content) {
@@ -192,32 +185,32 @@ export const LearningMaterials: FC<{ scope: SearchScope }> = ({ scope }) => {
 
   return (
     <LearningMaterialsCard>
-      <Grid container spacing={3}>
-        <Grid xs={12} md={6}>
+      <div className="flex flex-col gap-3 md:flex-row md:h-full">
+        <div className="md:flex-1">
           <LearningSection
             description={content.primary.description}
             title={content.primary.header}
             url={content.primary.url}
-            sx={{ height: '100%' }}
+            className="h-full"
           />
-        </Grid>
-        <Grid xs={12} md={6} spacing={3}>
-          <Grid sx={{ pb: 3 }}>
+        </div>
+        <div className="md:flex-1 flex flex-col gap-3">
+          <div className="flex flex-1">
             <LearningSection
               description={content.secondary.description}
               title={content.secondary.header}
               url={content.secondary.url}
             />
-          </Grid>
-          <Grid>
+          </div>
+          <div className="flex flex-1">
             <LearningSection
               description={content.tertiary.description}
               title={content.tertiary.header}
               url={content.tertiary.url}
             />
-          </Grid>
-        </Grid>
-      </Grid>
+          </div>
+        </div>
+      </div>
     </LearningMaterialsCard>
   )
 }

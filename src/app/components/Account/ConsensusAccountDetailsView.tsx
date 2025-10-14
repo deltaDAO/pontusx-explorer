@@ -6,7 +6,6 @@ import { useScreenSize } from '../../hooks/useScreensize'
 import { TextSkeleton } from '../Skeleton'
 import { StyledDescriptionList, StyledListTitleWithAvatar } from '../StyledDescriptionList'
 import { DashboardLink } from '../../pages/ParatimeDashboardPage/DashboardLink'
-import Box from '@mui/material/Box'
 import { styled } from '@mui/material/styles'
 import { useFormattedTimestampStringWithDistance } from '../../hooks/useFormattedTimestamp'
 import { AccountAvatar } from '../AccountAvatar'
@@ -14,6 +13,10 @@ import { AccountSizeBadge } from '../AccountSizeBadge'
 import { ConsensusAccountLink } from './ConsensusAccountLink'
 import { CopyToClipboard } from '../CopyToClipboard'
 import { getPreciseNumberFormat } from '../../../locales/getPreciseNumberFormat'
+import { Link as RouterLink } from 'react-router-dom'
+import Link from '@mui/material/Link'
+import { RouteUtils } from '../../utils/route-utils'
+import { transactionsContainerId } from '../../utils/tabAnchors'
 
 export const StyledListTitle = styled('dt')(({ theme }) => ({
   marginLeft: theme.spacing(4),
@@ -25,7 +28,6 @@ type ConsensusAccountDetailsViewProps = {
   isLoading?: boolean
   showLayer?: boolean
   standalone?: boolean
-  highlightedPartOfName?: string
 }
 
 export const ConsensusAccountDetailsView: FC<ConsensusAccountDetailsViewProps> = ({
@@ -34,7 +36,6 @@ export const ConsensusAccountDetailsView: FC<ConsensusAccountDetailsViewProps> =
   isLoading,
   showLayer,
   standalone,
-  highlightedPartOfName,
 }) => {
   const { t } = useTranslation()
   const { isMobile } = useScreenSize()
@@ -42,6 +43,11 @@ export const ConsensusAccountDetailsView: FC<ConsensusAccountDetailsViewProps> =
 
   if (isLoading) return <TextSkeleton numberOfRows={7} />
   if (isError || !account) return <CardEmptyState label={t('account.cantLoadDetails')} />
+
+  const transactionsLabel = account.stats.num_txns.toLocaleString()
+  const transactionsAnchor = account.entity
+    ? `${RouteUtils.getValidatorRoute(account.network, account.entity)}#${transactionsContainerId}`
+    : `${RouteUtils.getAccountRoute(account, account.address)}#${transactionsContainerId}`
 
   return (
     <StyledDescriptionList titleWidth={isMobile ? '160px' : '200px'} standalone={standalone}>
@@ -54,19 +60,16 @@ export const ConsensusAccountDetailsView: FC<ConsensusAccountDetailsViewProps> =
         </>
       )}
       <StyledListTitleWithAvatar>
-        <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
+        <div className="flex items-center gap-1">
           <AccountAvatar account={account} />
           <AccountSizeBadge size={account.size} />
-        </Box>
+        </div>
       </StyledListTitleWithAvatar>
       <dd>
-        <ConsensusAccountLink
-          alwaysTrim={false}
-          network={account.network}
-          address={account.address}
-          highlightedPartOfName={highlightedPartOfName}
-        />
-        <CopyToClipboard value={account.address} />
+        <div className="inline-flex items-center">
+          <ConsensusAccountLink alwaysTrim={false} network={account.network} address={account.address} />
+          <CopyToClipboard value={account.address} />
+        </div>
       </dd>
       <dt>
         <strong>{t('account.totalBalance')}</strong>
@@ -105,6 +108,16 @@ export const ConsensusAccountDetailsView: FC<ConsensusAccountDetailsViewProps> =
       <dt>{t('account.firstActivity')}</dt>
       <dd>
         <>{formattedFirstActivity || t('common.missing')}</>
+      </dd>
+      <dt>{t('common.transactions')}</dt>
+      <dd>
+        {account.stats.num_txns ? (
+          <Link component={RouterLink} to={transactionsAnchor!}>
+            {transactionsLabel}
+          </Link>
+        ) : (
+          transactionsLabel
+        )}
       </dd>
     </StyledDescriptionList>
   )

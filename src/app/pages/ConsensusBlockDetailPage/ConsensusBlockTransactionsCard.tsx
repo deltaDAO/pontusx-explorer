@@ -1,5 +1,5 @@
 import { FC } from 'react'
-import { NUMBER_OF_ITEMS_ON_SEPARATE_PAGE } from '../../config'
+import { NUMBER_OF_ITEMS_ON_SEPARATE_PAGE } from '../../../config'
 import { useGetConsensusTransactions } from '../../../oasis-nexus/api'
 import { useSearchParamsPagination } from '../../components/Table/useSearchParamsPagination'
 import { ConsensusTransactions } from '../../components/Transactions'
@@ -8,13 +8,12 @@ import { SearchScope } from '../../../types/searchScope'
 import { ConsensusBlockDetailsContext } from '.'
 import { LinkableCardLayout } from 'app/components/LinkableCardLayout'
 import { useConsensusTxMethodParam } from '../../hooks/useCommonParams'
-import { ConsensusTransactionTypeFilter } from '../../components/Transactions/ConsensusTransactionTypeFilter'
+import { ConsensusTransactionMethodFilter } from '../../components/Transactions/ConsensusTransactionMethodFilter'
 import { useScreenSize } from '../../hooks/useScreensize'
 import {
   getConsensusTransactionMethodFilteringParam,
   ConsensusTxMethodFilterOption,
 } from '../../components/ConsensusTransactionMethod'
-import Box from '@mui/material/Box'
 import { transactionsContainerId } from '../../utils/tabAnchors'
 
 const TransactionList: FC<{
@@ -55,7 +54,7 @@ const TransactionList: FC<{
 }
 
 export const ConsensusBlockTransactionsCard: FC<ConsensusBlockDetailsContext> = ({ scope, blockHeight }) => {
-  const { method, setMethod } = useConsensusTxMethodParam()
+  const { txMethod, setTxMethod } = useConsensusTxMethodParam()
   const { isMobile } = useScreenSize()
 
   if (!blockHeight) {
@@ -66,18 +65,13 @@ export const ConsensusBlockTransactionsCard: FC<ConsensusBlockDetailsContext> = 
     <LinkableCardLayout
       containerId={transactionsContainerId}
       title={
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'end',
-          }}
-        >
-          {!isMobile && <ConsensusTransactionTypeFilter value={method} setValue={setMethod} />}
-        </Box>
+        <div className="flex justify-end">
+          {!isMobile && <ConsensusTransactionMethodFilter value={txMethod} setValue={setTxMethod} />}
+        </div>
       }
     >
-      {isMobile && <ConsensusTransactionTypeFilter value={method} setValue={setMethod} expand />}
-      <TransactionList scope={scope} blockHeight={blockHeight} method={method} />
+      {isMobile && <ConsensusTransactionMethodFilter value={txMethod} setValue={setTxMethod} expand />}
+      <TransactionList scope={scope} blockHeight={blockHeight} method={txMethod} />
     </LinkableCardLayout>
   )
 }

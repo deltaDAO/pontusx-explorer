@@ -14,21 +14,19 @@ import { VerificationIcon } from '../../components/ContractVerificationIcon'
 import { DelayedContractCreatorInfo } from '../../components/Account/ContractCreatorInfo'
 import CardContent from '@mui/material/CardContent'
 import { TokenTypeTag } from '../../components/Tokens/TokenList'
-import { SearchScope } from '../../../types/searchScope'
+import { RuntimeScope } from '../../../types/searchScope'
 import { RouteUtils } from '../../utils/route-utils'
 import { RoundedBalance } from 'app/components/RoundedBalance'
-import { HighlightedText } from '../../components/HighlightedText'
 import { RuntimeBalanceDisplay } from '../../components/Balance/RuntimeBalanceDisplay'
 import { extractMinimalProxyERC1167 } from '../../components/ContractVerificationIcon/extractMinimalProxyERC1167'
 import { AbiPlaygroundLink } from '../../components/ContractVerificationIcon/AbiPlaygroundLink'
-import Box from '@mui/material/Box'
 import { holdersContainerId, tokenTransfersContainerId } from '../../utils/tabAnchors'
+import { TokenLinkWithIcon } from '../../components/Tokens/TokenLinkWithIcon'
 
-export const TokenDetailsCard: FC<{ scope: SearchScope; address: string; searchTerm: string }> = ({
-  scope,
-  address,
-  searchTerm,
-}) => {
+export const TokenDetailsCard: FC<{
+  scope: RuntimeScope
+  address: string
+}> = ({ scope, address }) => {
   const { t } = useTranslation()
   const { isMobile } = useScreenSize()
 
@@ -44,7 +42,11 @@ export const TokenDetailsCard: FC<{ scope: SearchScope; address: string; searchT
           <StyledDescriptionList titleWidth={isMobile ? '100px' : '200px'}>
             <dt>{t('common.token')}</dt>
             <dd>
-              <HighlightedText text={token.name} pattern={searchTerm} />
+              <TokenLinkWithIcon
+                scope={account}
+                address={token.eth_contract_addr || token.contract_addr}
+                name={token.name}
+              />
             </dd>
 
             {isMobile && (
@@ -55,8 +57,14 @@ export const TokenDetailsCard: FC<{ scope: SearchScope; address: string; searchT
             )}
             <dt>{t(isMobile ? 'common.smartContract_short' : 'common.smartContract')}</dt>
             <dd>
-              <AccountLink showOnlyAddress scope={account} address={account.address_eth || account.address} />
-              <CopyToClipboard value={account.address_eth || account.address} />
+              <div className="inline-flex items-center">
+                <AccountLink
+                  showOnlyAddress
+                  scope={account}
+                  address={account.address_eth || account.address}
+                />
+                <CopyToClipboard value={account.address_eth || account.address} />
+              </div>
             </dd>
 
             <dt>{t('contract.verification.title')}</dt>
@@ -64,7 +72,7 @@ export const TokenDetailsCard: FC<{ scope: SearchScope; address: string; searchT
               <VerificationIcon
                 address_eth={token.eth_contract_addr}
                 scope={token}
-                verified={token.is_verified}
+                verificationLevel={token.verification_level}
               />
             </dd>
 
@@ -72,10 +80,10 @@ export const TokenDetailsCard: FC<{ scope: SearchScope; address: string; searchT
               <>
                 <dt>{t('contract.verification.proxyERC1167')}</dt>
                 <dd>
-                  <Box>
+                  <div>
                     <AccountLink scope={account} address={extractMinimalProxyERC1167(account)!} />
                     <AbiPlaygroundLink scope={account} address_eth={account.address_eth!} />
-                  </Box>
+                  </div>
                 </dd>
               </>
             )}
@@ -107,18 +115,23 @@ export const TokenDetailsCard: FC<{ scope: SearchScope; address: string; searchT
                 t('common.not_defined')
               )}
             </dd>
-            <dt>{t('tokens.holders')}</dt>
-            <dd>
-              <Link
-                component={RouterLink}
-                to={`${RouteUtils.getTokenHoldersRoute(
-                  scope,
-                  token.eth_contract_addr,
-                )}#${holdersContainerId}`}
-              >
-                {t('tokens.holdersValue', { value: token?.num_holders })}
-              </Link>
-            </dd>
+
+            {!!token.num_holders && (
+              <>
+                <dt>{t('tokens.holders')}</dt>
+                <dd>
+                  <Link
+                    component={RouterLink}
+                    to={`${RouteUtils.getTokenHoldersRoute(
+                      scope,
+                      token.eth_contract_addr,
+                    )}#${holdersContainerId}`}
+                  >
+                    {t('tokens.holdersValue', { value: token.num_holders })}
+                  </Link>
+                </dd>
+              </>
+            )}
 
             {!!token.num_transfers && (
               <>

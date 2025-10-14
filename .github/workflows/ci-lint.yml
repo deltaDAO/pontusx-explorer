@@ -5,11 +5,15 @@ name: ci-lint
 on:
   # A push occurs to one of the matched branches.
   push:
-    branches: [master]
+    branches:
+      - master
+      - stable/*
   # Or when a pull request event occurs for a pull request against one of the
   # matched branches.
   pull_request:
-    branches: [master]
+    branches:
+      - master
+      - stable/*
 
 jobs:
   lint:
@@ -20,6 +24,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          submodules: true
           # Checkout pull request HEAD commit instead of merge commit.
           ref: ${{ github.event.pull_request.head.sha }}
           # Fetch all history so gitlint can check the relevant commits.

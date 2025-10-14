@@ -1,35 +1,34 @@
 import { FC, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import Divider from '@mui/material/Divider'
+import { LayoutDivider } from '../../components/Divider'
 import { useScreenSize } from '../../hooks/useScreensize'
 import { PageLayout } from '../../components/PageLayout'
 import { SubPageCard } from '../../components/SubPageCard'
-import { Layer, useGetRuntimeEvmTokens } from '../../../oasis-nexus/api'
-import { NUMBER_OF_ITEMS_ON_SEPARATE_PAGE } from '../../config'
+import { EvmTokenType, useGetRuntimeEvmTokens } from '../../../oasis-nexus/api'
+import { NUMBER_OF_ITEMS_ON_SEPARATE_PAGE } from '../../../config'
 import { useSearchParamsPagination } from '../../components/Table/useSearchParamsPagination'
 import { AppErrors } from '../../../types/errors'
 import { TableLayout, TableLayoutButton } from '../../components/TableLayoutButton'
 import { LoadMoreButton } from '../../components/LoadMoreButton'
-import { useRequiredScopeParam } from '../../hooks/useScopeParam'
+import { useRuntimeScope } from '../../hooks/useScopeParam'
 import { TokenList } from '../../components/Tokens/TokenList'
 import { TokenDetails } from '../../components/Tokens/TokenDetails'
 import { VerticalList } from '../../components/VerticalList'
+import { TokenTypeFilter } from '../../components/Tokens/TokenTypeFilter'
+import { useTypedSearchParam } from '../../hooks/useTypedSearchParam'
 
 const PAGE_SIZE = NUMBER_OF_ITEMS_ON_SEPARATE_PAGE
 
 export const TokensPage: FC = () => {
   const [tableView, setTableView] = useState<TableLayout>(TableLayout.Horizontal)
+  const [type, setType] = useTypedSearchParam<EvmTokenType>('type', EvmTokenType.ERC20, {
+    deleteParams: ['page'],
+  })
   const { isMobile } = useScreenSize()
   const { t } = useTranslation()
   const pagination = useSearchParamsPagination('page')
   const offset = (pagination.selectedPage - 1) * PAGE_SIZE
-  const scope = useRequiredScopeParam()
-  // Consensus is not yet enabled in ENABLED_LAYERS, just some preparation
-  if (scope.layer === Layer.consensus) {
-    throw AppErrors.UnsupportedLayer
-    // Listing the latest consensus blocks is not yet implemented.
-    // we should call useGetConsensusBlocks()
-  }
+  const scope = useRuntimeScope()
 
   useEffect(() => {
     if (!isMobile) {
@@ -43,6 +42,7 @@ export const TokensPage: FC = () => {
     {
       limit: tableView === TableLayout.Vertical ? offset + PAGE_SIZE : PAGE_SIZE,
       offset: tableView === TableLayout.Vertical ? 0 : offset,
+      type,
     },
     {
       query: {
@@ -64,12 +64,17 @@ export const TokensPage: FC = () => {
         tableView === TableLayout.Vertical && <LoadMoreButton pagination={pagination} isLoading={isLoading} />
       }
     >
-      {!isMobile && <Divider variant="layout" sx={{ mb: 6 }} />}
+      {!isMobile && <LayoutDivider />}
       <SubPageCard
         title={t('common.tokens')}
         action={isMobile && <TableLayoutButton tableView={tableView} setTableView={setTableView} />}
         noPadding={tableView === TableLayout.Vertical}
         mainTitle
+        subheader={
+          <span className="ml-4 not-italic">
+            <TokenTypeFilter onSelect={setType} value={type} />
+          </span>
+        }
       >
         {tableView === TableLayout.Horizontal && (
           <TokenList
@@ -89,24 +94,11 @@ export const TokensPage: FC = () => {
           <VerticalList>
             {isLoading &&
               [...Array(PAGE_SIZE).keys()].map(key => (
-                <TokenDetails
-                  key={key}
-                  isLoading={true}
-                  token={undefined}
-                  highlightedPartOfName={undefined}
-                  standalone
-                />
+                <TokenDetails key={key} isLoading={true} token={undefined} standalone />
               ))}
 
             {!isLoading &&
-              tokens!.map(token => (
-                <TokenDetails
-                  key={token.contract_addr}
-                  token={token}
-                  highlightedPartOfName={undefined}
-                  standalone
-                />
-              ))}
+              tokens!.map(token => <TokenDetails key={token.contract_addr} token={token} standalone />)}
           </VerticalList>
         )}
       </SubPageCard>

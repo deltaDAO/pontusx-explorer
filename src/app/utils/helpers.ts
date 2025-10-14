@@ -2,10 +2,10 @@ import { toChecksumAddress } from '@ethereumjs/util'
 import { Buffer } from 'buffer'
 import * as oasis from '@oasisprotocol/client'
 import * as oasisRT from '@oasisprotocol/client-rt'
+// We get this from the generated code to avoid circular imports
 // eslint-disable-next-line no-restricted-imports
-import { AddressPreimage } from '../../oasis-nexus/generated/api'
+import { Address, AddressPreimage } from '../../oasis-nexus/generated/api'
 import { validateMnemonic } from 'bip39'
-import { sha512_256 } from 'js-sha512'
 
 export const isValidBlockHeight = (blockHeight: string): boolean => /^[0-9]+$/.test(blockHeight)
 export const isValidBlockHash = (hash: string): boolean => /^[0-9a-fA-F]{64}$/.test(hash)
@@ -24,26 +24,20 @@ export const isValidEthAddress = (hexAddress: string): boolean => {
   return /^0x[0-9a-fA-F]{40}$/.test(hexAddress)
 }
 
-export const isValidProposalId = (proposalId: string): boolean => /^[0-9]+$/.test(proposalId)
-
-/** oasis.address.fromData(...) but without being needlessly asynchronous */
-function oasisAddressFromDataSync(
-  contextIdentifier: string,
-  contextVersion: number,
-  data: Uint8Array,
-): Uint8Array {
-  const versionU8 = new Uint8Array([contextVersion])
-  return oasis.misc.concat(
-    versionU8,
-    new Uint8Array(
-      sha512_256.arrayBuffer(oasis.misc.concat(oasis.misc.fromString(contextIdentifier), versionU8, data)),
-    ).slice(0, 20),
-  )
+export const isValidRoflAppId = (id: string): boolean => {
+  try {
+    oasis.address.fromBech32('rofl', id)
+    return true
+  } catch (e) {
+    return false
+  }
 }
+
+export const isValidProposalId = (proposalId: string): boolean => /^[0-9]+$/.test(proposalId)
 
 export function getEvmBech32Address(evmAddress: string) {
   const ethAddrU8 = oasis.misc.fromHex(evmAddress.replace('0x', ''))
-  const addr = oasisAddressFromDataSync(
+  const addr = oasis.address.fromData(
     oasisRT.address.V0_SECP256K1ETH_CONTEXT_IDENTIFIER,
     oasisRT.address.V0_SECP256K1ETH_CONTEXT_VERSION,
     ethAddrU8,
@@ -51,7 +45,7 @@ export function getEvmBech32Address(evmAddress: string) {
   return oasis.staking.addressToBech32(addr)
 }
 
-export const getOasisAddress = (address: string): string => {
+export const getOasisAddress = (address: string): Address => {
   if (isValidOasisAddress(address)) {
     return address
   } else if (isValidEthAddress(address)) {
@@ -61,12 +55,17 @@ export const getOasisAddress = (address: string): string => {
   }
 }
 
-export const getOasisAddressOrNull = (address: string): string | null => {
+export const getOasisAddressOrNull = (address: string): Address | null => {
   try {
     return getOasisAddress(address)
   } catch (e) {
     return null
   }
+}
+
+export function getOasisAddressFromBase64PublicKey(key: string) {
+  const keyBytes = new Uint8Array(Buffer.from(key, 'base64'))
+  return oasis.staking.addressToBech32(oasis.staking.addressFromPublicKey(keyBytes))
 }
 
 export const isValidTxOasisHash = (hash: string): boolean => /^[0-9a-fA-F]{64}$/.test(hash)
@@ -101,17 +100,19 @@ export function uniq<T>(input: T[] | undefined): T[] {
 export const isValidMnemonic = (candidate: string): boolean => validateMnemonic(candidate)
 
 export const getAccountSize = (value: bigint) => {
-  if (value >= 100_000_000_000_000_000n) {
+  if (value === 0n) {
+    return '-'
+  } else if (value >= 100_000_000_000_000_000n) {
     return 'XXL'
-  } else if (value >= 50_000_000_000_000_000n && value <= 99_999_999_000_000_000n) {
+  } else if (value >= 50_000_000_000_000_000n && value <= 99_999_999_999_999_999n) {
     return 'XL'
-  } else if (value >= 25_000_000_000_000_000n && value <= 49_999_999_000_000_000n) {
+  } else if (value >= 25_000_000_000_000_000n && value <= 49_999_999_999_999_999n) {
     return 'L'
-  } else if (value >= 1_000_000_000_000_000n && value <= 24_999_999_000_000_000n) {
+  } else if (value >= 1_000_000_000_000_000n && value <= 24_999_999_999_999_999n) {
     return 'M'
-  } else if (value >= 500_000_000_000_000n && value <= 999_999_000_000_000n) {
+  } else if (value >= 500_000_000_000_000n && value <= 999_999_999_999_999n) {
     return 'S'
-  } else if (value >= 100_000_000_000_000n && value <= 499_99_000_000_0009n) {
+  } else if (value >= 100_000_000_000_000n && value <= 499_999_999_999_999n) {
     return 'XS'
   } else {
     return 'XXS'

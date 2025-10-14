@@ -14,7 +14,7 @@ import { DashboardLink } from '../../pages/ParatimeDashboardPage/DashboardLink'
 import { AllTokenPrices } from '../../../coin-gecko/api'
 import { ContractCreatorInfo } from './ContractCreatorInfo'
 import { VerificationIcon } from '../ContractVerificationIcon'
-import { TokenLink } from '../Tokens/TokenLink'
+import { TokenLinkWithIcon } from '../Tokens/TokenLinkWithIcon'
 import { AccountAvatar } from '../AccountAvatar'
 import { RuntimeBalanceDisplay } from '../Balance/RuntimeBalanceDisplay'
 import { calculateFiatValue } from '../Balance/hooks'
@@ -23,7 +23,6 @@ import { getFiatCurrencyForScope, showFiatValues } from '../../../config'
 import { CardEmptyState } from '../CardEmptyState'
 import { extractMinimalProxyERC1167 } from '../ContractVerificationIcon/extractMinimalProxyERC1167'
 import { AbiPlaygroundLink } from '../ContractVerificationIcon/AbiPlaygroundLink'
-import Box from '@mui/material/Box'
 import { transactionsContainerId } from '../../utils/tabAnchors'
 
 type RuntimeAccountDetailsViewProps = {
@@ -33,7 +32,6 @@ type RuntimeAccountDetailsViewProps = {
   token?: EvmToken
   tokenPrices: AllTokenPrices
   showLayer?: boolean
-  highlightedPartOfName?: string
 }
 
 export const RuntimeAccountDetailsView: FC<RuntimeAccountDetailsViewProps> = ({
@@ -43,7 +41,6 @@ export const RuntimeAccountDetailsView: FC<RuntimeAccountDetailsViewProps> = ({
   isError,
   tokenPrices,
   showLayer,
-  highlightedPartOfName,
 }) => {
   const { t } = useTranslation()
   const { isMobile } = useScreenSize()
@@ -76,20 +73,17 @@ export const RuntimeAccountDetailsView: FC<RuntimeAccountDetailsViewProps> = ({
         <AccountAvatar account={account} />
       </StyledListTitleWithAvatar>
       <dd>
-        <AccountLink
-          showOnlyAddress={!!token?.name}
-          scope={account}
-          address={address!}
-          highlightedPartOfName={highlightedPartOfName}
-        />
-        <CopyToClipboard value={address!} />
+        <div className="inline-flex items-center">
+          <AccountLink showOnlyAddress={!!token?.name} scope={account} address={address!} />
+          <CopyToClipboard value={address!} />
+        </div>
       </dd>
 
       {token && (
         <>
           <dt>{t('common.token')}</dt>
           <dd>
-            <TokenLink
+            <TokenLinkWithIcon
               scope={account}
               address={token.eth_contract_addr || token.contract_addr}
               name={token.name}
@@ -105,7 +99,7 @@ export const RuntimeAccountDetailsView: FC<RuntimeAccountDetailsViewProps> = ({
             <VerificationIcon
               address_eth={account.address_eth!}
               scope={account}
-              verified={!!account.evm_contract?.verification}
+              verificationLevel={account.evm_contract?.verification?.verification_level}
             />
           </dd>
         </>
@@ -115,10 +109,10 @@ export const RuntimeAccountDetailsView: FC<RuntimeAccountDetailsViewProps> = ({
         <>
           <dt>{t('contract.verification.proxyERC1167')}</dt>
           <dd>
-            <Box>
+            <div>
               <AccountLink scope={account} address={extractMinimalProxyERC1167(account)!} />
               <AbiPlaygroundLink scope={account} address_eth={account.address_eth!} />
-            </Box>
+            </div>
           </dd>
         </>
       )}
@@ -142,7 +136,7 @@ export const RuntimeAccountDetailsView: FC<RuntimeAccountDetailsViewProps> = ({
       </dd>
 
       <dt>{t('common.tokens')}</dt>
-      <dd>
+      <dd className="gap-2">
         <TokenPills account={account} tokens={account.evm_balances} />
       </dd>
 

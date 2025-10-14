@@ -1,11 +1,11 @@
 import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
-import Skeleton from '@mui/material/Skeleton'
+import { Skeleton } from '@oasisprotocol/ui-library/src/components/ui/skeleton'
 import { SnapshotTextCard } from '../../components/Snapshots/SnapshotCard'
 import { useTokenInfo } from './hook'
-import { SearchScope } from '../../../types/searchScope'
+import { RuntimeScope } from '../../../types/searchScope'
 
-export const TokenTotalTransactionsCard: FC<{ scope: SearchScope; address: string }> = ({
+export const TokenTotalTransactionsCard: FC<{ scope: RuntimeScope; address: string }> = ({
   scope,
   address,
 }) => {
@@ -15,9 +15,15 @@ export const TokenTotalTransactionsCard: FC<{ scope: SearchScope; address: strin
   return (
     <SnapshotTextCard title={t('common.transfers')} alignWithCardsWithActions>
       {isLoading ? (
-        <Skeleton variant="text" />
+        <Skeleton className="h-4" />
       ) : (
-        isFetched && <>{t('common.valuePair', { value: token?.num_transfers })}</>
+        isFetched && (
+          <>
+            {typeof token?.num_transfers === 'number'
+              ? t('common.valuePair', { value: token.num_transfers })
+              : t('common.missing')}
+          </>
+        )
       )}
     </SnapshotTextCard>
   )

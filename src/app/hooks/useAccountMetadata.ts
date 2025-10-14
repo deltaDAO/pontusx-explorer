@@ -1,5 +1,4 @@
-import { SearchScope } from '../../types/searchScope'
-import { Layer } from '../../oasis-nexus/api'
+import { RuntimeScope, SearchScope } from '../../types/searchScope'
 import { usePontusXAccountMetadata, useSearchForPontusXAccountsByName } from '../data/pontusx-account-names'
 import { AccountMetadataInfo, AccountNameSearchResults } from '../data/named-accounts'
 import { useOasisAccountMetadata, useSearchForOasisAccountsByName } from '../data/oasis-account-names'
@@ -17,8 +16,8 @@ import { useTokenInfo } from '../pages/TokenDashboardPage/hook'
  */
 export const useAccountMetadata = (scope: SearchScope, address: string): AccountMetadataInfo => {
   // Look up metadata specified by us
-  const isPontusX = scope.layer === Layer.pontusxtest || scope.layer === Layer.pontusxdev
-  const pontusXData = usePontusXAccountMetadata(address, {
+  const isPontusX = scope.layer === 'pontusxtest' || scope.layer === 'pontusxdev'
+  const pontusXData = usePontusXAccountMetadata(getOasisAddress(address), {
     enabled: isPontusX,
     useErrorBoundary: false,
   })
@@ -33,8 +32,9 @@ export const useAccountMetadata = (scope: SearchScope, address: string): Account
     token,
     isLoading: isTokenLoading,
     isError: isTokenError,
-  } = useTokenInfo(scope, address, {
-    enabled: !registryData?.metadata && scope.layer !== Layer.consensus,
+  } = useTokenInfo(scope as RuntimeScope, address, {
+    // The type cast is OK because whenever we are on consensus, we will set enabled to false
+    enabled: !registryData?.metadata && scope.layer !== 'consensus',
     useCaching: true,
   })
   const tokenData: AccountMetadataInfo = {
@@ -49,16 +49,16 @@ export const useAccountMetadata = (scope: SearchScope, address: string): Account
 /** Doesn't throw if it fails. */
 export const useSearchForAccountsByName = (
   scope: SearchScope,
-  nameFragment = '',
+  nameFragments: string[],
 ): AccountNameSearchResults => {
-  const isPontusX = scope.layer === Layer.pontusxtest || scope.layer === Layer.pontusxdev
-  const isValidPontusXSearch = isPontusX && !!nameFragment
-  const pontusXResults = useSearchForPontusXAccountsByName(scope.network, nameFragment, {
+  const isPontusX = scope.layer === 'pontusxtest' || scope.layer === 'pontusxdev'
+  const isValidPontusXSearch = isPontusX && !!nameFragments.length
+  const pontusXResults = useSearchForPontusXAccountsByName(scope.network, nameFragments, {
     enabled: isValidPontusXSearch,
     useErrorBoundary: false,
   })
-  const isValidOasisSearch = !isPontusX && !!nameFragment
-  const oasisResults = useSearchForOasisAccountsByName(scope.network, scope.layer, nameFragment, {
+  const isValidOasisSearch = !isPontusX && !!nameFragments.length
+  const oasisResults = useSearchForOasisAccountsByName(scope.network, scope.layer, nameFragments, {
     enabled: isValidOasisSearch,
     useErrorBoundary: false,
   })

@@ -1,9 +1,9 @@
 import { FC, ReactNode } from 'react'
 import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
 import { LinkableDiv } from '../../components/PageLayout/LinkableDiv'
+import { Typography } from '@oasisprotocol/ui-library/src/components/typography'
 
 type LinkableCardLayoutProps = {
   children: ReactNode
@@ -13,9 +13,18 @@ type LinkableCardLayoutProps = {
 }
 export const LinkableCardLayout: FC<LinkableCardLayoutProps> = ({ children, containerId, title, action }) => {
   return (
-    <Card>
+    <Card
+      sx={{
+        borderTopRightRadius: 0,
+        borderTopLeftRadius: 0,
+        borderTop: 'none',
+      }}
+    >
       <LinkableDiv id={containerId}>
-        <CardHeader disableTypography component="h3" title={title} action={action} />
+        <div className="flex items-center justify-between p-4">
+          <Typography variant="h3">{title}</Typography>
+          {action ? <div className="self-start -mt-2 -mr-2">{action}</div> : null}
+        </div>
       </LinkableDiv>
       <CardContent>
         <ErrorBoundary light={true}>{children}</ErrorBoundary>

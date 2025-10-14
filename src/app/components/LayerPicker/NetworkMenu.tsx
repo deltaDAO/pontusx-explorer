@@ -2,14 +2,11 @@ import { FC, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Typography from '@mui/material/Typography'
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight'
-import MenuList from '@mui/material/MenuList'
-import MenuItem from '@mui/material/MenuItem'
-import ListItemText from '@mui/material/ListItemText'
-import ListItemIcon from '@mui/material/ListItemIcon'
 import { COLORS } from '../../../styles/theme/colors'
 import { Network, getNetworkNames } from '../../../types/network'
 import { RouteUtils } from '../../utils/route-utils'
 import { getNetworkIcons } from '../../utils/content'
+import { MenuItem } from '../LayerPicker/MenuItem'
 
 type NetworkMenuItemProps = Omit<NetworkMenuProps, 'options'> & {
   divider: boolean
@@ -41,14 +38,13 @@ export const NetworkMenuItem: FC<NetworkMenuItemProps> = ({
       onMouseLeave={() => {
         setHoveredNetwork(undefined)
       }}
-      selected={isSelected}
-      tabIndex={isSelected ? 0 : -1}
       onClick={() => {
         setSelectedNetwork(network)
       }}
+      selected={isSelected}
     >
-      <ListItemIcon>{icons[network]}</ListItemIcon>
-      <ListItemText>
+      <div className="min-w-9 shrink-0 inline-flex text-inherit">{icons[network]}</div>
+      <div className="flex-auto">
         {labels[network]}
         {isActive && (
           <Typography
@@ -58,7 +54,7 @@ export const NetworkMenuItem: FC<NetworkMenuItemProps> = ({
             {t('layerPicker.active')}
           </Typography>
         )}
-      </ListItemText>
+      </div>
       {network === selectedNetwork && <KeyboardArrowRightIcon />}
     </MenuItem>
   )
@@ -75,7 +71,7 @@ export const NetworkMenu: FC<NetworkMenuProps> = ({ activeNetwork, selectedNetwo
   const options: Network[] = RouteUtils.getEnabledNetworks()
 
   return (
-    <MenuList>
+    <ul role="menu">
       {options.map((network, index) => (
         <NetworkMenuItem
           activeNetwork={activeNetwork}
@@ -88,6 +84,6 @@ export const NetworkMenu: FC<NetworkMenuProps> = ({ activeNetwork, selectedNetwo
           network={network}
         />
       ))}
-    </MenuList>
+    </ul>
   )
 }

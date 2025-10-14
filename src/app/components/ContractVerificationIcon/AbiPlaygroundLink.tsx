@@ -5,6 +5,7 @@ import { Layer } from '../../../oasis-nexus/api'
 import { SearchScope } from '../../../types/searchScope'
 import { Network } from '../../../types/network'
 import * as externalLinks from '../../utils/externalLinks'
+import Box from '@mui/material/Box'
 
 export const AbiPlaygroundLink: FC<{
   address_eth: string
@@ -13,17 +14,17 @@ export const AbiPlaygroundLink: FC<{
   const { t } = useTranslation()
 
   const scopeToPlaygroundURL: Record<Network, Partial<Record<Layer, string>>> = {
-    [Network.mainnet]: {
-      [Layer.emerald]: `${externalLinks.dapps.abiPlayground}?network=42262&contractAddress=${address_eth}`,
-      [Layer.sapphire]: `${externalLinks.dapps.abiPlayground}?network=23294&contractAddress=${address_eth}`,
+    mainnet: {
+      emerald: `${externalLinks.dapps.abiPlayground}?network=42262&contractAddress=${address_eth}`,
+      sapphire: `${externalLinks.dapps.abiPlayground}?network=23294&contractAddress=${address_eth}`,
     },
-    [Network.testnet]: {
-      [Layer.emerald]: `${externalLinks.dapps.abiPlayground}?network=42261&contractAddress=${address_eth}`,
-      [Layer.sapphire]: `${externalLinks.dapps.abiPlayground}?network=23295&contractAddress=${address_eth}`,
+    testnet: {
+      emerald: `${externalLinks.dapps.abiPlayground}?network=42261&contractAddress=${address_eth}`,
+      sapphire: `${externalLinks.dapps.abiPlayground}?network=23295&contractAddress=${address_eth}`,
     },
-    [Network.localnet]: {
-      [Layer.emerald]: `${externalLinks.dapps.abiPlayground}?network=42260&contractAddress=${address_eth}`,
-      [Layer.sapphire]: `${externalLinks.dapps.abiPlayground}?network=23293&contractAddress=${address_eth}`,
+    localnet: {
+      emerald: `${externalLinks.dapps.abiPlayground}?network=42260&contractAddress=${address_eth}`,
+      sapphire: `${externalLinks.dapps.abiPlayground}?network=23293&contractAddress=${address_eth}`,
     },
   }
   const abiPlaygroundLinkProps = {
@@ -36,14 +37,16 @@ export const AbiPlaygroundLink: FC<{
   if (!abiPlaygroundLinkProps.href) return null
   return (
     <span>
-      {' | '}
-      <Trans
-        t={t}
-        i18nKey={'contract.verification.openInAbiPlayground'}
-        components={{
-          AbiPlaygroundLink: <Link {...abiPlaygroundLinkProps} />,
-        }}
-      />
+      &nbsp;|&nbsp;
+      <Box sx={{ display: 'inline-block' }}>
+        <Trans
+          t={t}
+          i18nKey={'contract.verification.openInAbiPlayground'}
+          components={{
+            AbiPlaygroundLink: <Link {...abiPlaygroundLinkProps} />,
+          }}
+        />
+      </Box>
     </span>
   )
 }

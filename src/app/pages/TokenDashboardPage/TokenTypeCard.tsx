@@ -1,47 +1,29 @@
 import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
+import { Typography } from '@oasisprotocol/ui-library/src/components/typography'
 import { SnapshotCard } from '../../components/Snapshots/SnapshotCard'
-import { COLORS } from '../../../styles/theme/colors'
 import { useTokenInfo } from './hook'
-import Skeleton from '@mui/material/Skeleton'
+import { Skeleton } from '@oasisprotocol/ui-library/src/components/ui/skeleton'
 import { getTokenTypeDescription, getTokenTypeStrictName } from '../../../types/tokens'
-import { SearchScope } from '../../../types/searchScope'
+import { RuntimeScope } from '../../../types/searchScope'
 
-export const TokenTypeCard: FC<{ scope: SearchScope; address: string }> = ({ scope, address }) => {
+export const TokenTypeCard: FC<{ scope: RuntimeScope; address: string }> = ({ scope, address }) => {
   const { t } = useTranslation()
 
   const { isLoading, token, isFetched } = useTokenInfo(scope, address)
 
   return (
     <SnapshotCard title={t('common.type')} alignWithCardsWithActions>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+      <div className="flex items-center justify-center h-fullr">
         {isLoading ? (
-          <Skeleton variant="text" sx={{ width: '50%' }} />
+          <Skeleton className="h-4 w-1/2" />
         ) : (
           isFetched && (
-            <Typography
-              component="span"
-              sx={{
-                fontSize: '32px',
-                fontWeight: 700,
-                color: COLORS.brandDark,
-                textAlign: 'center',
-              }}
-            >
+            <Typography className="text-primary text-center text-2xl font-semibold">
               {token?.type ? (
                 <>
                   {getTokenTypeDescription(t, token.type)}
-                  <Typography
-                    component="span"
-                    sx={{
-                      display: 'flex',
-                      fontSize: '24px',
-                      fontWeight: 700,
-                      color: COLORS.grayMedium,
-                    }}
-                  >
+                  <Typography variant="large" textColor="muted" className="flex font-normal">
                     ({getTokenTypeStrictName(t, token.type)})
                   </Typography>
                 </>
@@ -51,7 +33,7 @@ export const TokenTypeCard: FC<{ scope: SearchScope; address: string }> = ({ sco
             </Typography>
           )
         )}
-      </Box>
+      </div>
     </SnapshotCard>
   )
 }

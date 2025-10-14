@@ -1,12 +1,16 @@
 import { useOutletContext } from 'react-router-dom'
-import { SearchScope } from '../../../types/searchScope'
+import { ConsensusScope } from '../../../types/searchScope'
 import { ConsensusTxMethodFilterOption } from '../../components/ConsensusTransactionMethod'
+import { ConsensusEventFilteringType } from '../../hooks/useCommonParams'
+import { ParamSetterFunction } from '../../hooks/useTypedSearchParam'
 
 export type ConsensusAccountDetailsContext = {
-  scope: SearchScope
+  scope: ConsensusScope
   address: string
-  method: ConsensusTxMethodFilterOption
-  setMethod: (value: ConsensusTxMethodFilterOption) => void
+  txMethod: ConsensusTxMethodFilterOption
+  setTxMethod: ParamSetterFunction<ConsensusTxMethodFilterOption>
+  eventType: ConsensusEventFilteringType
+  setEventType: ParamSetterFunction<ConsensusEventFilteringType>
 }
 
 export const useConsensusAccountDetailsProps = () => useOutletContext<ConsensusAccountDetailsContext>()

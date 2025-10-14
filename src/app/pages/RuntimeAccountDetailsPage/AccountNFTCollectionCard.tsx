@@ -1,17 +1,11 @@
 import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLoaderData, Link as RouterLink, To } from 'react-router-dom'
-import Box from '@mui/material/Box'
-import Breadcrumbs from '@mui/material/Breadcrumbs'
 import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 import Link from '@mui/material/Link'
-import Typography from '@mui/material/Typography'
-import ImageList from '@mui/material/ImageList'
-import ImageListItem from '@mui/material/ImageListItem'
-import ImageListItemBar from '@mui/material/ImageListItemBar'
-import Skeleton from '@mui/material/Skeleton'
+import { Typography } from '@oasisprotocol/ui-library/src/components/typography'
+import { Skeleton } from '@oasisprotocol/ui-library/src/components/ui/skeleton'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
 import { LinkableDiv } from '../../components/PageLayout/LinkableDiv'
 import { RuntimeAccountDetailsContext } from './index'
@@ -27,6 +21,13 @@ import { SearchScope } from '../../../types/searchScope'
 import { NFTCollectionLink, NFTInstanceLink } from '../TokenDashboardPage/NFTLinks'
 import { CardHeaderWithCounter } from 'app/components/CardHeaderWithCounter'
 import { nftCollectionContainerId } from '../../utils/tabAnchors'
+import { ImageList, ImageListItem } from '../../components/ImageList'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from '@oasisprotocol/ui-library/src/components/ui/breadcrumb'
 
 export const AccountNFTCollectionCard: FC<RuntimeAccountDetailsContext> = ({ scope, address }) => {
   const { t } = useTranslation()
@@ -38,42 +39,47 @@ export const AccountNFTCollectionCard: FC<RuntimeAccountDetailsContext> = ({ sco
   return (
     <Card>
       <LinkableDiv id={nftCollectionContainerId}>
-        <CardHeader
-          action={
-            isFetched &&
-            firstToken && (
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', paddingY: 3 }}>
-                <AccountLink scope={scope} address={firstToken?.eth_contract_addr} alwaysTrim />
-                <CopyToClipboard value={firstToken?.eth_contract_addr} />
-              </Box>
-            )
-          }
-          disableTypography
-          component="h3"
-          title={
-            <Box sx={{ display: 'flex' }} gap={4}>
-              <Breadcrumbs separator="›" aria-label="breadcrumb">
-                <Typography fontSize={18}>
-                  <Link
-                    preventScrollReset={true}
-                    component={RouterLink}
-                    to={RouteUtils.getAccountTokensRoute(scope, address, 'ERC721', '')}
-                  >
-                    {t('nft.accountCollection')}
-                  </Link>
-                </Typography>
-                {isFetched && (
-                  <CardHeaderWithCounter
-                    label={firstToken?.name ? inventory?.[0].token.name : t('common.collection')}
-                    totalCount={totalCount}
-                    isTotalCountClipped={isTotalCountClipped}
-                  />
-                )}
-              </Breadcrumbs>
-              {isLoading && <Skeleton variant="text" sx={{ width: '50%' }} />}
-            </Box>
-          }
-        />
+        <div className="flex items-center p-4" role="heading" aria-level={3}>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-8">
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <Typography variant="h3" className="text-lg font-medium">
+                      <Link
+                        preventScrollReset
+                        component={RouterLink}
+                        to={RouteUtils.getAccountTokensRoute(scope, address, 'ERC721', '')}
+                        className="hover:underline"
+                      >
+                        {t('nft.accountCollection')}
+                      </Link>
+                    </Typography>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem className="text-lg">
+                    {isFetched && (
+                      <CardHeaderWithCounter
+                        label={firstToken?.name ? inventory?.[0].token.name : t('common.collection')}
+                        totalCount={totalCount}
+                        isTotalCountClipped={isTotalCountClipped}
+                      />
+                    )}
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+
+              {isLoading && <Skeleton className="w-1/2 h-4" />}
+            </div>
+          </div>
+
+          {isFetched && firstToken ? (
+            <div className="flex items-start gap-2 py-6 self-start">
+              <AccountLink scope={scope} address={firstToken.eth_contract_addr} alwaysTrim />
+              <CopyToClipboard value={firstToken.eth_contract_addr} />
+            </div>
+          ) : null}
+        </div>
       </LinkableDiv>
       <CardContent>
         <ErrorBoundary light={true}>
@@ -119,33 +125,32 @@ const AccountNFTCollection: FC<AccountNFTCollectionProps> = ({
 
   return (
     <>
-      {isLoading && <Skeleton variant="rectangular" sx={{ height: 200 }} />}
+      {isLoading && <Skeleton className="h-[200px]" />}
       {isFetched && !totalCount && <CardEmptyState label={t('tokens.emptyInventory')} />}
       {!!inventory?.length && (
         <>
-          <ImageList gap={10}>
+          <ImageList>
             {inventory?.map(instance => {
               const to = RouteUtils.getNFTInstanceRoute(scope, instance.token?.contract_addr, instance.id)
               return (
-                <ImageListItem key={instance.id}>
+                <ImageListItem
+                  key={instance.id}
+                  title={<NFTCollectionLink instance={instance} scope={scope} />}
+                  subtitle={<NFTInstanceLink instance={instance} scope={scope} />}
+                >
                   <ImageListItemImage instance={instance} to={to} />
-                  <ImageListItemBar
-                    title={<NFTCollectionLink instance={instance} scope={scope} />}
-                    subtitle={<NFTInstanceLink instance={instance} scope={scope} />}
-                    position="below"
-                  />
                 </ImageListItem>
               )
             })}
           </ImageList>
           {pagination && (
-            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <div className="flex justify-center">
               <TablePagination
                 {...pagination}
                 totalCount={totalCount}
                 isTotalCountClipped={isTotalCountClipped}
               />
-            </Box>
+            </div>
           )}
         </>
       )}

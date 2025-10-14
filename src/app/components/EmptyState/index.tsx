@@ -2,22 +2,22 @@ import { FC, ReactNode } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import { styled } from '@mui/material/styles'
-import backgroundEmptyState from './images/background-empty-state.svg'
+import lightBackgroundEmptyState from './images/background-empty-state.svg'
+import darkBackgroundEmptyState from './images/background-empty-state-dark.svg'
 import CancelIcon from '@mui/icons-material/Cancel'
+import { COLORS } from '../../../styles/theme/colors'
 
 const StyledBox = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   flexDirection: 'column',
-  minHeight: '250px',
   color: theme.palette.layout.main,
-  backgroundColor: theme.palette.background.empty,
-  backgroundImage: `url("${backgroundEmptyState}")`,
+  backgroundImage: `url("${darkBackgroundEmptyState}")`,
   backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
   backgroundSize: 'cover',
-  borderRadius: 12,
+  borderRadius: 6,
 }))
 
 const StyledBoxLight = styled(Box)(() => ({
@@ -25,35 +25,38 @@ const StyledBoxLight = styled(Box)(() => ({
   alignItems: 'center',
   justifyContent: 'center',
   flexDirection: 'column',
-  minHeight: '250px',
+  backgroundImage: `url("${lightBackgroundEmptyState}")`,
+  color: COLORS.brandExtraDark,
   backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
   backgroundSize: 'cover',
+  height: '100%',
 }))
 
 type EmptyStateProps = {
   description: ReactNode
   title: string
   light?: boolean
+  minHeight?: number | string
 }
 
-export const EmptyState: FC<EmptyStateProps> = ({ description, title, light }) => {
+export const EmptyState: FC<EmptyStateProps> = ({ description, title, light, minHeight = '360px' }) => {
   const content = (
-    <>
-      <Typography component="span" sx={{ fontSize: '24px', fontWeight: 600 }}>
+    <Box sx={{ color: light ? 'inherit' : COLORS.white, textAlign: 'center' }}>
+      <Typography component="span" sx={{ fontSize: '30px', fontWeight: 500, display: 'block' }}>
         {title}
       </Typography>
       <Typography component="span" sx={{ fontSize: '16px' }}>
         {description}
       </Typography>
-    </>
+    </Box>
   )
   return light ? (
-    <StyledBoxLight>
+    <StyledBoxLight sx={{ minHeight }}>
       <CancelIcon color="error" fontSize="large" />
       {content}
     </StyledBoxLight>
   ) : (
-    <StyledBox>{content}</StyledBox>
+    <StyledBox sx={{ minHeight }}>{content}</StyledBox>
   )
 }

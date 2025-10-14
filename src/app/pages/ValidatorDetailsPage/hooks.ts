@@ -1,12 +1,16 @@
 import { useOutletContext } from 'react-router-dom'
-import { SearchScope } from '../../../types/searchScope'
+import { ConsensusScope } from '../../../types/searchScope'
 import { ConsensusTxMethodFilterOption } from '../../components/ConsensusTransactionMethod'
+import { ConsensusEventFilteringType } from '../../hooks/useCommonParams'
+import { ParamSetterFunction } from '../../hooks/useTypedSearchParam'
 
 export type ValidatorDetailsContext = {
-  scope: SearchScope
+  scope: ConsensusScope
   address: string
-  method: ConsensusTxMethodFilterOption
-  setMethod: (method: ConsensusTxMethodFilterOption) => void
+  txMethod: ConsensusTxMethodFilterOption
+  setTxMethod: ParamSetterFunction<ConsensusTxMethodFilterOption>
+  eventType: ConsensusEventFilteringType
+  setEventType: ParamSetterFunction<ConsensusEventFilteringType>
 }
 
 export const useValidatorDetailsProps = () => useOutletContext<ValidatorDetailsContext>()

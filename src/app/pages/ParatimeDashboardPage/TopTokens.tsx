@@ -1,53 +1,48 @@
 import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 import { Link as RouterLink } from 'react-router-dom'
-import Link from '@mui/material/Link'
-import { Layer, useGetRuntimeEvmTokens } from '../../../oasis-nexus/api'
-import { NUMBER_OF_ITEMS_ON_DASHBOARD } from '../../config'
-import { COLORS } from '../../../styles/theme/colors'
-import { AppErrors } from '../../../types/errors'
+import { Typography } from '@oasisprotocol/ui-library/src/components/typography'
+import { Link } from '@oasisprotocol/ui-library/src/components/link'
+import { useGetRuntimeEvmTokens } from '../../../oasis-nexus/api'
+import { NUMBER_OF_ITEMS_ON_DASHBOARD } from '../../../config'
 import { RouteUtils } from '../../utils/route-utils'
 import { TokenList } from '../../components/Tokens/TokenList'
-import { SearchScope } from '../../../types/searchScope'
+import { RuntimeScope } from '../../../types/searchScope'
+import { ErrorBoundary } from '../../components/ErrorBoundary'
 
 const limit = NUMBER_OF_ITEMS_ON_DASHBOARD
 
-export const TopTokens: FC<{ scope: SearchScope }> = ({ scope }) => {
-  const { t } = useTranslation()
+const TopTokensContent: FC<{ scope: RuntimeScope }> = ({ scope }) => {
   const { network, layer } = scope
-  if (layer === Layer.consensus) {
-    throw AppErrors.UnsupportedLayer
-    // Listing the latest consensus transactions is not yet supported.
-    // We should use useGetConsensusTransactions()
-  }
   const tokensQuery = useGetRuntimeEvmTokens(network, layer, { limit })
 
   return (
+    <TokenList
+      tokens={tokensQuery.data?.data.evm_tokens}
+      isLoading={tokensQuery.isLoading}
+      limit={limit}
+      pagination={false}
+    />
+  )
+}
+
+export const TopTokens: FC<{ scope: RuntimeScope }> = ({ scope }) => {
+  const { t } = useTranslation()
+
+  return (
     <Card>
-      <CardHeader
-        disableTypography
-        component="h3"
-        title={t('common.tokens')}
-        action={
-          <Link
-            component={RouterLink}
-            to={RouteUtils.getTopTokensRoute(scope)}
-            sx={{ color: COLORS.brandDark }}
-          >
-            {t('common.viewAll')}
-          </Link>
-        }
-      />
+      <div className="flex justify-between items-center mb-4 pr-4 sm:pr-0">
+        <Typography variant="h3">{t('common.tokens')}</Typography>
+        <Link asChild className="font-medium px-4" textColor="primary">
+          <RouterLink to={RouteUtils.getTopTokensRoute(scope)}>{t('common.viewAll')}</RouterLink>
+        </Link>
+      </div>
       <CardContent>
-        <TokenList
-          tokens={tokensQuery.data?.data.evm_tokens}
-          isLoading={tokensQuery.isLoading}
-          limit={limit}
-          pagination={false}
-        />
+        <ErrorBoundary light>
+          <TopTokensContent scope={scope} />
+        </ErrorBoundary>
       </CardContent>
     </Card>
   )

@@ -1,14 +1,13 @@
 import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useHref, useOutletContext, useParams } from 'react-router-dom'
-import Typography from '@mui/material/Typography'
 import { AppErrors } from '../../../types/errors'
 import { useScreenSize } from '../../hooks/useScreensize'
-import { Block, EntityMetadata, Layer, useGetConsensusBlockByHeight } from '../../../oasis-nexus/api'
-import { SearchScope } from '../../../types/searchScope'
+import { Block, EntityMetadata, useGetConsensusBlockByHeight } from '../../../oasis-nexus/api'
+import { ConsensusScope } from '../../../types/searchScope'
 import { useFormattedTimestampStringWithDistance } from '../../hooks/useFormattedTimestamp'
-import { useRequiredScopeParam } from '../../hooks/useScopeParam'
-import { RouterTabs } from '../..//components/RouterTabs'
+import { useConsensusScope } from '../../hooks/useScopeParam'
+import { RouterTabs } from '../../components/RouterTabs'
 import { StyledDescriptionList } from '../../components/StyledDescriptionList'
 import { CopyToClipboard } from '../../components/CopyToClipboard'
 import { TextSkeleton } from '../../components/Skeleton'
@@ -26,7 +25,7 @@ export type BlockDetailConsensusBlock = Block & {
 }
 
 export type ConsensusBlockDetailsContext = {
-  scope: SearchScope
+  scope: ConsensusScope
   blockHeight?: number
 }
 
@@ -34,12 +33,9 @@ export const useConsensusBlockDetailsProps = () => useOutletContext<ConsensusBlo
 
 export const ConsensusBlockDetailPage: FC = () => {
   const { t } = useTranslation()
-  const scope = useRequiredScopeParam()
+  const scope = useConsensusScope()
   const txLink = useHref('')
   const eventsLink = useHref(`events#${eventsContainerId}`)
-  if (scope.layer !== Layer.consensus) {
-    throw AppErrors.UnsupportedLayer
-  }
   const blockHeight = parseInt(useParams().blockHeight!, 10)
   const { isLoading, data } = useGetConsensusBlockByHeight(scope.network, blockHeight)
   if (!data && !isLoading) {
@@ -122,11 +118,11 @@ export const ConsensusBlockDetailView: FC<{
           <dt>{t('common.stateRoot')}</dt>
           <dd>
             {isTablet ? (
-              <Typography variant="mono" sx={{ maxWidth: '100%', overflowX: 'hidden' }}>
-                <AdaptiveTrimmer text={block.state_root} strategy="middle" />
-              </Typography>
+              <span className="max-w-full overflow-x-hidden">
+                <AdaptiveTrimmer text={block.state_root} strategy="middle" minLength={13} />
+              </span>
             ) : (
-              <Typography variant="mono">{block.state_root}</Typography>
+              <span>{block.state_root}</span>
             )}
             <CopyToClipboard value={block.state_root} />
           </dd>
@@ -172,7 +168,7 @@ export const ConsensusBlockDetailView: FC<{
             {t('common.valuePair', {
               value: block.gas_limit,
             })}
-            {block.gas_limit === '0' && ` ${t('block.unlimited')}`}
+            {block.gas_limit === 0 && ` ${t('block.unlimited')}`}
           </dd>
         </>
       )}

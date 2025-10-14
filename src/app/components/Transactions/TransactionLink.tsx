@@ -1,32 +1,23 @@
 import { FC, ReactNode } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import Link from '@mui/material/Link'
-import Typography from '@mui/material/Typography'
+import { Link } from '@oasisprotocol/ui-library/src/components/link'
 import InfoIcon from '@mui/icons-material/Info'
 import { useScreenSize } from '../../hooks/useScreensize'
 import { RouteUtils } from '../../utils/route-utils'
 import { SearchScope } from '../../../types/searchScope'
 import { AdaptiveTrimmer } from '../AdaptiveTrimmer/AdaptiveTrimmer'
-import { MaybeWithTooltip } from '../AdaptiveTrimmer/MaybeWithTooltip'
+import { MaybeWithTooltip } from '../Tooltip/MaybeWithTooltip'
 import { trimLongString } from '../../utils/trimLongString'
-import Box from '@mui/material/Box'
+import { cn } from '@oasisprotocol/ui-library/src/lib/utils'
 
 const WithTypographyAndLink: FC<{ children: ReactNode; mobile?: boolean; to: string }> = ({
   children,
   mobile,
   to,
 }) => (
-  <Typography
-    variant="mono"
-    component="span"
-    sx={{
-      ...(mobile ? { maxWidth: '85%' } : {}),
-    }}
-  >
-    <Link component={RouterLink} to={to}>
-      {children}
-    </Link>
-  </Typography>
+  <Link asChild className={cn('font-medium', mobile && 'max-w-[85%]')}>
+    <RouterLink to={to}>{children}</RouterLink>
+  </Link>
 )
 
 export const TransactionLink: FC<{
@@ -38,10 +29,10 @@ export const TransactionLink: FC<{
   const { isTablet } = useScreenSize()
   const to = RouteUtils.getTransactionRoute(scope, hash)
   const extraToolTipWithIcon = extraTooltip ? (
-    <Box sx={{ display: 'flex', alignContent: 'center', gap: 2 }}>
+    <div className="inline-flex items-center gap-2">
       <InfoIcon />
       {extraTooltip}
-    </Box>
+    </div>
   ) : undefined
 
   if (alwaysTrim) {
@@ -50,10 +41,10 @@ export const TransactionLink: FC<{
       <WithTypographyAndLink to={to}>
         <MaybeWithTooltip
           title={
-            <Box>
+            <div>
               {hash}
               {extraToolTipWithIcon}
-            </Box>
+            </div>
           }
         >
           {trimLongString(hash, 6, 6)}
@@ -74,7 +65,7 @@ export const TransactionLink: FC<{
   // Mobile mode
   return (
     <WithTypographyAndLink mobile to={to}>
-      <AdaptiveTrimmer text={hash} strategy="middle" extraTooltip={extraTooltip} />
+      <AdaptiveTrimmer text={hash} strategy="middle" extraTooltip={extraTooltip} minLength={13} />
     </WithTypographyAndLink>
   )
 }

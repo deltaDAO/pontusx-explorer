@@ -16,33 +16,28 @@ import {
   AccountNameSearchResults,
   AccountNameSearchRuntimeMatch,
 } from './named-accounts'
-import { hasTextMatch } from '../components/HighlightedText/text-matching'
+import { hasTextMatchesForAll } from '../components/HighlightedText/text-matching'
+import * as externalLinks from '../utils/externalLinks'
+import { getOasisAddress } from '../utils/helpers'
+import { isUrlSafe } from '../utils/url'
 
 const dataSources: Record<Network, Partial<Record<Layer, string>>> = {
-  [Network.mainnet]: {
-    [Layer.consensus]:
-      'https://raw.githubusercontent.com/oasisprotocol/nexus/main/named-addresses/mainnet_consensus.json',
-    [Layer.emerald]:
-      'https://raw.githubusercontent.com/oasisprotocol/nexus/main/named-addresses/mainnet_emerald.json',
-    [Layer.sapphire]:
-      'https://raw.githubusercontent.com/oasisprotocol/nexus/main/named-addresses/mainnet_sapphire.json',
+  mainnet: {
+    consensus: externalLinks.api.oasis_named_addresses_mainnet_consensus,
+    emerald: externalLinks.api.oasis_named_addresses_mainnet_emerald,
+    sapphire: externalLinks.api.oasis_named_addresses_mainnet_sapphire,
   },
-  [Network.testnet]: {
-    [Layer.consensus]:
-      'https://raw.githubusercontent.com/oasisprotocol/nexus/main/named-addresses/testnet_consensus.json',
-    [Layer.emerald]:
-      'https://raw.githubusercontent.com/oasisprotocol/nexus/main/named-addresses/testnet_emerald.json',
-    [Layer.sapphire]:
-      'https://raw.githubusercontent.com/oasisprotocol/nexus/main/named-addresses/testnet_sapphire.json',
-    [Layer.pontusxdev]:
-      'https://raw.githubusercontent.com/oasisprotocol/nexus/main/named-addresses/testnet_pontusxdev.json',
-    [Layer.pontusxtest]:
-      'https://raw.githubusercontent.com/oasisprotocol/nexus/main/named-addresses/testnet_pontusxtest.json',
+  testnet: {
+    consensus: externalLinks.api.oasis_named_addresses_testnet_consensus,
+    emerald: externalLinks.api.oasis_named_addresses_testnet_emerald,
+    sapphire: externalLinks.api.oasis_named_addresses_testnet_sapphire,
+    pontusxdev: externalLinks.api.oasis_named_addresses_testnet_pontusxdev,
+    pontusxtest: externalLinks.api.oasis_named_addresses_testnet_pontusxtest,
   },
-  [Network.localnet]: {
-    [Layer.consensus]: undefined,
-    [Layer.emerald]: undefined,
-    [Layer.sapphire]: undefined,
+  localnet: {
+    consensus: undefined,
+    emerald: undefined,
+    sapphire: undefined,
   },
 }
 
@@ -58,9 +53,19 @@ const getOasisAccountsMetadata = async (network: Network, layer: Layer): Promise
   Array.from(response.data).forEach((entry: any) => {
     const metadata: AccountMetadata = {
       source: 'OasisRegistry',
-      address: entry.Address,
+      address: getOasisAddress(entry.Address),
       name: entry.Name,
       description: entry.Description,
+      origin: entry.Origin,
+      icon: entry.Icon && isUrlSafe(entry.Icon) ? entry.Icon : undefined,
+      dapp:
+        entry.Dapp && isUrlSafe(entry.Dapp.Url)
+          ? {
+              button: entry.Dapp.Button,
+              description: entry.Dapp.Description,
+              url: entry.Dapp.Url,
+            }
+          : undefined,
     }
     // Register the metadata in its native form
     list.push(metadata)
@@ -86,7 +91,7 @@ const useOasisAccountsMetadata = (
 export const useOasisAccountMetadata = (
   network: Network,
   layer: Layer,
-  address: string,
+  oasisAddress: string,
   queryOptions: UseQueryOptions<AccountData, unknown, AccountData, string[]>,
 ): AccountMetadataInfo => {
   const { isLoading, isError, error, data: allData } = useOasisAccountsMetadata(network, layer, queryOptions)
@@ -94,7 +99,7 @@ export const useOasisAccountMetadata = (
     console.log('Failed to load Oasis account metadata', error)
   }
   return {
-    metadata: allData?.map.get(address),
+    metadata: allData?.map.get(oasisAddress),
     isLoading,
     isError,
   }
@@ -103,7 +108,7 @@ export const useOasisAccountMetadata = (
 export const useSearchForOasisAccountsByName = (
   network: Network,
   layer: Layer,
-  nameFragment: string,
+  nameFragments: string[],
   queryOptions: { enabled: boolean } & UseQueryOptions<AccountData, unknown, AccountData, string[]>,
 ): AccountNameSearchResults => {
   const {
@@ -116,22 +121,21 @@ export const useSearchForOasisAccountsByName = (
     console.log('Failed to load Oasis account metadata', metadataError)
   }
 
-  const textMatcher =
-    nameFragment && queryOptions.enabled
-      ? (account: AccountMetadata) => hasTextMatch(account.name, [nameFragment])
-      : () => false
-
   const matches =
-    namedAccounts?.list.filter(textMatcher).map(
-      (account): AccountNameSearchMatch => ({
-        network,
-        layer,
-        address: account.address,
-      }),
-    ) ?? []
+    !isMetadataLoading && nameFragments.length && queryOptions.enabled && namedAccounts
+      ? namedAccounts.list
+          .filter(account => hasTextMatchesForAll(account.name, nameFragments))
+          .map(
+            (account): AccountNameSearchMatch => ({
+              network,
+              layer,
+              address: account.address,
+            }),
+          )
+      : []
 
-  const consensusMatches = layer === Layer.consensus ? (matches as AccountNameSearchConsensusMatch[]) : []
-  const runtimeMatches = layer === Layer.consensus ? [] : (matches as AccountNameSearchRuntimeMatch[])
+  const consensusMatches = layer === 'consensus' ? (matches as AccountNameSearchConsensusMatch[]) : []
+  const runtimeMatches = layer === 'consensus' ? [] : (matches as AccountNameSearchRuntimeMatch[])
 
   const {
     isLoading: areConsensusAccountsLoading,

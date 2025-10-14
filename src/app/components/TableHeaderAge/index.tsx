@@ -1,62 +1,44 @@
 import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
-import Button from '@mui/material/Button'
-import Tooltip from '@mui/material/Tooltip'
-import Typography from '@mui/material/Typography'
 import { TableAgeType } from '../../../types/table-age-type'
-import { useTableConfig } from '../../hooks/useTableConfig'
-import { tooltipDelay } from '../../../styles/theme'
+import { exhaustedTypeWarning } from '../../../types/errors'
+import { useLocalSettings } from '../../hooks/useLocalSettings'
 import { getTimeZone } from '../../hooks/useFormattedTimestamp'
+import { TableHeaderToggle } from '../TableHeaderToggle'
 
-export const TableHeaderAge: FC = () => {
+type TableHeaderAgeProps = {
+  label?: string
+}
+
+export const TableHeaderAge: FC<TableHeaderAgeProps> = ({ label }) => {
   const { t } = useTranslation()
   const {
-    state: { ageHeaderType },
-    setAgeHeaderType,
-  } = useTableConfig()
+    settings: { ageHeaderType },
+    changeSetting,
+  } = useLocalSettings()
 
   switch (ageHeaderType) {
     case TableAgeType.DateTime: {
       const timeZone = getTimeZone()
 
       return (
-        <Tooltip
-          title={t('table.headers.dateTime.tooltipTitle')}
-          enterDelay={tooltipDelay}
-          leaveDelay={0}
-          placement={'top'}
-        >
-          <Button variant="text" onClick={() => setAgeHeaderType(TableAgeType.Distance)}>
-            <Typography
-              sx={{
-                fontWeight: 700,
-              }}
-            >
-              {t('table.headers.dateTime.title')} {timeZone ? `(${timeZone})` : null}
-            </Typography>
-          </Button>
-        </Tooltip>
+        <TableHeaderToggle
+          label={`${t('table.headers.dateTime.title')} ${timeZone ? `(${timeZone})` : ''}`}
+          onClick={() => changeSetting('ageHeaderType', TableAgeType.Distance)}
+          tooltipTitle={t('table.headers.dateTime.tooltipTitle')}
+        />
       )
     }
     case TableAgeType.Distance:
-    default:
       return (
-        <Tooltip
-          title={t('table.headers.age.tooltipTitle')}
-          enterDelay={tooltipDelay}
-          leaveDelay={0}
-          placement={'top'}
-        >
-          <Button variant="text" onClick={() => setAgeHeaderType(TableAgeType.DateTime)}>
-            <Typography
-              sx={{
-                fontWeight: 700,
-              }}
-            >
-              {t('common.age')}
-            </Typography>
-          </Button>
-        </Tooltip>
+        <TableHeaderToggle
+          label={label || t('common.age')}
+          onClick={() => changeSetting('ageHeaderType', TableAgeType.DateTime)}
+          tooltipTitle={t('table.headers.age.tooltipTitle')}
+        />
       )
+    default:
+      exhaustedTypeWarning('Unknown age header type', ageHeaderType)
+      return null
   }
 }

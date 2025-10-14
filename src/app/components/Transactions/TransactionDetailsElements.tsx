@@ -1,6 +1,5 @@
 import { FC, PropsWithChildren } from 'react'
 import { useTranslation } from 'react-i18next'
-import Box from '@mui/material/Box'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { SearchScope } from '../../../types/searchScope'
@@ -34,10 +33,10 @@ export const From: FC<FromProps> = ({ address, ownAddress, scope }) => {
   }
 
   return (
-    <Box sx={{ display: 'inline-flex' }}>
+    <div className="inline-flex">
       <Label>{t('common.from')}</Label>
       <AccountLink labelOnly={address === ownAddress} scope={scope} address={address} alwaysTrim />
-    </Box>
+    </div>
   )
 }
 
@@ -57,13 +56,13 @@ export const To: FC<ToProps> = ({ address, label, ownAddress, scope, type = 'acc
   }
 
   return (
-    <Box sx={{ display: 'inline-flex' }}>
+    <div className="inline-flex">
       <Label>{label || t('common.to')}</Label>
       {type === 'account' && (
         <AccountLink labelOnly={address === ownAddress} scope={scope} address={address} alwaysTrim />
       )}
       {type === 'validator' && <ValidatorLink network={scope.network} address={address} alwaysTrim />}
-    </Box>
+    </div>
   )
 }
 
@@ -79,12 +78,12 @@ export const Shares: FC<SharesProps> = ({ value }) => {
   }
 
   return (
-    <Box sx={{ display: 'inline-flex' }}>
+    <div className="inline-flex">
       <Label>{t('common.shares')}</Label>
       <Typography fontWeight={700}>
         <RoundedBalance compactLargeNumbers value={value} />
       </Typography>
-    </Box>
+    </div>
   )
 }
 
@@ -100,15 +99,15 @@ export const LabelValue: FC<LabelValueProps> = ({ label, trimMobile, value }) =>
   const trimEnabled = trimMobile && isTablet
 
   return (
-    <Box sx={{ display: 'inline-flex' }}>
+    <div className="inline-flex">
       <Label>{label || t('common.amount')}</Label>
       {trimEnabled ? (
         <Tooltip arrow placement="top" title={value} enterDelay={tooltipDelay} enterNextDelay={tooltipDelay}>
-          <Typography variant="mono">{trimLongString(value, 2, 18)}</Typography>
+          <span>{trimLongString(value, 2, 18)}</span>
         </Tooltip>
       ) : (
-        <Typography variant="mono">{value}</Typography>
+        <span>{value}</span>
       )}
-    </Box>
+    </div>
   )
 }

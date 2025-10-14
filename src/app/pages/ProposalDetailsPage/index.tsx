@@ -4,8 +4,8 @@ import Box from '@mui/material/Box'
 import Tooltip from '@mui/material/Tooltip'
 import InfoIcon from '@mui/icons-material/Info'
 import CancelIcon from '@mui/icons-material/Cancel'
-import { useRequiredScopeParam } from '../../hooks/useScopeParam'
-import { Layer, Proposal, useGetConsensusProposalsProposalId } from '../../../oasis-nexus/api'
+import { useConsensusScope } from '../../hooks/useScopeParam'
+import { Proposal, useGetConsensusProposalsProposalId } from '../../../oasis-nexus/api'
 import { AppErrors } from '../../../types/errors'
 import { useLoaderData } from 'react-router-dom'
 import { PageLayout } from '../../components/PageLayout'
@@ -22,17 +22,13 @@ import { ProposalIdLoaderData } from '../../utils/route-utils'
 import { COLORS } from 'styles/theme/colors'
 import { ProposalVotesCard } from './ProposalVotesCard'
 import { useVoteStats } from './hooks'
-import Skeleton from '@mui/material/Skeleton'
+import { Skeleton } from '@oasisprotocol/ui-library/src/components/ui/skeleton'
 import { getTypeNameForProposal } from '../../../types/proposalType'
 
 export const ProposalDetailsPage: FC = () => {
   const { t } = useTranslation()
-  const scope = useRequiredScopeParam()
-  if (scope.layer !== Layer.consensus) {
-    throw AppErrors.UnsupportedLayer
-  }
-  const { proposalId, searchTerm } = useLoaderData() as ProposalIdLoaderData
-
+  const scope = useConsensusScope()
+  const { proposalId } = useLoaderData() as ProposalIdLoaderData
   const {
     isLoading: areStatsLoading,
     allVotesCount,
@@ -52,7 +48,6 @@ export const ProposalDetailsPage: FC = () => {
           totalVotesLoading={areStatsLoading}
           totalVotesProblematic={!areStatsComplete && !areStatsLoading}
           totalVotes={allVotesCount}
-          highlightedPart={searchTerm}
         />
       </SubPageCard>
       <ProposalVotesCard />
@@ -71,7 +66,6 @@ const VoteLoadingProblemIndicator: FC = () => {
 
 export const ProposalDetailView: FC<{
   proposal: Proposal | undefined
-  highlightedPart?: string
   isLoading?: boolean
   totalVotesLoading?: boolean
   totalVotesProblematic?: boolean
@@ -86,11 +80,10 @@ export const ProposalDetailView: FC<{
   totalVotes,
   showLayer = false,
   standalone = false,
-  highlightedPart,
 }) => {
   const { t } = useTranslation()
   const { isMobile } = useScreenSize()
-  if (isLoading) return <TextSkeleton numberOfRows={7} />
+  if (isLoading) return <TextSkeleton numberOfRows={10} />
   if (!proposal) return null
 
   const proposalType = getTypeNameForProposal(t, proposal)
@@ -111,7 +104,7 @@ export const ProposalDetailView: FC<{
 
       <dt>{t('common.title')}</dt>
       <dd>
-        <HighlightedText text={proposal.title} pattern={highlightedPart} />
+        <HighlightedText text={proposal.title} />
       </dd>
 
       <dt>{t('common.type')}</dt>
@@ -126,11 +119,7 @@ export const ProposalDetailView: FC<{
         <>
           <dt>{t('common.totalVotes')}</dt>
           <dd>
-            {totalVotesLoading ? (
-              <Skeleton variant="text" sx={{ width: '25%' }} />
-            ) : (
-              totalVotes?.toLocaleString()
-            )}
+            {totalVotesLoading ? <Skeleton className="w-1/4 h-4" /> : totalVotes?.toLocaleString()}
             {totalVotesProblematic && <VoteLoadingProblemIndicator />}
           </dd>
         </>

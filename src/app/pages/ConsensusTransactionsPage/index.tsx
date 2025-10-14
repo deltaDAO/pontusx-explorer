@@ -1,34 +1,33 @@
 import { FC, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import Divider from '@mui/material/Divider'
 import { useScreenSize } from '../../hooks/useScreensize'
 import { PageLayout } from '../../components/PageLayout'
 import { SubPageCard } from '../../components/SubPageCard'
 import { TableConsensusTransactionList, ConsensusTransactions } from '../../components/Transactions'
 import { useGetConsensusTransactions } from '../../../oasis-nexus/api'
-import { NUMBER_OF_ITEMS_ON_SEPARATE_PAGE as limit, REFETCH_INTERVAL } from '../../config'
+import { NUMBER_OF_ITEMS_ON_SEPARATE_PAGE as limit, REFETCH_INTERVAL } from '../../../config'
 import { useSearchParamsPagination } from '../../components/Table/useSearchParamsPagination'
 import { AxiosResponse } from 'axios'
 import { AppErrors } from '../../../types/errors'
 import { LoadMoreButton } from '../../components/LoadMoreButton'
 import { TableLayout, TableLayoutButton } from '../../components/TableLayoutButton'
-import { useRequiredScopeParam } from '../../hooks/useScopeParam'
+import { useConsensusScope } from '../../hooks/useScopeParam'
 import { VerticalList } from '../../components/VerticalList'
 import { ConsensusTransactionDetailView } from '../ConsensusTransactionDetailPage'
 import { useConsensusListBeforeDate } from '../../hooks/useListBeforeDate'
 import { useConsensusTxMethodParam } from '../../hooks/useCommonParams'
-import { ConsensusTransactionTypeFilter } from '../../components/Transactions/ConsensusTransactionTypeFilter'
+import { ConsensusTransactionMethodFilter } from '../../components/Transactions/ConsensusTransactionMethodFilter'
 import { getConsensusTransactionMethodFilteringParam } from '../../components/ConsensusTransactionMethod'
-import Box from '@mui/material/Box'
+import { LayoutDivider } from '../../components/Divider'
 
 export const ConsensusTransactionsPage: FC = () => {
   const [tableView, setTableView] = useState<TableLayout>(TableLayout.Horizontal)
   const { t } = useTranslation()
   const { isMobile } = useScreenSize()
   const pagination = useSearchParamsPagination('page')
-  const { method, setMethod } = useConsensusTxMethodParam()
+  const { txMethod, setTxMethod } = useConsensusTxMethodParam()
   const offset = (pagination.selectedPage - 1) * limit
-  const scope = useRequiredScopeParam()
+  const scope = useConsensusScope()
   const enablePolling = offset === 0
   const { beforeDate, setBeforeDateFromCollection } = useConsensusListBeforeDate(scope, offset)
 
@@ -44,7 +43,7 @@ export const ConsensusTransactionsPage: FC = () => {
       limit: tableView === TableLayout.Vertical ? offset + limit : limit,
       offset: tableView === TableLayout.Vertical ? 0 : offset,
       before: enablePolling ? undefined : beforeDate,
-      ...getConsensusTransactionMethodFilteringParam(method),
+      ...getConsensusTransactionMethodFilteringParam(txMethod),
     },
     {
       query: {
@@ -87,22 +86,18 @@ export const ConsensusTransactionsPage: FC = () => {
         tableView === TableLayout.Vertical && <LoadMoreButton pagination={pagination} isLoading={isLoading} />
       }
     >
-      {!isMobile && <Divider variant="layout" />}
+      {!isMobile && <LayoutDivider />}
       <SubPageCard
         title={
-          <Box
-            sx={{
-              display: 'flex',
-              gap: 6,
-              alignItems: 'center',
-            }}
-          >
+          <div className="flex gap-6 items-center">
             {t('transactions.latest')}
-            {!isMobile && <ConsensusTransactionTypeFilter value={method} setValue={setMethod} />}
-          </Box>
+            {!isMobile && <ConsensusTransactionMethodFilter value={txMethod} setValue={setTxMethod} />}
+          </div>
         }
         title2={
-          isMobile ? <ConsensusTransactionTypeFilter value={method} setValue={setMethod} expand /> : undefined
+          isMobile ? (
+            <ConsensusTransactionMethodFilter value={txMethod} setValue={setTxMethod} expand />
+          ) : undefined
         }
         action={isMobile && <TableLayoutButton tableView={tableView} setTableView={setTableView} />}
         noPadding={tableView === TableLayout.Vertical}
@@ -121,7 +116,7 @@ export const ConsensusTransactionsPage: FC = () => {
               rowsPerPage: limit,
             }}
             verbose={false}
-            filtered={method !== 'any'}
+            filtered={txMethod !== 'any'}
           />
         )}
 

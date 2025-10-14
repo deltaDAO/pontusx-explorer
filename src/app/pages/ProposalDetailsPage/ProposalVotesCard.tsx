@@ -9,13 +9,14 @@ import { ExtendedVote, ProposalVoteValue } from '../../../types/vote'
 import { useVotes, useVoteFiltering } from './hooks'
 import { ProposalVoteIndicator } from '../../components/Proposals/ProposalVoteIndicator'
 import { DeferredValidatorLink } from '../../components/Validators/DeferredValidatorLink'
-import { CardHeaderWithResponsiveActions } from '../../components/CardHeaderWithResponsiveActions'
+import { Typography } from '@oasisprotocol/ui-library/src/components/typography'
 import { VoteTypeFilter } from '../../components/Proposals/VoteTypeFilter'
 import { AppErrors } from '../../../types/errors'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
 import Box from '@mui/material/Box'
 import { NoMatchingDataMaybeClearFilters, TableSearchBar } from '../../components/Search/TableSearchBar'
 import { CardEmptyState } from '../../components/CardEmptyState'
+import { WithHighlightPattern } from '../../components/PatternHighlightingContext'
 
 type ProposalVotesProps = {
   isLoading: boolean
@@ -28,7 +29,7 @@ const ProposalVotes: FC<ProposalVotesProps> = ({ isLoading, votes, rowsNumber, p
   const { t } = useTranslation()
   const scope = useRequiredScopeParam()
 
-  const { wantedNamePattern } = useVoteFiltering()
+  const { highlightPattern } = useVoteFiltering()
 
   const tableColumns: TableColProps[] = [
     { key: 'index', content: <></>, width: '50px' },
@@ -46,21 +47,24 @@ const ProposalVotes: FC<ProposalVotesProps> = ({ isLoading, votes, rowsNumber, p
         {
           key: 'voter',
           content: (
-            <DeferredValidatorLink
-              network={scope.network}
-              address={vote.address}
-              isError={vote.haveValidatorsFailed}
-              validator={vote.validator}
-              highlightedPart={wantedNamePattern}
-            />
+            <WithHighlightPattern pattern={highlightPattern}>
+              <DeferredValidatorLink
+                network={scope.network}
+                address={vote.address}
+                isError={vote.haveValidatorsFailed}
+                validator={vote.validator}
+              />
+            </WithHighlightPattern>
           ),
         },
         {
           key: 'vote',
           content: (
-            <ErrorBoundary light={true}>
-              <ProposalVoteIndicator vote={vote.vote as ProposalVoteValue} />
-            </ErrorBoundary>
+            <WithHighlightPattern pattern={highlightPattern}>
+              <ErrorBoundary light={true}>
+                <ProposalVoteIndicator vote={vote.vote as ProposalVoteValue} />
+              </ErrorBoundary>
+            </WithHighlightPattern>
           ),
           align: TableCellAlign.Right,
         },
@@ -120,22 +124,21 @@ export const ProposalVotesCard: FC = () => {
 
   return (
     <SubPageCard>
-      <CardHeaderWithResponsiveActions
-        action={
-          <>
-            <TableSearchBar
-              value={wantedNameInput}
-              onChange={setWantedNameInput}
-              placeholder={t('networkProposal.searchForVoter')}
-              warning={nameError}
-            />
-            <VoteTypeFilter onSelect={setWantedType} value={wantedType} />
-          </>
-        }
-        disableTypography
-        component="h2"
-        title={t('common.votes')}
-      />
+      <div className="flex flex-col md:flex-row md:flex-row md:items-center md:justify-between mb-2">
+        <Typography variant="h2" className="mb-2 sm:mb-0">
+          {t('common.votes')}
+        </Typography>
+
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 pr-4 sm:pr-0">
+          <VoteTypeFilter onSelect={setWantedType} value={wantedType} />
+          <TableSearchBar
+            value={wantedNameInput}
+            onChange={setWantedNameInput}
+            placeholder={t('networkProposal.searchForVoter')}
+            warning={nameError}
+          />
+        </div>
+      </div>
       <ErrorBoundary light={true}>
         <Box sx={{ height: '704px' }}>
           <ProposalVotesView />

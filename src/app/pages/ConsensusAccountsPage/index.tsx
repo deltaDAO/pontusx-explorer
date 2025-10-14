@@ -1,11 +1,10 @@
 import { FC, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import Divider from '@mui/material/Divider'
 import { useScreenSize } from '../../hooks/useScreensize'
 import { PageLayout } from '../../components/PageLayout'
 import { SubPageCard } from '../../components/SubPageCard'
 import { useGetConsensusAccounts } from '../../../oasis-nexus/api'
-import { NUMBER_OF_ITEMS_ON_SEPARATE_PAGE as PAGE_SIZE } from '../../config'
+import { NUMBER_OF_ITEMS_ON_SEPARATE_PAGE as PAGE_SIZE } from '../../../config'
 import { useSearchParamsPagination } from '../../components/Table/useSearchParamsPagination'
 import { AppErrors } from '../../../types/errors'
 import { TableLayout, TableLayoutButton } from '../../components/TableLayoutButton'
@@ -15,6 +14,7 @@ import { CardHeaderWithCounter } from '../../components/CardHeaderWithCounter'
 import { VerticalList } from '../../components/VerticalList'
 import { AccountList } from 'app/components/AccountList'
 import { ConsensusAccountDetailsView } from '../../components/Account/ConsensusAccountDetailsView'
+import { LayoutDivider } from '../../components/Divider'
 
 export const ConsensusAccountsPage: FC = () => {
   const [tableView, setTableView] = useState<TableLayout>(TableLayout.Horizontal)
@@ -47,11 +47,10 @@ export const ConsensusAccountsPage: FC = () => {
         tableView === TableLayout.Vertical && <LoadMoreButton pagination={pagination} isLoading={isLoading} />
       }
     >
-      {!isMobile && <Divider variant="layout" />}
+      {!isMobile && <LayoutDivider />}
       <SubPageCard
         title={
           <CardHeaderWithCounter
-            changeMobileColors
             label={t('account.listTitle')}
             totalCount={accountsData?.total_count}
             isTotalCountClipped={accountsData?.is_total_count_clipped}

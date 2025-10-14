@@ -1,6 +1,6 @@
 import { getNetworkNames, Network } from './network'
 import { getLayerLabels } from '../app/utils/content'
-import { HasScope, Layer } from '../oasis-nexus/api'
+import { HasScope, Layer, Runtime } from '../oasis-nexus/api'
 import { TFunction } from 'i18next'
 import { specialScopeNames } from '../config'
 
@@ -9,9 +9,21 @@ export interface SearchScope {
   layer: Layer
 }
 
+// This is just like SearchScope, but we know that it's not consensus
+export interface RuntimeScope {
+  network: Network
+  layer: Runtime
+}
+
+// This is just like SearchScope, but we know it's consensus
+export interface ConsensusScope {
+  network: Network
+  layer: 'consensus'
+}
+
 export const MainnetEmerald: SearchScope = {
-  network: Network.mainnet,
-  layer: Layer.emerald,
+  network: 'mainnet',
+  layer: 'emerald',
 }
 
 export const getNameForScope = (t: TFunction, scope: SearchScope) =>

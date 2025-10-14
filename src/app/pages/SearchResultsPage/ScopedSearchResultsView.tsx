@@ -1,6 +1,6 @@
 import { FC, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getFilterForNetwork, getNetworkNames, isOnMainnet, Network } from '../../../types/network'
+import { getFilterForNetwork, getNetworkNames, isOnMainnet } from '../../../types/network'
 import {
   getFilterForScope,
   getNameForScope,
@@ -31,20 +31,15 @@ export const ScopedSearchResultsView: FC<{
   const isNotInWantedScope = getInverseFilterForScope(wantedScope)
   const wantedResults = searchResults.filter(isInWantedScope)
   const otherResults = searchResults.filter(isNotInWantedScope)
-  const notificationTheme = getThemeForScope(
-    otherResults.some(isOnMainnet) ? Network.mainnet : Network.testnet,
-  )
+  const notificationTheme = getThemeForScope(otherResults.some(isOnMainnet) ? 'mainnet' : 'testnet')
 
   useRedirectIfSingleResult(wantedScope, searchParams, searchResults)
-
-  const { searchTerm } = searchParams
 
   return (
     <>
       {wantedResults.length ? (
         <SearchResultsList
           title={getNameForScope(t, wantedScope)}
-          searchTerm={searchTerm}
           searchResults={wantedResults}
           networkForTheme={wantedScope.network}
           tokenPrices={tokenPrices}
@@ -62,7 +57,6 @@ export const ScopedSearchResultsView: FC<{
                 key={net}
                 networkForTheme={net}
                 title={networkNames[net]}
-                searchTerm={searchTerm}
                 searchResults={otherResults.filter(getFilterForNetwork(net))}
                 tokenPrices={tokenPrices}
               />

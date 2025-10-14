@@ -1,44 +1,37 @@
 import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 import { Link as RouterLink } from 'react-router-dom'
-import Link from '@mui/material/Link'
-import { Layer, useGetRuntimeTransactions } from '../../../oasis-nexus/api'
+import { Typography } from '@oasisprotocol/ui-library/src/components/typography'
+import { Link } from '@oasisprotocol/ui-library/src/components/link'
+import { useGetRuntimeTransactions } from '../../../oasis-nexus/api'
 import { RuntimeTransactions } from '../../components/Transactions'
-import { FILTERING_ON_DASHBOARD, NUMBER_OF_ITEMS_ON_DASHBOARD } from '../../config'
-import { COLORS } from '../../../styles/theme/colors'
-import { AppErrors } from '../../../types/errors'
+import { FILTERING_ON_DASHBOARD } from '../../../config'
 import { RouteUtils } from '../../utils/route-utils'
 import { useScreenSize } from '../../hooks/useScreensize'
-import { SearchScope } from '../../../types/searchScope'
-import { RuntimeTransactionTypeFilter } from '../../components/Transactions/RuntimeTransactionTypeFilter'
-import Box from '@mui/material/Box'
+import { RuntimeScope } from '../../../types/searchScope'
+import { RuntimeTransactionMethodFilter } from '../../components/Transactions/RuntimeTransactionMethodFilter'
 import { getRuntimeTransactionMethodFilteringParam } from '../../components/RuntimeTransactionMethod'
+import { ErrorBoundary } from '../../components/ErrorBoundary'
+import { ParamSetterFunction } from '../../hooks/useTypedSearchParam'
+import { RuntimeTxMethodFilteringType } from '../../hooks/useCommonParams'
 
-const limit = NUMBER_OF_ITEMS_ON_DASHBOARD
+const limit = 15 // NUMBER_OF_ITEMS_ON_DASHBOARD
 const shouldFilter = FILTERING_ON_DASHBOARD
 
-export const LatestRuntimeTransactions: FC<{
-  scope: SearchScope
-  method: string
-  setMethod: (value: string) => void
-}> = ({ scope, method, setMethod }) => {
-  const { isMobile, isTablet } = useScreenSize()
-  const { t } = useTranslation()
+const LatestRuntimeTransactionsContent: FC<{
+  scope: RuntimeScope
+  txMethod: string
+}> = ({ scope, txMethod }) => {
+  const { isTablet } = useScreenSize()
   const { network, layer } = scope
-  if (layer === Layer.consensus) {
-    throw AppErrors.UnsupportedLayer
-    // Listing the latest consensus transactions is not yet supported.
-    // We should use useGetConsensusTransactions()
-  }
 
   const transactionsQuery = useGetRuntimeTransactions(
     network,
     layer,
     {
-      ...getRuntimeTransactionMethodFilteringParam(method),
+      ...getRuntimeTransactionMethodFilteringParam(txMethod),
       limit,
     },
     {
@@ -49,46 +42,46 @@ export const LatestRuntimeTransactions: FC<{
   )
 
   return (
+    <RuntimeTransactions
+      transactions={transactionsQuery.data?.data.transactions}
+      isLoading={transactionsQuery.isLoading}
+      limit={limit}
+      pagination={false}
+      verbose={!isTablet}
+      filtered={txMethod !== 'any'}
+    />
+  )
+}
+
+export const LatestRuntimeTransactions: FC<{
+  scope: RuntimeScope
+  txMethod: RuntimeTxMethodFilteringType
+  setTxMethod: ParamSetterFunction<RuntimeTxMethodFilteringType>
+}> = ({ scope, txMethod, setTxMethod }) => {
+  const { isMobile } = useScreenSize()
+  const { t } = useTranslation()
+  const { layer } = scope
+
+  return (
     <Card>
-      <CardHeader
-        disableTypography
-        component="h3"
-        title={
-          <Box
-            sx={{
-              display: 'flex',
-              gap: 6,
-              alignItems: 'center',
-            }}
-          >
-            {t('transactions.latest')}
-            {shouldFilter && !isMobile && (
-              <RuntimeTransactionTypeFilter layer={layer} value={method} setValue={setMethod} />
-            )}
-          </Box>
-        }
-        action={
-          <Link
-            component={RouterLink}
-            to={RouteUtils.getLatestTransactionsRoute(scope)}
-            sx={{ color: COLORS.brandDark }}
-          >
-            {t('common.viewAll')}
-          </Link>
-        }
-      />
+      <div className="flex justify-between items-center mb-4 pr-4 sm:pr-0">
+        <div className="flex items-center gap-6">
+          <Typography variant="h3">{t('transactions.latest')}</Typography>
+          {shouldFilter && !isMobile && (
+            <RuntimeTransactionMethodFilter layer={layer} value={txMethod} setValue={setTxMethod} />
+          )}
+        </div>
+        <Link asChild className="font-medium px-4" textColor="primary">
+          <RouterLink to={RouteUtils.getLatestTransactionsRoute(scope)}>{t('common.viewAll')}</RouterLink>
+        </Link>
+      </div>
       {shouldFilter && isMobile && (
-        <RuntimeTransactionTypeFilter layer={layer} value={method} setValue={setMethod} expand />
+        <RuntimeTransactionMethodFilter layer={layer} value={txMethod} setValue={setTxMethod} expand />
       )}
       <CardContent>
-        <RuntimeTransactions
-          transactions={transactionsQuery.data?.data.transactions}
-          isLoading={transactionsQuery.isLoading}
-          limit={limit}
-          pagination={false}
-          verbose={!isTablet}
-          filtered={method !== 'any'}
-        />
+        <ErrorBoundary light>
+          <LatestRuntimeTransactionsContent scope={scope} txMethod={txMethod} />
+        </ErrorBoundary>
       </CardContent>
     </Card>
   )

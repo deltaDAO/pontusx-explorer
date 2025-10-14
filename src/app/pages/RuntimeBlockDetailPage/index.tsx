@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useHref, useOutletContext, useParams } from 'react-router-dom'
 import { useScreenSize } from '../../hooks/useScreensize'
 import Link from '@mui/material/Link'
-import { Layer, RuntimeBlock, useGetRuntimeBlockByHeight } from '../../../oasis-nexus/api'
+import { RuntimeBlock, useGetRuntimeBlockByHeight } from '../../../oasis-nexus/api'
 import { RouterTabs } from '../../components/RouterTabs'
 import { StyledDescriptionList } from '../../components/StyledDescriptionList'
 import { PageLayout } from '../../components/PageLayout'
@@ -15,31 +15,35 @@ import { AppErrors } from '../../../types/errors'
 import { paraTimesConfig } from '../../../config'
 import { BlockLink, BlockHashLink } from '../../components/Blocks/BlockLink'
 import { RouteUtils } from '../../utils/route-utils'
-import { useRequiredScopeParam } from '../../hooks/useScopeParam'
+import { useRuntimeScope } from '../../hooks/useScopeParam'
 import { DashboardLink } from '../ParatimeDashboardPage/DashboardLink'
 import { RuntimeNextBlockButton, RuntimePrevBlockButton } from '../../components/BlockNavigationButtons'
-import { SearchScope } from 'types/searchScope'
-import { useRuntimeTxMethodParam } from '../../hooks/useCommonParams'
+import { RuntimeScope } from 'types/searchScope'
+import {
+  RuntimeEventFilteringType,
+  RuntimeTxMethodFilteringType,
+  useRuntimeEventTypeParam,
+  useRuntimeTxMethodParam,
+} from '../../hooks/useCommonParams'
 import { eventsContainerId, transactionsContainerId } from '../../utils/tabAnchors'
+import { ParamSetterFunction } from '../../hooks/useTypedSearchParam'
 
 export type RuntimeBlockDetailsContext = {
-  scope: SearchScope
+  scope: RuntimeScope
   blockHeight?: number
-  method: string
-  setMethod: (method: string) => void
+  txMethod: RuntimeTxMethodFilteringType
+  setTxMethod: ParamSetterFunction<RuntimeTxMethodFilteringType>
+  eventType: RuntimeEventFilteringType
+  setEventType: ParamSetterFunction<RuntimeEventFilteringType>
 }
 
 export const useRuntimeBlockDetailsProps = () => useOutletContext<RuntimeBlockDetailsContext>()
 
 export const RuntimeBlockDetailPage: FC = () => {
   const { t } = useTranslation()
-  const scope = useRequiredScopeParam()
+  const scope = useRuntimeScope()
   const txLink = useHref('')
   const eventsLink = useHref(`events#${eventsContainerId}`)
-  if (scope.layer === Layer.consensus) {
-    throw AppErrors.UnsupportedLayer
-    // We should use useGetConsensusBlocksHeight()
-  }
   const blockHeight = parseInt(useParams().blockHeight!, 10)
   const { isLoading, data } = useGetRuntimeBlockByHeight(
     scope.network,
@@ -50,8 +54,16 @@ export const RuntimeBlockDetailPage: FC = () => {
     throw AppErrors.NotFoundBlockHeight
   }
   const block = data?.data
-  const { method, setMethod } = useRuntimeTxMethodParam()
-  const context: RuntimeBlockDetailsContext = { scope, blockHeight, method, setMethod }
+  const { txMethod, setTxMethod } = useRuntimeTxMethodParam()
+  const { eventType, setEventType } = useRuntimeEventTypeParam()
+  const context: RuntimeBlockDetailsContext = {
+    scope,
+    blockHeight,
+    txMethod,
+    setTxMethod,
+    eventType,
+    setEventType,
+  }
 
   return (
     <PageLayout>

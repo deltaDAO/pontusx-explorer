@@ -16,7 +16,7 @@ import { Link as RouterLink } from 'react-router-dom'
 import { docs } from '../../utils/externalLinks'
 import { TextList, TextListItem } from '../TextList'
 import { getLayerLabels, getNetworkIcons } from '../../utils/content'
-import { getNameForScope, SearchScope } from '../../../types/searchScope'
+import { ConsensusScope, getNameForScope, RuntimeScope, SearchScope } from '../../../types/searchScope'
 import { useConsensusFreshness, useRuntimeFreshness } from '../OfflineBanner/hook'
 import { LayerStatus } from '../LayerStatus'
 import { useScreenSize } from '../../hooks/useScreensize'
@@ -34,8 +34,8 @@ type LayerDetailsContent = {
 type NetworkDetails = Partial<Record<Layer, LayerDetailsContent>>
 type Details = Record<Network, NetworkDetails>
 const getDetails = (t: TFunction): Details => ({
-  [Network.mainnet]: {
-    [Layer.emerald]: {
+  mainnet: {
+    emerald: {
       description: t('layerPicker.mainnet.emerald'),
       rpcHttp: 'https://emerald.oasis.io',
       rpcWebSockets: 'wss://emerald.oasis.io/ws',
@@ -43,7 +43,7 @@ const getDetails = (t: TFunction): Details => ({
       chainDecimalId: '42262',
       docs: docs.emerald,
     },
-    [Layer.sapphire]: {
+    sapphire: {
       description: t('layerPicker.mainnet.sapphire'),
       rpcHttp: 'https://sapphire.oasis.io',
       rpcWebSockets: 'wss://sapphire.oasis.io/ws',
@@ -52,8 +52,8 @@ const getDetails = (t: TFunction): Details => ({
       docs: docs.sapphire,
     },
   },
-  [Network.testnet]: {
-    [Layer.emerald]: {
+  testnet: {
+    emerald: {
       description: t('layerPicker.testnet.emerald'),
       rpcHttp: 'https://testnet.emerald.oasis.io',
       rpcWebSockets: 'wss://testnet.emerald.oasis.io/ws',
@@ -61,7 +61,7 @@ const getDetails = (t: TFunction): Details => ({
       chainDecimalId: '42261',
       docs: docs.emerald,
     },
-    [Layer.sapphire]: {
+    sapphire: {
       description: t('layerPicker.testnet.sapphire'),
       rpcHttp: 'https://testnet.sapphire.oasis.io',
       rpcWebSockets: 'wss://testnet.sapphire.oasis.io/ws',
@@ -69,7 +69,7 @@ const getDetails = (t: TFunction): Details => ({
       chainDecimalId: '23295',
       docs: docs.sapphire,
     },
-    [Layer.pontusxdev]: {
+    pontusxdev: {
       description: t('layerPicker.testnet.pontusxdev'),
       // See https://docs.pontus-x.eu/docs/Pontus-X%20Testnet/quick_start#setup-metamask
       rpcHttp: 'https://rpc.dev.pontus-x.eu',
@@ -77,7 +77,7 @@ const getDetails = (t: TFunction): Details => ({
       chainDecimalId: '32456',
       docs: docs.pontusx1,
     },
-    [Layer.pontusxtest]: {
+    pontusxtest: {
       description: t('layerPicker.testnet.pontusxtest'),
       // See https://docs.pontus-x.eu/docs/Pontus-X%20Testnet/quick_start#setup-metamask
       rpcHttp: 'https://rpc.test.pontus-x.eu',
@@ -86,13 +86,13 @@ const getDetails = (t: TFunction): Details => ({
       docs: docs.pontusx1,
     },
   },
-  [Network.localnet]: {
-    [Layer.sapphire]: {
+  localnet: {
+    sapphire: {
       chainHexId: '0x5afd',
       chainDecimalId: '23293',
       description: t('layerPicker.localnet.sapphire'),
     },
-    [Layer.emerald]: {
+    emerald: {
       chainHexId: '0xa514',
       chainDecimalId: '42260',
       description: t('layerPicker.localnet.emerald'),
@@ -114,23 +114,26 @@ export const StyledButton = styled(Button)(({ theme }) => ({
   },
 }))
 
-type LayerDetailsProps = {
+type LayerDetailsProps<Scope = SearchScope> = {
   handleConfirm: () => void
-  selectedScope: SearchScope
+  selectedScope: Scope
   isOutOfDate: boolean | undefined
 }
 
 // Prevent modal height from changing height when switching between layers
 const contentMinHeight = '270px'
 
-export const LayerDetails: FC<LayerDetailsProps> = (props: LayerDetailsProps) =>
-  props.selectedScope.layer === Layer.consensus ? (
-    <ConsensusDetails {...props} />
+export const LayerDetails: FC<LayerDetailsProps> = ({
+  selectedScope: { network, layer },
+  ...rest
+}: LayerDetailsProps) =>
+  layer === 'consensus' ? (
+    <ConsensusDetails selectedScope={{ network, layer }} {...rest} />
   ) : (
-    <RuntimeDetails {...props} />
+    <RuntimeDetails selectedScope={{ network, layer }} {...rest} />
   )
 
-const ConsensusDetails: FC<LayerDetailsProps> = props => {
+const ConsensusDetails: FC<LayerDetailsProps<ConsensusScope>> = props => {
   const { t } = useTranslation()
   const { handleConfirm, selectedScope } = props
   const isOutOfDate = useConsensusFreshness(selectedScope.network).outOfDate
@@ -150,7 +153,7 @@ const ConsensusDetails: FC<LayerDetailsProps> = props => {
   )
 }
 
-const RuntimeDetails: FC<LayerDetailsProps> = props => {
+const RuntimeDetails: FC<LayerDetailsProps<RuntimeScope>> = props => {
   const { t } = useTranslation()
   const { handleConfirm, selectedScope } = props
   const isOutOfDate = useRuntimeFreshness(selectedScope).outOfDate

@@ -1,14 +1,16 @@
 import { FC } from 'react'
 import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
 import { CopyToClipboard } from '../../components/CopyToClipboard'
 import { Validator } from '../../../oasis-nexus/api'
 import { COLORS } from 'styles/theme/colors'
 import { ValidatorImage } from 'app/components/Validators/ValidatorImage'
 import { TitleCard } from 'app/components/PageLayout/TitleCard'
 import { Network } from '../../../types/network'
-import { ValidatorLink } from 'app/components/Validators/ValidatorLink'
 import { ValidatorStatusBadge } from './ValidatorStatusBadge'
+import { AccountLink } from '../../components/Account/AccountLink'
+import { HighlightedText } from '../../components/HighlightedText'
+import { AdaptiveHighlightedText } from '../../components/HighlightedText/AdaptiveHighlightedText'
+import { useScreenSize } from '../../hooks/useScreensize'
 
 type ValidatorTitleCardProps = {
   isLoading: boolean
@@ -17,22 +19,22 @@ type ValidatorTitleCardProps = {
 }
 
 export const ValidatorTitleCard: FC<ValidatorTitleCardProps> = ({ isLoading, network, validator }) => {
+  const { isTablet } = useScreenSize()
   return (
     <TitleCard
       details={
         <>
           {validator && (
-            <Box sx={{ display: 'flex' }}>
+            <div className="flex">
               <ValidatorStatusBadge active={validator.active} inValidatorSet={validator?.in_validator_set} />
-              <Box sx={{ paddingLeft: 4 }}>
-                <ValidatorLink
-                  address={validator.entity_address}
-                  name={validator.entity_address}
-                  network={network}
-                />
-              </Box>
+              &nbsp;&nbsp;&nbsp;
+              <AccountLink
+                scope={{ network, layer: 'consensus' }}
+                address={validator.entity_address}
+                showOnlyAddress
+              />
               <CopyToClipboard value={validator.entity_address} />
-            </Box>
+            </div>
           )}
         </>
       }
@@ -41,25 +43,30 @@ export const ValidatorTitleCard: FC<ValidatorTitleCardProps> = ({ isLoading, net
         <>
           {validator && (
             <>
-              <Box sx={{ display: 'flex', alignItems: 'center' }} gap={4}>
+              <div className="flex items-center">
                 <ValidatorImage
                   address={validator.entity_address}
                   name={validator.media?.name}
                   logotype={validator.media?.logoUrl}
                 />
-                {validator?.media?.name}
-              </Box>
-              &nbsp;
-              <Typography
-                component="span"
-                sx={{
-                  color: COLORS.grayMedium,
-                  fontSize: '24px',
-                  fontWeight: 400,
-                }}
-              >
-                ({validator.rank})
-              </Typography>
+                &nbsp;&nbsp;
+                {isTablet ? (
+                  <AdaptiveHighlightedText text={validator?.media?.name} />
+                ) : (
+                  <HighlightedText text={validator?.media?.name} />
+                )}
+                &nbsp;
+                <Typography
+                  component="span"
+                  sx={{
+                    color: COLORS.grayMedium,
+                    fontSize: '24px',
+                    fontWeight: 400,
+                  }}
+                >
+                  ({validator.rank})
+                </Typography>
+              </div>
             </>
           )}
         </>

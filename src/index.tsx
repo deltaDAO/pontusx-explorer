@@ -1,3 +1,4 @@
+import './polyfill'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
@@ -8,7 +9,8 @@ import { routes } from './routes'
 import './styles/index.css'
 // Initialize languages
 import './locales/i18n'
-import { TableConfigContextProvider } from './app/providers/TableConfigProvider'
+import { LocalSettingsContextProvider } from './app/providers/LocalSettingsProvider'
+import { AdaptiveTrimmerContextProvider } from './app/components/AdaptiveTrimmerContext/AdaptiveTrimmerProvider'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,10 +42,12 @@ const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <TableConfigContextProvider>
-        <RouterProvider router={router} />
-        <ReactQueryDevtools initialIsOpen={false} />
-      </TableConfigContextProvider>
+      <LocalSettingsContextProvider>
+        <AdaptiveTrimmerContextProvider>
+          <RouterProvider router={router} />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </AdaptiveTrimmerContextProvider>
+      </LocalSettingsContextProvider>
     </QueryClientProvider>
   </React.StrictMode>,
 )

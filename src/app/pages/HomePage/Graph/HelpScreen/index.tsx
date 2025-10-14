@@ -4,7 +4,7 @@ import { TFunction } from 'i18next'
 import { styled } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 import MobileStepper from '@mui/material/MobileStepper'
-import Typography from '@mui/material/Typography'
+import { Typography } from '@oasisprotocol/ui-library/src/components/typography'
 import Button from '@mui/material/Button'
 import { ParaTimeSelectorStep } from '../types'
 import { SlideChangeEvent } from '../../../../../types/swiper'
@@ -15,7 +15,7 @@ import { PinchIcon } from '../../../../components/CustomIcons/Pinch'
 import { NavigateIcon } from '../../../../components/CustomIcons/Navigate'
 import { Theme } from '@mui/material/styles/createTheme'
 
-const HelpScreenContainer = styled(Box)(() => ({
+const HelpScreenContainer = styled(Box)(({ theme }) => ({
   position: 'absolute',
   top: '65%',
   left: '50%',
@@ -27,6 +27,7 @@ const HelpScreenContainer = styled(Box)(() => ({
   minHeight: '185px',
   width: '90%',
   height: '100%',
+  color: theme.palette.layout.contrastMain,
 }))
 
 const SwiperBox = styled(Box)(() => ({
@@ -111,11 +112,7 @@ const HelpScreen: FC<HelpScreenProps> = ({ setParaTimeStep }) => {
           ))}
         </swiper-container>
       </SwiperBox>
-      <Typography
-        variant="h4"
-        color="inherit"
-        sx={{ marginBottom: 5, fontWeight: 500, textTransform: 'capitalize' }}
-      >
+      <Typography variant="h4" className="text-inherit mb-10 capitalize">
         {currentStep.label}
       </Typography>
       {activeStep < 2 && (

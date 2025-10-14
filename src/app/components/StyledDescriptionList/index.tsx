@@ -42,6 +42,7 @@ export const StyledDescriptionList = styled(InlineDescriptionList, {
 })<StyledDescriptionListProps>(({ theme, standalone, highlight }) => ({
   'dt, dd': {
     display: 'flex',
+    flexWrap: 'wrap',
     boxShadow: `0px 1px 0px ${COLORS.grayLight}`,
     ':last-of-type': {
       boxShadow: 'none',
@@ -58,18 +59,18 @@ export const StyledDescriptionList = styled(InlineDescriptionList, {
     alignItems: 'start',
   },
   dd: {
-    color: COLORS.brandExtraDark,
     overflowWrap: 'anywhere',
     alignItems: 'center',
     maxWidth: '100%',
     overflowX: 'hidden',
+    paddingLeft: '5px', // Needed to fix highlightedAddress being clipped by overflow-x: hidden
   },
   ...(standalone && {
     '&&': {
       padding: theme.spacing(3, 4),
       backgroundColor: COLORS.white,
       marginBottom: theme.spacing(4),
-      borderRadius: '12px',
+      borderRadius: '6px',
     },
   }),
   ...(highlight && backgroundColorAnimation),

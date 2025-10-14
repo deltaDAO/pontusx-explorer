@@ -24,8 +24,6 @@ import { useTranslation } from 'react-i18next'
 import { WithOptionalOwnerState } from '@mui/base/utils'
 import { SelectPopupSlotProps, SelectSlots } from '@mui/base/Select/Select.types'
 import { PopupProps } from '@mui/base/Unstable_Popup'
-import { ButtonTypeMap } from '@mui/material/Button/Button'
-import { ExtendButtonBase } from '@mui/material/ButtonBase'
 import { Theme } from '@mui/material/styles/createTheme'
 
 // Props that are not supposed to be passed to the DOM
@@ -36,14 +34,14 @@ const swallowReactProps = {
   shouldForwardProp: (prop: string) => !forbiddenProps.includes(prop),
 }
 
-export const StyledSelectButton = styled<ExtendButtonBase<ButtonTypeMap<{ light?: boolean }>>>(
+export const StyledSelectButton = styled(
   Button,
   swallowReactProps,
-)(({ theme, light }) => ({
+)<{ light?: boolean }>(({ theme, light }) => ({
   height: '36px',
   minWidth: '135px',
   padding: `0 ${theme.spacing(4)}`,
-  borderRadius: '36px',
+  borderRadius: '6px',
   border: light ? '1px solid' : undefined,
   borderColor: light ? COLORS.grayMediumLight : undefined,
   color: light ? COLORS.grayDark : COLORS.white,
@@ -66,7 +64,7 @@ export const StyledSelectListbox = styled(
   padding: theme.spacing(0),
   margin: theme.spacing(3, 0),
   minWidth: '135px',
-  borderRadius: '12px',
+  borderRadius: '6px',
   overflow: 'auto',
   outline: 0,
   background: light ? COLORS.white : theme.palette.tertiary.main,

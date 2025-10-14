@@ -10,17 +10,22 @@ import MemoryIcon from '@mui/icons-material/Memory'
 import QuestionMarkIcon from '@mui/icons-material/QuestionMark'
 import LanIcon from '@mui/icons-material/Lan'
 import LanOutlinedIcon from '@mui/icons-material/LanOutlined'
+import DeveloperBoard from '@mui/icons-material/DeveloperBoard'
+import DeveloperBoardOffIcon from '@mui/icons-material/DeveloperBoardOff'
+import LockIcon from '@mui/icons-material/Lock'
 import { MethodIcon } from '../ConsensusTransactionMethod'
 import { GetRuntimeTransactionsParams, Layer, RuntimeTransaction } from '../../../oasis-nexus/api'
-import { SelectOptionBase } from '../Select'
 import { paraTimesConfig } from '../../../config'
+import { exhaustedTypeWarning } from '../../../types/errors'
+import { RuntimeTxMethodFilteringType } from '../../hooks/useCommonParams'
 
-const getRuntimeTransactionLabel = (t: TFunction, method: string | undefined) => {
+const getRuntimeTransactionLabel = (t: TFunction, method: KnownRuntimeTxMethod) => {
   // TODO: when adding new types here, please also update knownRuntimeTxMethods below.
   switch (method) {
-    case undefined:
-      // Method may be undefined if the transaction was malformed.
-      return t('transactions.method.unavailable')
+    case '':
+      // Method may be empty if the transaction was malformed, or encrypted (oasis_encryption_envelope).
+      // TODO: differentiate malformed and encrypted
+      return t('common.unknown')
     case 'accounts.Transfer':
       return t('transactions.method.accounts.transfer')
     case 'evm.Call':
@@ -43,12 +48,31 @@ const getRuntimeTransactionLabel = (t: TFunction, method: string | undefined) =>
       return t('transactions.method.rofl.remove')
     case 'rofl.Update':
       return t('transactions.method.rofl.update')
+    case 'roflmarket.ProviderCreate':
+      return t('transactions.method.roflmarket.providerCreate')
+    case 'roflmarket.ProviderUpdate':
+      return t('transactions.method.roflmarket.providerUpdate')
+    case 'roflmarket.ProviderUpdateOffers':
+      return t('transactions.method.roflmarket.providerUpdateOffers')
+    case 'roflmarket.ProviderRemove':
+      return t('transactions.method.roflmarket.providerRemove')
+    case 'roflmarket.InstanceCreate':
+      return t('transactions.method.roflmarket.machineCreate')
+    case 'roflmarket.InstanceTopUp':
+      return t('transactions.method.roflmarket.machineTopUp')
+    case 'roflmarket.InstanceCancel':
+      return t('transactions.method.roflmarket.machineCancel')
+    case 'roflmarket.InstanceExecuteCmds':
+      return t('transactions.method.roflmarket.machineExecuteCmds')
+    case 'roflmarket.InstanceChangeAdmin':
+      return t('transactions.method.roflmarket.machineChangeAdmin')
     default:
+      exhaustedTypeWarning('Unknown runtime tx method', method)
       return method || t('common.unknown')
   }
 }
 
-const knownRuntimeTxMethods: string[] = [
+const knownRuntimeTxMethods = [
   'accounts.Transfer',
   'evm.Call',
   'evm.Create',
@@ -60,18 +84,45 @@ const knownRuntimeTxMethods: string[] = [
   'rofl.Register',
   'rofl.Remove',
   'rofl.Update',
-]
+  'roflmarket.ProviderCreate',
+  'roflmarket.ProviderUpdate',
+  'roflmarket.ProviderUpdateOffers',
+  'roflmarket.ProviderRemove',
+  'roflmarket.InstanceCreate',
+  'roflmarket.InstanceTopUp',
+  'roflmarket.InstanceCancel',
+  'roflmarket.InstanceExecuteCmds',
+  'roflmarket.InstanceChangeAdmin',
+  '',
+] as const
+export type KnownRuntimeTxMethod = (typeof knownRuntimeTxMethods)[number]
 
-export const getRuntimeTxMethodOptions = (t: TFunction, layer: Layer): SelectOptionBase[] => {
+export type RuntimeTxMethodFilterOption = {
+  value: RuntimeTxMethodFilteringType
+  label: string
+}
+
+export const getRuntimeTxMethodOptions = (t: TFunction, layer: Layer) => {
   const hasRofl = !!paraTimesConfig[layer]?.offerRoflTxTypes
   return knownRuntimeTxMethods
     .filter(method => !method.startsWith('rofl') || hasRofl)
     .map(
-      (method): SelectOptionBase => ({
+      (method): RuntimeTxMethodFilterOption => ({
         value: method,
         label: getRuntimeTransactionLabel(t, method),
       }),
     )
+}
+
+export const getRuntimeRoflUpdatesMethodOptions = (t: TFunction) => {
+  const options = ['rofl.Create', 'rofl.Remove', 'rofl.Update'] as const
+
+  return options.map(
+    (method): RuntimeTxMethodFilterOption => ({
+      value: method,
+      label: getRuntimeTransactionLabel(t, method),
+    }),
+  )
 }
 
 /**
@@ -92,8 +143,17 @@ export const getRuntimeTxMethodOptions = (t: TFunction, layer: Layer): SelectOpt
  *   - "rofl.Update"
  *   - "rofl.Remove"
  *   - "rofl.Register"
+ *   - "roflmarket.ProviderCreate"
+ *   - "roflmarket.ProviderUpdate"
+ *   - "roflmarket.ProviderUpdateOffers"
+ *   - "roflmarket.ProviderRemove"
+ *   - "roflmarket.InstanceCreate"
+ *   - "roflmarket.InstanceTopUp"
+ *   - "roflmarket.InstanceCancel"
+ *   - "roflmarket.InstanceExecuteCmds"
+ *   - "roflmarket.InstanceChangeAdmin"
  */
-const getRuntimeTransactionIcon = (method: string | undefined, label: string, truncate?: boolean) => {
+const getRuntimeTransactionIcon = (method: KnownRuntimeTxMethod, label: string, truncate?: boolean) => {
   const props = {
     border: false,
     label,
@@ -123,7 +183,30 @@ const getRuntimeTransactionIcon = (method: string | undefined, label: string, tr
       return <MethodIcon color="orange" icon={<MemoryIcon />} {...props} />
     case 'rofl.Update':
       return <MethodIcon color="green" icon={<MemoryIcon />} {...props} />
+    case 'roflmarket.ProviderCreate':
+      return <MethodIcon color="green" icon={<DeveloperBoard />} {...props} />
+    case 'roflmarket.ProviderUpdate':
+      return <MethodIcon color="green" icon={<DeveloperBoard />} {...props} />
+    case 'roflmarket.ProviderUpdateOffers':
+      return <MethodIcon color="green" icon={<DeveloperBoard />} {...props} />
+    case 'roflmarket.ProviderRemove':
+      return <MethodIcon color="orange" icon={<DeveloperBoardOffIcon />} {...props} />
+    case 'roflmarket.InstanceCreate':
+      return <MethodIcon color="green" icon={<DeveloperBoard />} {...props} />
+    case 'roflmarket.InstanceTopUp':
+      return <MethodIcon icon={<DeveloperBoard />} {...props} />
+    case 'roflmarket.InstanceCancel':
+      return <MethodIcon color="orange" icon={<DeveloperBoardOffIcon />} {...props} />
+    case 'roflmarket.InstanceExecuteCmds':
+      return <MethodIcon icon={<DeveloperBoard />} {...props} />
+    case 'roflmarket.InstanceChangeAdmin':
+      return <MethodIcon icon={<DeveloperBoard />} {...props} />
+    case '':
+      // Method may be empty if the transaction was malformed, or encrypted (oasis_encryption_envelope).
+      // TODO: differentiate malformed and encrypted
+      return <MethodIcon color="green" icon={<LockIcon />} {...props} />
     default:
+      exhaustedTypeWarning('Unknown runtime tx method', method)
       return <MethodIcon color="gray" icon={<QuestionMarkIcon />} {...props} />
   }
 }
@@ -135,7 +218,7 @@ type RuntimeTransactionLabelProps = {
 
 export const RuntimeTransactionMethod: FC<RuntimeTransactionLabelProps> = ({ transaction, truncate }) => {
   const { t } = useTranslation()
-  let label = getRuntimeTransactionLabel(t, transaction.method)
+  let label = getRuntimeTransactionLabel(t, transaction.method as KnownRuntimeTxMethod)
   if (transaction.evm_fn_name) {
     if (truncate) {
       label = `${transaction.evm_fn_name}`
@@ -144,7 +227,7 @@ export const RuntimeTransactionMethod: FC<RuntimeTransactionLabelProps> = ({ tra
     }
   }
 
-  return <>{getRuntimeTransactionIcon(transaction.method, label, truncate)}</>
+  return <>{getRuntimeTransactionIcon(transaction.method as KnownRuntimeTxMethod, label, truncate)}</>
 }
 
 export const getRuntimeTransactionMethodFilteringParam = (

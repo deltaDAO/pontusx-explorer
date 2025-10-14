@@ -1,20 +1,18 @@
 import { FC } from 'react'
-import Typography from '@mui/material/Typography'
-import { COLORS } from '../../../styles/theme/colors'
+import { Typography } from '@oasisprotocol/ui-library/src/components/typography'
 import { useTokenInfo } from './hook'
 import { VerificationIcon } from '../../components/ContractVerificationIcon'
 import { AccountLink } from '../../components/Account/AccountLink'
 import { CopyToClipboard } from '../../components/CopyToClipboard'
 import { useTranslation } from 'react-i18next'
-import { SearchScope } from '../../../types/searchScope'
+import { RuntimeScope } from '../../../types/searchScope'
 import { HighlightedText } from '../../components/HighlightedText'
 import { TitleCard } from '../../components/PageLayout/TitleCard'
 
-export const TokenTitleCard: FC<{ scope: SearchScope; address: string; searchTerm: string }> = ({
-  scope,
-  address,
-  searchTerm,
-}) => {
+export const TokenTitleCard: FC<{
+  scope: RuntimeScope
+  address: string
+}> = ({ scope, address }) => {
   const { t } = useTranslation()
   const { isLoading, token } = useTokenInfo(scope, address)
 
@@ -27,9 +25,10 @@ export const TokenTitleCard: FC<{ scope: SearchScope; address: string; searchTer
               <VerificationIcon
                 address_eth={token.eth_contract_addr}
                 scope={token}
-                verified={token.is_verified}
-                noLink
+                verificationLevel={token.verification_level}
+                hideLink
               />
+              &nbsp;&nbsp;&nbsp;
               <AccountLink
                 scope={token}
                 address={token.eth_contract_addr || token.contract_addr}
@@ -43,24 +42,13 @@ export const TokenTitleCard: FC<{ scope: SearchScope; address: string; searchTer
       }
       isLoading={isLoading}
       title={
-        <>
-          {token?.name ? <HighlightedText text={token.name} pattern={searchTerm} /> : t('common.missing')}
+        <div className="flex items-center">
+          {token?.name ? <HighlightedText text={token.name} /> : t('common.missing')}
           &nbsp;
-          <Typography
-            component="span"
-            sx={{
-              color: COLORS.grayMedium,
-              fontSize: '24px',
-              fontWeight: 700,
-            }}
-          >
-            {token?.symbol ? (
-              <HighlightedText text={token.symbol} pattern={searchTerm} />
-            ) : (
-              t('common.missing')
-            )}
+          <Typography variant="large" textColor="muted" className="font-normal">
+            {token?.symbol ? <HighlightedText text={token.symbol} /> : t('common.missing')}
           </Typography>
-        </>
+        </div>
       }
     />
   )

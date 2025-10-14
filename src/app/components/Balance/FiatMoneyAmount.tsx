@@ -6,7 +6,7 @@ import { FC } from 'react'
 import { CoinGeckoReferral } from '../CoinGeckoReferral'
 import { FiatValueInfo } from './hooks'
 import Tooltip from '@mui/material/Tooltip'
-import Skeleton from '@mui/material/Skeleton'
+import { Skeleton } from '@oasisprotocol/ui-library/src/components/ui/skeleton'
 
 export const FiatMoneyAmountBox = styled(Box)(() => ({
   display: 'flex',
@@ -16,6 +16,18 @@ export const FiatMoneyAmountBox = styled(Box)(() => ({
   flex: 1,
 }))
 
+export const FiatMoneyWarning: FC<{ unknownTickers: string[] }> = ({ unknownTickers }) => {
+  const { t } = useTranslation()
+  return (
+    <Tooltip
+      title={t('account.failedToLookUpTickers', { tickers: unknownTickers.join(', ') })}
+      placement="top"
+    >
+      <WarningIcon />
+    </Tooltip>
+  )
+}
+
 export const FiatMoneyAmount: FC<FiatValueInfo> = ({
   value,
   fiatCurrency,
@@ -24,26 +36,23 @@ export const FiatMoneyAmount: FC<FiatValueInfo> = ({
   loading,
 }) => {
   const { t } = useTranslation()
+  const hasFailed = !!unknownTickers.length
   return (
     <FiatMoneyAmountBox>
       <span>
-        {t('common.fiatValueInUSD', {
-          value,
-          formatParams: {
-            value: {
-              currency: fiatCurrency,
-            } satisfies Intl.NumberFormatOptions,
-          },
-        })}
-        {!!unknownTickers.length && (
-          <Tooltip
-            title={t('account.failedToLookUpTickers', { tickers: unknownTickers.join(', ') })}
-            placement="top"
-          >
-            <WarningIcon />
-          </Tooltip>
+        {!hasFailed ? (
+          t('common.fiatValueInUSD', {
+            value,
+            formatParams: {
+              value: {
+                currency: fiatCurrency,
+              } satisfies Intl.NumberFormatOptions,
+            },
+          })
+        ) : (
+          <FiatMoneyWarning unknownTickers={unknownTickers} />
         )}
-        {loading && <Skeleton variant="rectangular" sx={{ height: 200 }} />}
+        {loading && <Skeleton className="h-4" />}
       </span>
       {hasUsedCoinGecko && <CoinGeckoReferral />}
     </FiatMoneyAmountBox>

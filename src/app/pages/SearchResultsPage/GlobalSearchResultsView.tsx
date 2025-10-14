@@ -12,7 +12,6 @@ import {
   isNotMainnet,
   isNotOnMainnet,
   isOnMainnet,
-  Network,
 } from '../../../types/network'
 import { HideMoreResults, ShowMoreResults } from './notifications'
 import { getThemeForScope } from '../../../styles/theme'
@@ -31,7 +30,6 @@ export const GlobalSearchResultsView: FC<{
   useRedirectIfSingleResult(undefined, searchParams, searchResults)
 
   const networkNames = getNetworkNames(t)
-  const { searchTerm } = searchParams
 
   if (fixedNetwork) {
     return (
@@ -40,7 +38,6 @@ export const GlobalSearchResultsView: FC<{
         <SearchResultsList
           key={fixedNetwork}
           title={networkNames[fixedNetwork]}
-          searchTerm={searchTerm}
           searchResults={searchResults}
           networkForTheme={fixedNetwork}
           tokenPrices={tokenPrices}
@@ -50,7 +47,7 @@ export const GlobalSearchResultsView: FC<{
   }
 
   const otherNetworks = RouteUtils.getEnabledNetworks().filter(isNotMainnet)
-  const notificationTheme = getThemeForScope(Network.testnet)
+  const notificationTheme = getThemeForScope('testnet')
   const mainnetResults = searchResults.filter(isOnMainnet).sort(orderByLayer)
   const otherResults = searchResults.filter(isNotOnMainnet).sort(orderByLayer)
 
@@ -59,11 +56,10 @@ export const GlobalSearchResultsView: FC<{
       {!mainnetResults.length && (otherResults.length ? <NoResultsOnMainnet /> : <NoResultsWhatsoever />)}
       {
         <SearchResultsList
-          key={Network.mainnet}
-          title={networkNames[Network.mainnet]}
-          searchTerm={searchTerm}
+          key="mainnet"
+          title={networkNames.mainnet}
           searchResults={mainnetResults}
-          networkForTheme={Network.mainnet}
+          networkForTheme="mainnet"
           tokenPrices={tokenPrices}
         />
       }
@@ -75,7 +71,6 @@ export const GlobalSearchResultsView: FC<{
               <SearchResultsList
                 key={net}
                 title={networkNames[net]}
-                searchTerm={searchTerm}
                 searchResults={otherResults.filter(getFilterForNetwork(net))}
                 networkForTheme={net}
                 tokenPrices={tokenPrices}

@@ -5,6 +5,14 @@ import { NativeToken, NativeTokenInfo } from './types/ticker'
 import { SearchScope } from './types/searchScope'
 import { Network } from './types/network'
 import type { Theme } from '@mui/material/styles/createTheme'
+import { pontusXDevnetTheme } from './styles/theme/pontusx/devnetTheme'
+import { pontusXTestnetTheme } from './styles/theme/pontusx/testnetTheme'
+
+export const NUMBER_OF_ITEMS_ON_DASHBOARD = 5
+export const FILTERING_ON_DASHBOARD = true
+export const NUMBER_OF_ITEMS_ON_SEPARATE_PAGE = 10
+export const REFETCH_INTERVAL = 5000
+export const API_MAX_TOTAL_COUNT = 1000
 
 export const consensusDecimals = 9
 /**
@@ -38,6 +46,7 @@ type LayerConfig = {
   localnet?: LayerNetwork
   decimals: number
   type: RuntimeTypes
+  hideTokensFromDashboard?: boolean
   offerRoflTxTypes?: boolean
 }
 
@@ -104,7 +113,7 @@ const cipherConfig: LayerConfig = {
 const sapphireConfig: LayerConfig = {
   mainnet: {
     address: 'oasis1qrd3mnzhhgst26hsp96uf45yhq6zlax0cuzdgcfc',
-    // See max_batch_gas https://github.com/oasisprotocol/sapphire-paratime/blob/main/runtime/src/lib.rs#L166
+    // See max_batch_gas https://github.com/oasisprotocol/sapphire-paratime/blob/maiNativeTokenn/runtime/src/lib.rs#L166
     blockGasLimit: 15_000_000,
     runtimeId: '000000000000000000000000000000000000000000000000f80306c9858e7279',
     tokens: [NativeToken.ROSE],
@@ -132,13 +141,13 @@ const pontusxDevConfig: LayerConfig = {
     address: undefined,
     blockGasLimit: undefined,
     runtimeId: undefined,
-    tokens: [NativeToken.EUROe],
+    tokens: [NativeToken.EURAU],
   },
   testnet: {
     address: 'oasis1qr02702pr8ecjuff2z3es254pw9xl6z2yg9qcc6c',
     blockGasLimit: 15_000_000,
     runtimeId: '0000000000000000000000000000000000000000000000004febe52eb412b421',
-    tokens: [NativeToken.EUROe, NativeToken.TEST],
+    tokens: [NativeToken.EURAU, NativeToken.TEST],
     fiatCurrency: 'eur',
   },
   decimals: 18,
@@ -150,17 +159,18 @@ const pontusxTestConfig: LayerConfig = {
     address: undefined,
     blockGasLimit: undefined,
     runtimeId: undefined,
-    tokens: [NativeToken.EUROe],
+    tokens: [NativeToken.EURAU],
   },
   testnet: {
     address: 'oasis1qrg6c89655pmdxeel08qkngs02jnrfll5v9c508v',
     blockGasLimit: 15_000_000,
     runtimeId: '00000000000000000000000000000000000000000000000004a6f9071c007069',
-    tokens: [NativeToken.EUROe, NativeToken.TEST],
+    tokens: [NativeToken.EURAU, NativeToken.TEST],
     fiatCurrency: 'eur',
   },
   decimals: 18,
   type: RuntimeTypes.Evm,
+  hideTokensFromDashboard: true,
 }
 
 type LayersConfig = {
@@ -168,12 +178,12 @@ type LayersConfig = {
 }
 
 export const paraTimesConfig = {
-  [Layer.cipher]: cipherConfig,
-  [Layer.emerald]: emeraldConfig,
-  [Layer.sapphire]: sapphireConfig,
-  [Layer.pontusxdev]: pontusxDevConfig,
-  [Layer.pontusxtest]: pontusxTestConfig,
-  [Layer.consensus]: null,
+  cipher: cipherConfig,
+  emerald: emeraldConfig,
+  sapphire: sapphireConfig,
+  pontusxdev: pontusxDevConfig,
+  pontusxtest: pontusxTestConfig,
+  consensus: null,
 } satisfies LayersConfig
 
 const splitUrls = (input: string | undefined): string[] =>
@@ -185,35 +195,51 @@ const splitUrls = (input: string | undefined): string[] =>
     : []
 
 export const deploys = {
-  production: splitUrls(process.env.REACT_APP_PRODUCTION_URLS),
-  staging: splitUrls(process.env.REACT_APP_STAGING_URLS),
+  production: splitUrls(import.meta.env.REACT_APP_PRODUCTION_URLS),
+  staging: splitUrls(import.meta.env.REACT_APP_STAGING_URLS),
   localhost: 'http://localhost:1234',
 }
 
-export const getAppTitle = () => process.env.REACT_APP_META_TITLE
+export const getAppTitle = () => import.meta.env.REACT_APP_META_TITLE
 
 export const getTokensForScope = (scope: SearchScope | undefined): NativeTokenInfo[] => {
   if (!scope) return []
-  if (scope.layer === Layer.consensus) return consensusConfig[scope.network].tokens
+  if (scope.layer === 'consensus') return consensusConfig[scope.network].tokens
   return paraTimesConfig?.[scope.layer]?.[scope.network]?.tokens!
 }
 
 export const getFiatCurrencyForScope = (scope: SearchScope | undefined) =>
   (scope ? paraTimesConfig[scope.layer]?.[scope.network]?.fiatCurrency : undefined) ?? 'usd'
 
-export const showFiatValues = process.env.REACT_APP_SHOW_FIAT_VALUES === 'true'
+export const showFiatValues = import.meta.env.REACT_APP_SHOW_FIAT_VALUES === 'true'
 
 export const specialScopeNames: Partial<Record<Network, Partial<Record<Layer, string>>>> = {
-  [Network.mainnet]: {},
-  [Network.testnet]: {},
+  mainnet: {
+    sapphire: 'Oasis Sapphire Mainnet',
+  },
+  testnet: {
+    pontusxdev: 'Pontus-X Devnet',
+    pontusxtest: 'Pontus-X Testnet',
+  },
 }
 
 export const specialScopePaths: Partial<Record<Network, Partial<Record<Layer, [string, string]>>>> = {
-  [Network.mainnet]: {},
-  [Network.testnet]: {},
+  mainnet: {
+    sapphire: ['oasis', 'sapphire'],
+  },
+  testnet: {
+    pontusxdev: ['pontusx', 'dev'],
+    pontusxtest: ['pontusx', 'test'],
+  },
 }
 
 export const specialScopeThemes: Partial<Record<Network, Partial<Record<Layer, Theme>>>> = {
-  [Network.mainnet]: {},
-  [Network.testnet]: {},
+  mainnet: {},
+  testnet: {
+    pontusxdev: pontusXDevnetTheme,
+    pontusxtest: pontusXTestnetTheme,
+  },
 }
+
+export const hideNetworkRibbon = true
+export const hideRoseAppButton = true

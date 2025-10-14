@@ -5,11 +5,15 @@ name: ci-build
 on:
   # A push occurs to one of the matched branches.
   push:
-    branches: [master]
+    branches:
+      - master
+      - stable/*
   # Or when a pull request event occurs for a pull request against one of the
   # matched branches.
   pull_request:
-    branches: [master]
+    branches:
+      - master
+      - stable/*
 
 jobs:
   build:
@@ -19,6 +23,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: true
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:

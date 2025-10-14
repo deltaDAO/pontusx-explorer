@@ -7,12 +7,11 @@ import {
   AccountNameSearchRuntimeMatch,
   AccountNameSearchRuntimeResults,
 } from './named-accounts'
-import { Layer, useGetRuntimeAccountsAddresses } from '../../oasis-nexus/api'
+import { useGetRuntimeAccountsAddresses } from '../../oasis-nexus/api'
 import { Network } from '../../types/network'
-import { hasTextMatch } from '../components/HighlightedText/text-matching'
+import { hasTextMatchesForAll } from '../components/HighlightedText/text-matching'
 import { getOasisAddress } from '../utils/helpers'
-
-const DATA_SOURCE_URL = 'https://raw.githubusercontent.com/deltaDAO/mvg-portal/main/pontusxAddresses.json'
+import * as externalLinks from '../utils/externalLinks'
 
 type PontusXAccountsMetadata = {
   map: AccountMap
@@ -20,7 +19,7 @@ type PontusXAccountsMetadata = {
 }
 
 const getPontusXAccountsMetadata = async (): Promise<PontusXAccountsMetadata> => {
-  const response = await axios.get(DATA_SOURCE_URL)
+  const response = await axios.get(externalLinks.api.deltadao_named_addresses)
   if (response.status !== 200) throw new Error("Couldn't load names")
   if (!response.data) throw new Error("Couldn't load names")
   const map: AccountMap = new Map()
@@ -31,7 +30,7 @@ const getPontusXAccountsMetadata = async (): Promise<PontusXAccountsMetadata> =>
       address: getOasisAddress(evmAddress),
       name: name as string,
     }
-    map.set(evmAddress.toLowerCase(), account)
+    map.set(account.address, account)
     list.push(account)
   })
   return {
@@ -50,7 +49,7 @@ export const usePontusXAccountsMetadata = (
 }
 
 export const usePontusXAccountMetadata = (
-  address: string,
+  oasisAddress: string,
   queryOptions: UseQueryOptions<PontusXAccountsMetadata, unknown, PontusXAccountsMetadata, string[]>,
 ): AccountMetadataInfo => {
   const { isLoading, isError, error, data: allData } = usePontusXAccountsMetadata(queryOptions)
@@ -58,7 +57,7 @@ export const usePontusXAccountMetadata = (
     console.log('Failed to load Pontus-X account names', error)
   }
   return {
-    metadata: allData?.map.get(address.toLowerCase()),
+    metadata: allData?.map.get(oasisAddress),
     isLoading,
     isError,
   }
@@ -66,7 +65,7 @@ export const usePontusXAccountMetadata = (
 
 export const useSearchForPontusXAccountsByName = (
   network: Network,
-  nameFragment: string,
+  nameFragments: string[],
   queryOptions: { enabled: boolean } & UseQueryOptions<
     PontusXAccountsMetadata,
     unknown,
@@ -84,21 +83,18 @@ export const useSearchForPontusXAccountsByName = (
     console.log('Failed to load Pontus-X account names', metadataError)
   }
 
-  const textMatcher =
-    nameFragment && queryOptions.enabled
-      ? (account: AccountMetadata) => hasTextMatch(account.name, [nameFragment])
-      : () => false
-
   const matches =
-    isMetadataLoading || isMetadataLoading
+    isMetadataLoading || !nameFragments.length || !queryOptions.enabled
       ? undefined
-      : namedAccounts?.list.filter(textMatcher).map(
-          (account): AccountNameSearchRuntimeMatch => ({
-            network,
-            layer: Layer.pontusxtest,
-            address: account.address,
-          }),
-        )
+      : namedAccounts?.list
+          .filter(account => hasTextMatchesForAll(account.name, nameFragments))
+          .map(
+            (account): AccountNameSearchRuntimeMatch => ({
+              network,
+              layer: 'pontusxtest',
+              address: account.address,
+            }),
+          )
 
   const {
     isLoading: areAccountsLoading,

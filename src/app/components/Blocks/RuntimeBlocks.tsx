@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
 import { RuntimeBlock } from '../../../oasis-nexus/api'
-import { VerticalProgressBar } from '../../components/ProgressBar'
 import { Table, TableCellAlign, TableColProps } from '../../components/Table'
 import { paraTimesConfig } from '../../../config'
 import { TablePaginationProps } from '../Table/TablePagination'
@@ -10,6 +9,7 @@ import { FC } from 'react'
 import { BlocksTableType } from './index'
 import { TableHeaderAge } from '../TableHeaderAge'
 import { TableCellAge } from '../TableCellAge'
+import { Progress } from '@oasisprotocol/ui-library/src/components/progress'
 
 export type TableRuntimeBlock = RuntimeBlock & {
   markAsNew?: boolean
@@ -39,8 +39,16 @@ export const RuntimeBlocks: FC<RuntimeBlocksProps> = ({
   const { t } = useTranslation()
   const { isLaptop } = useScreenSize()
   const tableColumns: TableColProps[] = [
-    { key: 'fill', content: t('common.fill') },
-    { key: 'height', content: t('common.height'), align: TableCellAlign.Right },
+    ...(type === BlocksTableType.Desktop ? [{ key: 'fill', content: t('common.fill') }] : []),
+    { key: 'height', content: t('common.height') },
+    ...(type === BlocksTableType.Desktop || type === BlocksTableType.DesktopLite
+      ? [
+          {
+            key: 'hash',
+            content: t('common.hash'),
+          },
+        ]
+      : []),
     { key: 'age', content: <TableHeaderAge />, align: TableCellAlign.Right },
     ...(type === BlocksTableType.Desktop || type === BlocksTableType.DesktopLite
       ? [
@@ -51,7 +59,6 @@ export const RuntimeBlocks: FC<RuntimeBlocksProps> = ({
           },
         ]
       : []),
-    ...(type === BlocksTableType.Desktop ? [{ key: 'hash', content: t('common.hash') }] : []),
     { key: 'size', content: t('common.size'), align: TableCellAlign.Right },
     ...(type === BlocksTableType.Desktop
       ? [{ key: 'gasUsed', content: t('common.gasUsed'), align: TableCellAlign.Right }]
@@ -67,15 +74,26 @@ export const RuntimeBlocks: FC<RuntimeBlocksProps> = ({
     return {
       key: block.hash,
       data: [
+        ...(type === BlocksTableType.Desktop
+          ? [
+              {
+                content: <Progress className="w-6" value={(100 * block.gas_used) / blockGasLimit} />,
+                key: 'fill',
+              },
+            ]
+          : []),
         {
-          content: <VerticalProgressBar value={(100 * block.gas_used) / blockGasLimit} />,
-          key: 'fill',
-        },
-        {
-          align: TableCellAlign.Right,
           content: <BlockLink scope={block} height={block.round} />,
           key: 'block',
         },
+        ...(type === BlocksTableType.Desktop || type === BlocksTableType.DesktopLite
+          ? [
+              {
+                content: <BlockHashLink scope={block} hash={block.hash} height={block.round} alwaysTrim />,
+                key: 'hash',
+              },
+            ]
+          : []),
         {
           align: TableCellAlign.Right,
           content: <TableCellAge sinceTimestamp={block.timestamp} />,
@@ -87,14 +105,6 @@ export const RuntimeBlocks: FC<RuntimeBlocksProps> = ({
                 align: TableCellAlign.Right,
                 content: block.num_transactions.toLocaleString(),
                 key: 'txs',
-              },
-            ]
-          : []),
-        ...(type === BlocksTableType.Desktop
-          ? [
-              {
-                content: <BlockHashLink scope={block} hash={block.hash} height={block.round} alwaysTrim />,
-                key: 'hash',
               },
             ]
           : []),

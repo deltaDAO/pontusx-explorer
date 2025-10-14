@@ -10,11 +10,10 @@ export const TokenLink: FC<{
   scope: SearchScope
   address: string
   name: string | undefined
-  highlightedPart?: string | undefined
-}> = ({ scope, address, name, highlightedPart }) => {
+}> = ({ scope, address, name }) => {
   return (
     <Link component={RouterLink} to={RouteUtils.getTokenRoute(scope, address)}>
-      {name ? <HighlightedText text={name} pattern={highlightedPart} /> : address}
+      {name ? <HighlightedText text={name} /> : address}
     </Link>
   )
 }

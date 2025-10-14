@@ -19,7 +19,7 @@ import { COLORS } from '../../../../../styles/theme/testnet/colors'
 import { COLORS as LOCALNET_COLORS } from '../../../../../styles/theme/localnet/colors'
 import { useTranslation } from 'react-i18next'
 import { useConsensusFreshness, useRuntimeFreshness } from '../../../../components/OfflineBanner/hook'
-import { SearchScope } from '../../../../../types/searchScope'
+import { RuntimeScope, SearchScope } from '../../../../../types/searchScope'
 import { SelectorArea, UniverseArea } from '../ParaTimeSelector'
 
 interface GraphBaseProps {
@@ -84,7 +84,7 @@ const GraphStyled = styled('svg', {
     cursor: 'pointer',
   },
   path: {
-    ...(selectedArea && selectedArea !== Layer.consensus && selectedArea !== UniverseArea
+    ...(selectedArea && selectedArea !== 'consensus' && selectedArea !== UniverseArea
       ? {
           [`&:not(.${selectedArea})`]: {
             opacity: 0.5,
@@ -102,7 +102,7 @@ const GraphStyled = styled('svg', {
     'ellipse:last-child': {
       display: 'none',
     },
-    ...(selectedArea && selectedArea !== Layer.consensus && selectedArea !== UniverseArea
+    ...(selectedArea && selectedArea !== 'consensus' && selectedArea !== UniverseArea
       ? {
           [`&:not([id=${selectedArea}-circle])`]: {
             opacity: 0.5,
@@ -248,7 +248,7 @@ const ConsensusStatus: FC<{ network: Network; statusChange: (outOfDate?: boolean
   return null
 }
 
-const RuntimeStatus: FC<{ scope: SearchScope; statusChange: (outOfDate?: boolean) => void }> = ({
+const RuntimeStatus: FC<{ scope: RuntimeScope; statusChange: (outOfDate?: boolean) => void }> = ({
   scope,
   statusChange,
 }) => {
@@ -265,13 +265,13 @@ const RuntimeStatus: FC<{ scope: SearchScope; statusChange: (outOfDate?: boolean
 }
 
 const LayerStatus: FC<{ scope: SearchScope; statusChange: (outOfDate?: boolean) => void }> = ({
-  scope,
+  scope: { network, layer },
   statusChange,
 }) =>
-  scope.layer === Layer.consensus ? (
-    <ConsensusStatus network={scope.network} statusChange={statusChange} />
+  layer === 'consensus' ? (
+    <ConsensusStatus network={network} statusChange={statusChange} />
   ) : (
-    <RuntimeStatus scope={scope} statusChange={statusChange} />
+    <RuntimeStatus scope={{ network, layer }} statusChange={statusChange} />
   )
 
 const GraphCmp: ForwardRefRenderFunction<SVGSVGElement, GraphProps> = (
@@ -312,16 +312,16 @@ const GraphCmp: ForwardRefRenderFunction<SVGSVGElement, GraphProps> = (
   }
 
   const disabledMap: Partial<Record<SelectorArea, boolean>> = {
-    [Layer.emerald]: isLayerDisabled(Layer.emerald),
-    [Layer.consensus]: isLayerDisabled(Layer.consensus),
-    [Layer.cipher]: isLayerDisabled(Layer.cipher),
-    [Layer.sapphire]: isLayerDisabled(Layer.sapphire),
+    emerald: isLayerDisabled('emerald'),
+    consensus: isLayerDisabled('consensus'),
+    cipher: isLayerDisabled('cipher'),
+    sapphire: isLayerDisabled('sapphire'),
   }
 
   const enabledLayers: Layer[] = useMemo(() => RouteUtils.getAllLayersForNetwork(network).enabled, [network])
 
   const onSelectArea = (area: SelectorArea) => {
-    if (isMobile && (isZoomedIn || area === Layer.consensus)) {
+    if (isMobile && (isZoomedIn || area === 'consensus')) {
       setSelectedArea(area)
       setActiveMobileGraphTooltip({ current: area })
 
@@ -438,64 +438,74 @@ const GraphCmp: ForwardRefRenderFunction<SVGSVGElement, GraphProps> = (
           strokeDasharray="0.27 2.71"
         />
         <path
-          className={Layer.emerald}
+          className="emerald"
           d="M195.673 102.451L155.947 76.6719"
           stroke={graphTheme.line}
           strokeWidth="2"
         />
         <path
-          className={Layer.emerald}
+          className="emerald"
           d="M195.674 102.451L235.399 73.925"
           stroke={graphTheme.line}
           strokeWidth="2"
         />
         <path
-          className={Layer.consensus}
+          className="consensus"
           d="M183.768 210.158L308.693 202.227"
           stroke={graphTheme.line}
           strokeWidth="2"
         />
         <path
-          className={Layer.consensus}
+          className="consensus"
           d="M187.221 212.965L195.884 103.508"
           stroke={graphTheme.line}
           strokeWidth="2"
         />
         <path
-          className={Layer.consensus}
+          className="consensus"
           d="M167.502 240L132.572 287.516"
           stroke={graphTheme.line}
           strokeWidth="2"
         />
+        {/* Sapphire blocks connector */}
         <path
-          className={Layer.sapphire}
-          d="M121.083 308.697L87.666 342.253"
+          className="sapphire"
+          d="M119.797 314.743L106.953 360.325"
+          stroke={graphTheme.line}
+          strokeWidth="2"
+        />
+        {/* Sapphire transactions connector */}
+        <path
+          className="sapphire"
+          d="M127.499 301.83L163.135 335.325"
+          stroke={graphTheme.line}
+          strokeWidth="2"
+        />
+        {/* Sapphire ROFL connector */}
+        <path
+          className="sapphire"
+          d="M112.787 294.07L79.1411 258.575"
+          stroke={graphTheme.line}
+          strokeWidth="2"
+        />
+        {/* Sapphire tokens connector */}
+        <path
+          className="sapphire"
+          d="M106.873 307.197L59.0528 317.448"
           stroke={graphTheme.line}
           strokeWidth="2"
         />
         <path
-          className={Layer.sapphire}
-          d="M127.501 299.77L163.137 333.266"
-          stroke={graphTheme.line}
-          strokeWidth="2"
-        />
-        <path
-          className={Layer.sapphire}
-          d="M112.336 295.148L69.5934 271.379"
-          stroke={graphTheme.line}
-          strokeWidth="2"
-        />
-        <path
-          className={Layer.emerald}
+          className="emerald"
           d="M197.319 77.6547L196.607 28.753"
           stroke={graphTheme.line}
           strokeWidth="2"
         />
 
         <g style={{ pointerEvents: !disabledMap.emerald ? 'auto' : 'none' }} className="highlight">
-          <Link to={RouteUtils.getLatestTransactionsRoute({ network, layer: Layer.emerald })}>
+          <Link to={RouteUtils.getLatestTransactionsRoute({ network, layer: 'emerald' })}>
             <path
-              className={Layer.emerald}
+              className="emerald"
               d="M250.839 37.333C262.715 37.333 272.341 46.9589 272.341 58.833C272.341 70.7071 262.715 80.333 250.839 80.333C238.964 80.333 229.338 70.7071 229.338 58.833C229.338 46.9589 238.964 37.333 250.839 37.333Z"
               fill={graphTheme.circleBorder}
               stroke={graphTheme.line}
@@ -506,9 +516,9 @@ const GraphCmp: ForwardRefRenderFunction<SVGSVGElement, GraphProps> = (
           </Link>
         </g>
         <g style={{ pointerEvents: !disabledMap.emerald ? 'auto' : 'none' }} className="highlight">
-          <Link to={RouteUtils.getLatestBlocksRoute({ network, layer: Layer.emerald })}>
+          <Link to={RouteUtils.getLatestBlocksRoute({ network, layer: 'emerald' })}>
             <path
-              className={Layer.emerald}
+              className="emerald"
               d="M139.839 39.333C151.715 39.333 161.341 48.9589 161.341 60.833C161.341 72.7071 151.715 82.333 139.839 82.333C127.964 82.333 118.338 72.7071 118.338 60.833C118.338 48.9589 127.964 39.333 139.839 39.333Z"
               fill={graphTheme.circleBorder}
               stroke={graphTheme.line}
@@ -519,9 +529,9 @@ const GraphCmp: ForwardRefRenderFunction<SVGSVGElement, GraphProps> = (
           </Link>
         </g>
         <g style={{ pointerEvents: !disabledMap.emerald ? 'auto' : 'none' }} className="highlight">
-          <Link to={RouteUtils.getTopTokensRoute({ network, layer: Layer.emerald })}>
+          <Link to={RouteUtils.getTopTokensRoute({ network, layer: 'emerald' })}>
             <path
-              className={Layer.emerald}
+              className="emerald"
               d="M196.839 3.27392C208.715 3.27392 218.341 12.8998 218.341 24.7739C218.341 36.648 208.715 46.2739 196.839 46.2739C184.964 46.2739 175.338 36.648 175.338 24.7739C175.338 12.8998 184.964 3.27393 196.839 3.27392Z"
               fill={graphTheme.circleBorder}
               stroke={graphTheme.line}
@@ -533,54 +543,67 @@ const GraphCmp: ForwardRefRenderFunction<SVGSVGElement, GraphProps> = (
         </g>
 
         <g style={{ pointerEvents: !disabledMap.sapphire ? 'auto' : 'none' }} className="highlight">
-          <Link to={RouteUtils.getLatestBlocksRoute({ network, layer: Layer.sapphire })}>
+          <Link to={RouteUtils.getLatestBlocksRoute({ network, layer: 'sapphire' })}>
             <path
-              className={Layer.sapphire}
-              d="M78.8395 331.333C90.7145 331.333 100.341 340.959 100.341 352.833C100.341 364.707 90.7145 374.333 78.8395 374.333C66.9644 374.333 57.3379 364.707 57.3379 352.833C57.3379 340.959 66.9644 331.333 78.8395 331.333Z"
+              className="sapphire"
+              d="M106.838 341.892C118.713 341.892 128.339 351.518 128.339 363.392C128.339 375.267 118.713 384.892 106.838 384.892C94.9625 384.892 85.3359 375.267 85.3359 363.392C85.3359 351.518 94.9625 341.892 106.838 341.892Z"
               fill={graphTheme.circleBorder}
               stroke={graphTheme.line}
             />
-            <text x="64.872" y="355.83" fill={graphTheme.text} fontSize="10px">
+            <text x="92.5" y="366.5" fill={graphTheme.text} fontSize="10px">
               {t('home.blocks')}
             </text>
           </Link>
         </g>
         <g style={{ pointerEvents: !disabledMap.sapphire ? 'auto' : 'none' }} className="highlight">
-          <Link to={RouteUtils.getLatestTransactionsRoute({ network, layer: Layer.sapphire })}>
+          <Link to={RouteUtils.getLatestTransactionsRoute({ network, layer: 'sapphire' })}>
             <path
-              className={Layer.sapphire}
-              d="M176.839 323.333C188.715 323.333 198.341 332.959 198.341 344.833C198.341 356.707 188.715 366.333 176.839 366.333C164.964 366.333 155.338 356.707 155.338 344.833C155.338 332.959 164.964 323.333 176.839 323.333Z"
+              className="sapphire"
+              d="M176.838 325.392C188.713 325.392 198.339 335.018 198.339 346.892C198.339 358.767 188.713 368.392 176.838 368.392C164.962 368.392 155.336 358.767 155.336 346.892C155.336 335.018 164.962 325.392 176.838 325.392Z"
               fill={graphTheme.circleBorder}
               stroke={graphTheme.line}
             />
-            <text x="167" y="347.83" fill={graphTheme.text} fontSize="10px">
+            <text x="167" y="350" fill={graphTheme.text} fontSize="10px">
               {t('home.txns')}
             </text>
           </Link>
         </g>
         <g style={{ pointerEvents: !disabledMap.sapphire ? 'auto' : 'none' }} className="highlight">
-          <Link to={RouteUtils.getTopTokensRoute({ network, layer: Layer.sapphire })}>
+          <Link to={RouteUtils.getTopTokensRoute({ network, layer: 'sapphire' })}>
             <path
-              className={Layer.sapphire}
-              d="M65.8395 245.333C77.7145 245.333 87.3411 254.959 87.3411 266.833C87.3411 278.707 77.7145 288.333 65.8395 288.333C53.9644 288.333 44.3379 278.707 44.3379 266.833C44.3379 254.959 53.9644 245.333 65.8395 245.333Z"
+              className="sapphire"
+              d="M50.8375 297.392C62.7126 297.392 72.3391 307.018 72.3391 318.892C72.3391 330.767 62.7126 340.392 50.8375 340.392C38.9625 340.392 29.3359 330.767 29.3359 318.892C29.3359 307.018 38.9625 297.392 50.8375 297.392Z"
               fill={graphTheme.circleBorder}
               stroke={graphTheme.line}
             />
-            <text x="51.60" y="269.833" fill={graphTheme.text} fontSize="10px">
+            <text x="36" y="322" fill={graphTheme.text} fontSize="10px">
               {t('common.tokens')}
+            </text>
+          </Link>
+        </g>
+        <g style={{ pointerEvents: !disabledMap.sapphire ? 'auto' : 'none' }} className="highlight">
+          <Link to={RouteUtils.getRoflAppsRoute(network)}>
+            <path
+              className="sapphire"
+              d="M75.8375 233.392C87.7126 233.392 97.3391 243.018 97.3391 254.892C97.3391 266.767 87.7126 276.392 75.8375 276.392C63.9625 276.392 54.3359 266.767 54.3359 254.892C54.3359 243.018 63.9625 233.392 75.8375 233.392Z"
+              fill={graphTheme.circleBorder}
+              stroke={graphTheme.line}
+            />
+            <text x="64" y="258" fill={graphTheme.text} fontSize="10px">
+              {t('common.rofl')}
             </text>
           </Link>
         </g>
 
         <g
-          id={`${Layer.emerald}-circle`}
-          aria-disabled={disabledMap[Layer.emerald]}
-          onClick={() => onSelectArea(Layer.emerald)}
+          id="emerald-circle"
+          aria-disabled={disabledMap.emerald}
+          onClick={() => onSelectArea('emerald')}
           filter={graphTheme.emeraldCircleFilter}
           {...preventDoubleClick}
-          {...handleHover(Layer.emerald, setHoveredLayer)}
+          {...handleHover('emerald', setHoveredLayer)}
         >
-          {network === Network.mainnet && (
+          {network === 'mainnet' && (
             <ellipse cx="195.702" cy="94.6959" rx="31.6963" ry="31.6959" fill="#030092" />
           )}
           <ellipse cx="195.702" cy="94.6959" rx="31.6963" ry="31.6959" fill={graphTheme.emeraldCircle} />
@@ -594,13 +617,13 @@ const GraphCmp: ForwardRefRenderFunction<SVGSVGElement, GraphProps> = (
           />
         </g>
         <g
-          id={`${Layer.emerald}-label`}
-          aria-disabled={disabledMap[Layer.emerald]}
-          onClick={() => onSelectArea(Layer.emerald)}
+          id="emerald-label"
+          aria-disabled={disabledMap.emerald}
+          onClick={() => onSelectArea('emerald')}
           {...preventDoubleClick}
-          {...handleHover(Layer.emerald, setHoveredLayer)}
+          {...handleHover('emerald', setHoveredLayer)}
         >
-          {(isMobile || hoveredLayer !== Layer.emerald) && (
+          {(isMobile || hoveredLayer !== 'emerald') && (
             <GraphLayerStatus
               iconX={201}
               iconY={102}
@@ -613,26 +636,26 @@ const GraphCmp: ForwardRefRenderFunction<SVGSVGElement, GraphProps> = (
             </GraphLayerStatus>
           )}
 
-          {!isMobile && hoveredLayer === Layer.emerald && !disabledMap[Layer.emerald] && (
+          {!isMobile && hoveredLayer === 'emerald' && !disabledMap.emerald && (
             <text x="181.5" y="97" fill={graphTheme.hoverText} fontSize="12px" fontWeight="700">
               {t('common.view')}
             </text>
           )}
-          {!isMobile && hoveredLayer === Layer.emerald && disabledMap[Layer.emerald] && (
+          {!isMobile && hoveredLayer === 'emerald' && disabledMap.emerald && (
             <text x="177.4" y="97" fill={graphTheme.hoverText} fontSize="12px" fontWeight="700">
               <LayerNotEnabledLabel network={network} />
             </text>
           )}
         </g>
         <g
-          id={`${Layer.sapphire}-circle`}
-          aria-disabled={disabledMap[Layer.sapphire]}
-          onClick={() => onSelectArea(Layer.sapphire)}
+          id="sapphire-circle"
+          aria-disabled={disabledMap.sapphire}
+          onClick={() => onSelectArea('sapphire')}
           filter={graphTheme.sapphireCircleFilter}
           {...preventDoubleClick}
-          {...handleHover(Layer.sapphire, setHoveredLayer)}
+          {...handleHover('sapphire', setHoveredLayer)}
         >
-          {network === Network.mainnet && (
+          {network === 'mainnet' && (
             <ellipse cx="123.702" cy="302.696" rx="31.6963" ry="31.6959" fill="#030092" />
           )}
           <ellipse cx="123.702" cy="302.696" rx="31.6963" ry="31.6959" fill={graphTheme.sapphireCircle} />
@@ -646,13 +669,13 @@ const GraphCmp: ForwardRefRenderFunction<SVGSVGElement, GraphProps> = (
           />
         </g>
         <g
-          id={`${Layer.sapphire}-label`}
-          aria-disabled={disabledMap[Layer.sapphire]}
-          onClick={() => onSelectArea(Layer.sapphire)}
+          id="sapphire-label"
+          aria-disabled={disabledMap.sapphire}
+          onClick={() => onSelectArea('sapphire')}
           {...preventDoubleClick}
-          {...handleHover(Layer.sapphire, setHoveredLayer)}
+          {...handleHover('sapphire', setHoveredLayer)}
         >
-          {(isMobile || hoveredLayer !== Layer.sapphire) && (
+          {(isMobile || hoveredLayer !== 'sapphire') && (
             <GraphLayerStatus
               iconX={130}
               iconY={310}
@@ -664,22 +687,22 @@ const GraphCmp: ForwardRefRenderFunction<SVGSVGElement, GraphProps> = (
               {t('common.sapphire')}
             </GraphLayerStatus>
           )}
-          {!isMobile && hoveredLayer === Layer.sapphire && !disabledMap[Layer.sapphire] && (
+          {!isMobile && hoveredLayer === 'sapphire' && !disabledMap.sapphire && (
             <text x="109.5" y="307" fill={graphTheme.hoverText} fontSize="12px" fontWeight="700">
               {t('common.view')}
             </text>
           )}
-          {!isMobile && hoveredLayer === Layer.sapphire && disabledMap[Layer.sapphire] && (
+          {!isMobile && hoveredLayer === 'sapphire' && disabledMap.sapphire && (
             <text x="106" y="305" fill={graphTheme.hoverText} fontSize="12px" fontWeight="700">
               <LayerNotEnabledLabel network={network} />
             </text>
           )}
         </g>
         <g
-          id={`${Layer.consensus}-circle`}
-          onClick={() => onSelectArea(Layer.consensus)}
-          aria-disabled={disabledMap[Layer.consensus]}
-          {...handleHover(Layer.consensus, setHoveredLayer)}
+          id={'consus circle'}
+          onClick={() => onSelectArea('consensus')}
+          aria-disabled={disabledMap.consensus}
+          {...handleHover('consensus', setHoveredLayer)}
         >
           <circle
             className="no-hide"
@@ -718,13 +741,13 @@ const GraphCmp: ForwardRefRenderFunction<SVGSVGElement, GraphProps> = (
           />
         </g>
         <g
-          id={`${Layer.consensus}-label`}
-          aria-disabled={disabledMap[Layer.consensus]}
-          onClick={() => onSelectArea(Layer.consensus)}
+          id={'consensus label'}
+          aria-disabled={disabledMap.consensus}
+          onClick={() => onSelectArea('consensus')}
           {...preventDoubleClick}
-          {...handleHover(Layer.consensus, setHoveredLayer)}
+          {...handleHover('consensus', setHoveredLayer)}
         >
-          {(isMobile || hoveredLayer !== Layer.consensus) && (
+          {(isMobile || hoveredLayer !== 'consensus') && (
             <GraphLayerStatus
               iconX={201}
               iconY={216}
@@ -736,12 +759,12 @@ const GraphCmp: ForwardRefRenderFunction<SVGSVGElement, GraphProps> = (
               {t('common.consensus')}
             </GraphLayerStatus>
           )}
-          {!isMobile && hoveredLayer === Layer.consensus && !disabledMap[Layer.consensus] && (
+          {!isMobile && hoveredLayer === 'consensus' && !disabledMap.consensus && (
             <text x="173" y="214" fill={graphTheme.hoverText} fontSize="12px" fontWeight="700">
               {t('common.view')}
             </text>
           )}
-          {!isMobile && hoveredLayer === Layer.consensus && disabledMap[Layer.consensus] && (
+          {!isMobile && hoveredLayer === 'consensus' && disabledMap.consensus && (
             <text x="170" y="212" fill={graphTheme.hoverText} fontSize="12px" fontWeight="700">
               <LayerNotEnabledLabel network={network} />
             </text>
@@ -749,14 +772,14 @@ const GraphCmp: ForwardRefRenderFunction<SVGSVGElement, GraphProps> = (
         </g>
         <g
           filter={graphTheme.cipherCircleFilter}
-          aria-disabled={disabledMap[Layer.cipher]}
-          onClick={() => onSelectArea(Layer.cipher)}
-          id={`${Layer.cipher}-circle`}
+          aria-disabled={disabledMap.cipher}
+          onClick={() => onSelectArea('cipher')}
+          id={`cipher-circle`}
           {...preventDoubleClick}
-          {...handleHover(Layer.cipher, setHoveredLayer)}
+          {...handleHover('cipher', setHoveredLayer)}
         >
           <ellipse cx="306.702" cy="201.696" rx="31.6963" ry="31.6959" fill={graphTheme.cipherCircleFill} />
-          {network === Network.mainnet && (
+          {network === 'mainnet' && (
             <ellipse cx="306.702" cy="201.696" rx="31.6963" ry="31.6959" fill={graphTheme.cipherCircle} />
           )}
           <ellipse
@@ -769,30 +792,30 @@ const GraphCmp: ForwardRefRenderFunction<SVGSVGElement, GraphProps> = (
           />
         </g>
         <g
-          id={`${Layer.cipher}-label`}
-          aria-disabled={disabledMap[Layer.cipher]}
-          onClick={() => onSelectArea(Layer.cipher)}
+          id="cipher-label"
+          aria-disabled={disabledMap.cipher}
+          onClick={() => onSelectArea('cipher')}
           {...preventDoubleClick}
-          {...handleHover(Layer.cipher, setHoveredLayer)}
+          {...handleHover('cipher', setHoveredLayer)}
         >
-          {(isMobile || hoveredLayer !== Layer.cipher) && (
+          {(isMobile || hoveredLayer !== 'cipher') && (
             <text x="290" y="205" fill={graphTheme.text} fontSize="12px">
               {t('common.cipher')}
             </text>
           )}
-          {!isMobile && hoveredLayer === Layer.cipher && !disabledMap[Layer.cipher] && (
+          {!isMobile && hoveredLayer === 'cipher' && !disabledMap.cipher && (
             <text x="294" y="205" fill={graphTheme.hoverText} fontSize="12px" fontWeight="700">
               {t('common.view')}
             </text>
           )}
-          {!isMobile && hoveredLayer === Layer.cipher && disabledMap[Layer.cipher] && (
+          {!isMobile && hoveredLayer === 'cipher' && disabledMap.cipher && (
             <text x="290" y="205" fill={graphTheme.hoverText} fontSize="12px" fontWeight="700">
               <LayerNotEnabledLabel network={network} />
             </text>
           )}
         </g>
 
-        {network === Network.testnet && (
+        {network === 'testnet' && (
           <defs>
             <filter
               id="filter0_di_6093_290291"
@@ -896,7 +919,7 @@ const GraphCmp: ForwardRefRenderFunction<SVGSVGElement, GraphProps> = (
           </defs>
         )}
 
-        {network === Network.mainnet && (
+        {network === 'mainnet' && (
           <defs>
             <filter
               id="filter0_dii_6093_287252"

@@ -1,3 +1,4 @@
+import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest'
 import { screen } from '@testing-library/react'
 import { renderWithProviders } from '../../../utils/__tests__/renderWithProviders.test'
 
@@ -6,20 +7,19 @@ import {
   suggestedParsedAccountResult,
   suggestedParsedBlock,
 } from '../../../utils/test-fixtures'
-import { Network } from '../../../../types/network'
 import { SearchResultsList } from '../SearchResultsList'
 import { Ticker } from '../../../../types/ticker'
 
-jest.mock('../../../hooks/useAccountMetadata')
+vi.mock('../../../hooks/useAccountMetadata')
 
 describe('SearchResultsView', () => {
   beforeEach(() => {
-    jest.useFakeTimers()
-    jest.setSystemTime(new Date('2023-01-01T01:01:01Z'))
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2023-01-01T01:01:01Z'))
   })
 
   afterEach(() => {
-    jest.useRealTimers()
+    vi.useRealTimers()
   })
 
   it('block should correctly link to transactions', () => {
@@ -28,19 +28,25 @@ describe('SearchResultsView', () => {
         searchResults={[suggestedParsedBlock, sapphireParsedBlock]}
         tokenPrices={{
           [Ticker.ROSE]: {
+            ticker: Ticker.ROSE,
             isLoading: false,
+            hasFailed: false,
             isFree: false,
             price: 1,
             fiatCurrency: 'usd',
             hasUsedCoinGecko: true,
           },
           [Ticker.TEST]: {
+            ticker: Ticker.TEST,
             isLoading: false,
+            hasFailed: false,
             isFree: true,
             hasUsedCoinGecko: false,
           },
-          [Ticker.EUROe]: {
+          [Ticker.EURAU]: {
+            ticker: Ticker.EURAU,
             isLoading: false,
+            hasFailed: false,
             isFree: false,
             price: 1,
             fiatCurrency: 'usd',
@@ -48,7 +54,7 @@ describe('SearchResultsView', () => {
           },
         }}
         title="test search"
-        networkForTheme={Network.mainnet}
+        networkForTheme="mainnet"
       />,
     )
     expect(screen.getByText('1,396,255')).toBeInTheDocument()
@@ -71,22 +77,28 @@ describe('SearchResultsView', () => {
       <SearchResultsList
         searchResults={[suggestedParsedAccountResult]}
         title="test search"
-        networkForTheme={Network.mainnet}
+        networkForTheme="mainnet"
         tokenPrices={{
           [Ticker.ROSE]: {
+            ticker: Ticker.ROSE,
             isLoading: false,
+            hasFailed: false,
             isFree: false,
             price: 1,
             fiatCurrency: 'usd',
             hasUsedCoinGecko: true,
           },
           [Ticker.TEST]: {
+            ticker: Ticker.TEST,
             isLoading: false,
+            hasFailed: false,
             isFree: true,
             hasUsedCoinGecko: false,
           },
-          [Ticker.EUROe]: {
+          [Ticker.EURAU]: {
+            ticker: Ticker.EURAU,
             isLoading: false,
+            hasFailed: false,
             isFree: false,
             price: 1,
             fiatCurrency: 'usd',

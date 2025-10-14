@@ -76,6 +76,7 @@
     "copy": "Copy",
     "data": "Data",
     "debonding": "Debonding",
+    "description": "Description",
     "details": "Details",
     "emerald": "Emerald",
     "epoch": "Epoch",
@@ -87,6 +88,7 @@
     "fiatValue": "Fiat Value",
     "fiatValueInUSD": "{{value, currency}}",
     "fill": "Fill",
+    "for": "For",
     "formattedBlockTimestamp": "{{timestamp, dateTime}} ({{distance}})",
     "formattedDateTime": "{{timestamp, dateTime}}",
     "from": "From",
@@ -103,29 +105,35 @@
     "loadMore": "Load more",
     "lessThanAmount": "&lt; {{value, number}} <TickerLink />",
     "missing": "n/a",
+    "module": "module",
     "name": "Name",
     "network": "Network",
     "nft": "NFT",
     "nfts": "NFTs",
+    "nodeId": "Node ID",
+    "nodeAddress": "Node Address",
     "nonce": "Nonce",
     "not_defined": "Not defined",
     "oasis": "Oasis",
     "owned": "Owned",
     "paratime": "Paratime",
     "parentheses": "({{subject}})",
+    "partial_success": "Partial Success",
     "percentage": "Percentage",
     "proposal": "Proposal",
     "proposer": "Proposer",
     "rank": "Rank",
+    "rofl": "ROFL",
+    "seeMore": "See more",
     "select": "Select",
     "size": "Size",
-    "sapphire": "Sapphire",
+    "sapphire": "Oasis Sapphire",
     "shares": "Shares",
     "show": "Show",
     "smartContract": "Smart Contract",
     "smartContract_short": "Contract",
     "staked": "Staked",
-    "stateRoot": "StateRoot",
+    "stateRoot": "State Root",
     "staking": "Staking",
     "submitter": "Submitter",
     "success": "Success",
@@ -135,12 +143,15 @@
     "title": "Title",
     "to": "To",
     "token": "Token",
+    "tokenName": "Token Name",
     "tokenInstance": "TokenID [<InstanceLink />] <TickerLink/>",
     "tokens": "Tokens",
     "totalVotes": "Total votes",
     "transactions": "Transactions",
     "transactionAbbreviation": "Txs",
     "fee": "Fee",
+    "feeProxy": "Fee proxy",
+    "feeProxyTooltip": "Account paying for the transaction fee on behalf of the caller",
     "transfers": "Transfers",
     "type": "Type",
     "quantity": "Quantity",
@@ -151,48 +162,48 @@
     "valueInTokenWithLink": "{{value, number}} <TickerLink />",
     "view": "View",
     "viewAll": "View all",
+    "visitRoseApp": "Visit ROSE app",
     "vote": "Vote",
     "voter": "Voter",
     "votes": "Votes",
     "online": "Online",
     "outOfDate": "Indexing out of date",
     "recipient": "Recipient",
-    "mainnet": "Mainnet",
-    "testnet": "Testnet",
+    "mainnet": "Oasis Mainnet",
+    "testnet": "Oasis Testnet",
     "valuePair": "{{value, number}}"
   },
   "contract": {
     "code": "Code",
+    "contractMetadata": "Contract Metadata",
     "copyButton": "Copy {{subject}}",
     "creationByteCode": "Creation ByteCode",
     "creator": "Creator",
     "createdAt": "at",
+    "name": "Contract name",
     "noCode": "There is no bytecode on record for this account. (Are you sure this is a contract?)",
     "title": "Contract",
     "runtimeByteCode": "Runtime ByteCode",
+    "sourceCode": "Contract Source Code",
     "verification": {
       "title": "Verification",
       "isVerified": "Verified",
       "isNotVerified": "Unverified",
+      "isPartiallyVerified": "Partially Verified",
       "openInAbiPlayground": "Interact in <AbiPlaygroundLink>ABI Playground</AbiPlaygroundLink>",
       "openInSourcify": "Open in <SourcifyLink>Sourcify</SourcifyLink>",
+      "source": "Source",
+      "sourceShort": "Src",
       "verifyInSourcify": "Verify through <SourcifyLink>Sourcify</SourcifyLink>",
       "explainVerificationDelay": "If you have just verified a contract, it should take a few minutes to update here.",
       "proxyERC1167": "ERC-1167 proxy to"
     }
   },
   "consensusSnapshot": {
-    "blockHeight": "Block Height <BlockHeight />",
-    "title": "Consensus Snapshot",
-    "totalCirculation": "This is <StakedPercentage /> of the total circulation"
+    "blockHeight": "Current block height <BlockHeight />",
+    "title": "Consensus Snapshot"
   },
-  "currentEpoch": "Current Epoch",
-  "dapps": {
-    "wrose": {
-      "description": "Looking to wrap or unwrap your wROSE?",
-      "label": "Use our ROSE (un)wrapper"
-    }
-  },
+  "snapshotEpochTitle": "Current epoch & block height",
   "networkProposal": {
     "close": "Closed",
     "closeTooltip": "Voting ended on epoch shown.",
@@ -236,7 +247,6 @@
     "openInFullscreen": "Open in fullscreen",
     "openInNewTab": "Open in a new tab",
     "owner": "Owner",
-    "ownerLink": "Owner: <OwnerLink />",
     "switchBackgroundColor": "Switch between dark and light background"
   },
   "nodes": {
@@ -254,18 +264,22 @@
     "unsupportedLayer": "Unsupported layer",
     "unsupportedNetwork": "Unsupported network",
     "invalidAddress": "Invalid address",
+    "invalidRoflAppId": "Invalid app ID",
     "invalidBlockHeight": "Invalid block height",
     "invalidPageNumber": "Invalid page number",
     "invalidProposalId": "Invalid proposal ID",
     "invalidTxHash": "Invalid transaction hash",
     "notFoundBlockHeight": "Block not found",
     "notFoundTx": "Transaction not found",
+    "notFoundRoflApp": "App not found",
+    "notFoundRoflAppReplica": "Replica not found",
     "notFoundProposal": "Proposal not found",
     "pageDoesNotExist": "The page you are looking for does not exist.",
     "validateURL": "Please validate provided URL",
     "validateURLOrGoToFirstPage": "Please check the URL or <FirstPageLink />.",
-    "invalidUrl": "Invalid URL",
+    "invalidUrl": "This URL doesn't exist",
     "invalidVote": "Invalid vote",
+    "alternativelyGoExplore": "Alternatively, discover our ecosystem by exploring Oasis.",
     "revertedWithoutMessage": "reverted without a message",
     "storage": "Access to browser storage denied"
   },
@@ -363,7 +377,7 @@
     "last": "Last"
   },
   "social": {
-    "description": "Be part of the community and stay in the loop on everything Oasis",
+    "description": "Learn more about Pontus-X and the team behind it",
     "discord": "Discord",
     "header": "Join us",
     "reddit": "Reddit",
@@ -389,7 +403,7 @@
     "changeView": "Change view"
   },
   "testnetFaucet": {
-    "description": "Drops are limited to 10 TEST tokens",
+    "description": "Drops are limited to 150 TEST tokens",
     "header": "Oasis Testnet Faucet",
     "request": "Request test tokens"
   },
@@ -401,9 +415,11 @@
     "holdersValue": "{{ value, number }}",
     "holdersCount": "Holders Count",
     "inventory": "Inventory",
+    "originTooltip": "This token originates from <strong>{{origin}}</strong>",
     "totalSupply": "Total Supply",
     "totalSupplyValue": "{{ value, number }} {{ticker}}",
     "transferEventType": {
+      "erc20Transfer": "ERC-20 token transfer",
       "transfer": "Transfer",
       "approval": "Approval",
       "minting": "Minting",
@@ -432,7 +448,7 @@
       "publicKey": "Public Key",
       "resultNonce": "Result Nonce"
     },
-    "filterByType": "Filter by type",
+    "filterByMethod": "Filter by method",
     "latest": "Latest Transactions",
     "method": {
       "stakingBurn": "Burn",
@@ -441,7 +457,7 @@
       "stakingReclaimEscrow": "Start Undelegate",
       "stakingAmendCommissionSchedule": "Amend Commission Schedule",
       "stakingAllow": "Allowance Change",
-      "stakingWithdraw": "Continued Delegate",
+      "stakingWithdraw": "Withdraw from Allowance",
       "registryDeregisterEntity": "Deregister Entity",
       "registryUnfreezeNode": "Registry: Unfreeze Node",
       "roothashExecutorCommit": "Executor Commit",
@@ -457,16 +473,15 @@
       "beaconPVSSCommit": "PVSSCommit",
       "beaconPVSSReveal": "PVSSReveal",
       "beaconVRFProve": "VRFProve",
-      "unavailable": "Malformed transaction, method unavailable",
       "accounts": {
         "transfer": "Transfer"
       },
       "consensus": {
-        "deposit": "Consensus Deposit",
-        "delegate": "Consensus Delegate",
+        "deposit": "Deposit from Consensus",
+        "delegate": "Start Delegate",
         "meta": "Consensus Meta",
-        "undelegate": "Consensus Undelegate",
-        "withdraw": "Consensus Withdraw"
+        "undelegate": "Start Undelegate",
+        "withdraw": "Withdraw to Consensus"
       },
       "evm": {
         "call": "Contract Call",
@@ -489,6 +504,17 @@
         "remove": "ROFL Remove",
         "update": "ROFL Update"
       },
+      "roflmarket": {
+        "providerCreate": "ROFL Market Provider Create",
+        "providerUpdate": "ROFL Market Provider Update",
+        "providerUpdateOffers": "ROFL Market Provider Update Offers",
+        "providerRemove": "ROFL Market Provider Remove",
+        "machineCreate": "ROFL Market Machine Create",
+        "machineTopUp": "ROFL Market Machine Top Up",
+        "machineCancel": "ROFL Market Machine Cancel",
+        "machineExecuteCmds": "ROFL Market Machine Execute Commands",
+        "machineChangeAdmin": "ROFL Market Machine Change Admin"
+      },
       "vault": {
         "authorizeAction": "Vault: Authorize Action",
         "cancelAction": "Vault: Cancel Action",
@@ -499,6 +525,7 @@
   "transaction": {
     "delegate": "Delegate",
     "deposit": "Deposit",
+    "eventsSummary": "Summary",
     "header": "Transaction",
     "rawData": "Raw Data",
     "started": "Started",
@@ -514,10 +541,34 @@
   "event": {
     "cantLoadEvents": "Unfortunately we couldn't load the list of events. Please try again later.",
     "cantFindMatchingEvents": "We can't find any matching events.",
+    "filterByType": "Filter by type",
     "noEvents": "No events",
     "fields": {
       "emittingTransaction": "Transaction"
     }
+  },
+  "consensusEvent": {
+    "governanceProposalExecuted": "Governance Proposal Executed",
+    "governanceProposalFinalized": "Governance Proposal Finalized",
+    "governanceProposalSubmitted": "Governance Proposal Submitted",
+    "governanceVote": "Governance Vote Submitted",
+    "registryEntity": "Entity Registered",
+    "registryNodeUnfrozen": "Node Unfrozen",
+    "registryNode": "Node Registered",
+    "registryRuntime": "Runtime Registered",
+    "registryRuntimeSuspended": "Runtime Suspended",
+    "roothashExecution_discrepancy": "Discrepancy Detected",
+    "roothashExecutorCommitted": "Runtime Executor Committed",
+    "roothashFinalized": "Runtime Round Finalized",
+    "roothashMessage": "Runtime Message Emitted",
+    "roothashInMsgProcessed": "Incoming Runtime Message Processed",
+    "stakingAllowanceChange": "Allowance Changed",
+    "stakingBurn": "Burn",
+    "stakingEscrowAdd": "Delegate",
+    "stakingEscrowDebondingStart": "Start to undelegate",
+    "stakingEscrowReclaim": "Undelegate finished",
+    "stakingEscrowTake": "Stake Slashed",
+    "stakingTransfer": "Transfer"
   },
   "runtimeEvent": {
     "accountsburn": "Tokens burnt",
@@ -526,11 +577,21 @@
     "consensusDeposit": "Deposit from consensus",
     "consensusWithdrawal": "Withdrawal to consensus",
     "consensusDelegate": "Delegate to consensus",
-    "consensusUndelegateStart": "Start to undelegate from consensus",
-    "consensusUndelegateDone": "Undelegate from consensus finished",
+    "consensusUndelegateStart": "Start to undelegate",
+    "consensusUndelegateDone": "Undelegate finished",
     "roflAppCreated": "ROFL App Created",
     "roflAppUpdated": "ROFL App Updated",
     "roflAppRemoved": "ROFL App Removed",
+    "replicaRegistered": "ROFL Replica Registered",
+    "roflmarketProviderCreated": "ROFL Market Provider Created",
+    "roflmarketProviderUpdated": "ROFL Market Provider Updated",
+    "roflmarketProviderRemoved": "ROFL Market Provider Removed",
+    "roflmarketMachineCreated": "ROFL Market Machine Created",
+    "roflmarketMachineUpdated": "ROFL Market Machine Updated",
+    "roflmarketMachineAccepted": "ROFL Market Machine Accepted",
+    "roflmarketMachineCancelled": "ROFL Market Machine Cancelled",
+    "roflmarketMachineRemoved": "ROFL Market Machine Removed",
+    "roflmarketMachineCommandQueued": "ROFL Market Command Queued",
     "evmLog": "EVM log message",
     "filter": {
       "all": "All events",
@@ -580,6 +641,7 @@
     "comingSoonTitle": "Coming soon",
     "comingSoonLabel": "(coming soon)",
     "consensus": "The consensus layer is a scalable, high-throughput, secure, proof-of-stake consensus run by a decentralized set of validator nodes.",
+    "description": "Select the network and layer you want to explore.",
     "goToDashboard": "Go to dashboard",
     "hex": "Hex: {{ id }}",
     "hostedOn": "Hosted on {{ network }}",
@@ -607,9 +669,10 @@
   "home": {
     "apiOffline": "Our {{ target }} API is offline. We’re trying to reconnect",
     "userOffline": "You are offline. We’re trying to reconnect",
-    "layerOutOfDate": "We don't have fully up-to-date data about our {{ target }}. The data displayed here might be out of date.",
-    "layerUnavailable": "Data about {{ target }} is currently not available. Please check back later.",
-    "layerOutOfDateSince": "The last update we have about our {{ target }} is from {{ lastUpdate }}. The data displayed here might be out of date.",
+    "indexerOutOfDate": "We don't have fully up-to-date data about our {{ scope }}. The data displayed here might be out of date.",
+    "indexerOutOfDateSince": "The last update we have about our {{ scope }} is from {{ lastUpdate }}. The data displayed here might be out of date.",
+    "nodeOutOfDateSince": "The explorer's gRPC node has not observed new blocks since {{ lastUpdate }}. Check status.oasis.io.",
+    "indexerUnavailable": "Data about {{ scope }} is currently not available. Please check back later.",
     "blocks": "Blocks",
     "exploreBtnText": "Explore Oasis",
     "link": "Oasis Explorer Home",
@@ -647,11 +710,94 @@
     "listTitle": "ParaTimes",
     "noData": "No data available",
     "nodes": "Nodes:",
-    "outdated": "Out-of-date"
+    "outdated": "Out-of-date",
+    "canNotReadStatus": "Can't load status paratime '{{name}}'."
   },
   "pontusx": {
-    "devnet": "Pontus-X devnet",
-    "testnet": "Pontus-X"
+    "devnet": "Pontus-X Devnet",
+    "testnet": "Pontus-X Testnet",
+    "testTokens": {
+      "description": "Do you need some tokens for testing?",
+      "header": "Test tokens",
+      "request": "Get Tokens"
+    }
+  },
+  "rofl": {
+    "active": "Active",
+    "activeReplicas": "Active replicas",
+    "adminAccount": "Admin account",
+    "appId": "App ID",
+    "author": "Author",
+    "created": "Date created",
+    "description": "Description",
+    "emptyReplicasList": "No replicas found.",
+    "emptyRoflAppsList": "No apps found.",
+    "enclaveId": "Enclave ID",
+    "endorsement": "Endorsement",
+    "endorsementLabels": {
+      "any": "Any node can endorse the enclave",
+      "entity": "Node from entity <Address />",
+      "node": "Node <Address />",
+      "role_compute": "Node has the <i>compute</i> role for the current runtime",
+      "role_observer": "Node has the <i>observer</i> role for the current runtime",
+      "provider": "Node from provider <Address />",
+      "provider_instance_admin": "<Address /> is currently admin on machine",
+      "and": "and",
+      "or": "or"
+    },
+    "endorsingNodeAddress": "Endorsing node address",
+    "endorsingNodeId": "Endorsing node ID",
+    "endorsingNodePays": "Endorsing node pays",
+    "evaluation": "TCB data evaluation",
+    "expirationEpoch": "Expiration epoch",
+    "expired": "Expired",
+    "extraKeys": "Extra keys",
+    "feePolicy": "Fee policy",
+    "homePage": "Homepage",
+    "inactive": "Inactive",
+    "lastActivity": "Last activity",
+    "license": "License",
+    "listTitle": "ROFL-Powered Apps",
+    "metadata": "Meta data",
+    "metadataInfo": "This info provided by deployer, Oasis does not verify this information.",
+    "min": "(minimum)",
+    "nameNotProvided": "Name not provided",
+    "noData": "No data available",
+    "nodeAddressSwitch": "Show node address",
+    "nodeIdSwitch": "Show node ID",
+    "policy": "Policy",
+    "rak": "Runtime Attestation Key",
+    "rakAbbreviation": "RAK",
+    "rekAbbreviation": "REK",
+    "removed": "Removed",
+    "replicaDetails": "Replica details",
+    "replicaPays": "Replica pays",
+    "replicas": "Replicas",
+    "repositoryUrl": "Repository URL",
+    "roflAppId": "ROFL App ID",
+    "roflName": "Name",
+    "searchByNameOrKeyword": "Search by name or keyword",
+    "secretLength": "[{{value}} bytes]",
+    "secrets": "Secrets",
+    "secretsTooltip": "These secrets are end-to-end encrypted and can only be read by the app running in ROFL.",
+    "sekPublicKey": "SEK Public Key",
+    "sgx": "SGX",
+    "stakedAmount": "Staked amount",
+    "tdx": "TDX",
+    "tee": "TEE",
+    "update": "Update",
+    "updates": "Updates",
+    "validity": "Validity period",
+    "validityPeriodDays": "{{value}} days",
+    "verifyCommand": "Run <Command /> to verify.",
+    "version": "Version"
+  },
+  "roflmarket": {
+    "provider": "Provider",
+    "machineId": "Machine ID"
+  },
+  "privacyPolicy": {
+    "title": "Privacy Policy"
   },
   "search": {
     "placeholder": "Address, Block, Contract, Transaction hash, Token name, etc.",
@@ -663,12 +809,12 @@
     "noResults": {
       "header": "No results found",
       "scopeHeader": "No results found on {{scope}}",
-      "description": "Please try another search query <OptionalBreak> or explore the <HomeLink>Oasis ecosystem</HomeLink>.</OptionalBreak>"
+      "description": "Please try another search query <OptionalBreak> or <HomeLink>explore Oasis</HomeLink>.</OptionalBreak>"
     },
     "otherResults": {
-      "clickToShowThem": "We found <strong>{{ countLabel }}</strong> on other <strong>Networks</strong>. Click to open these results.",
-      "clickToShowMore": "We also found <strong>{{ countLabel }}</strong> on other <strong>Networks</strong>. Click to open these results.",
-      "clickToHide": "The results from other <strong>Networks</strong> are shown below. Click to hide those results."
+      "clickToShowThem": "We found {{ countLabel }} on other Networks. Click to open these results.",
+      "clickToShowMore": "We also found {{ countLabel }} on other Networks. Click to open these results.",
+      "clickToHide": "The results from other Networks are shown below. Click to hide those results."
     },
     "results": {
       "accounts": {
@@ -691,9 +837,17 @@
         "title": "Transactions",
         "viewLink": "View Transaction"
       },
+      "roflApps": {
+        "title": "ROFL",
+        "viewLink": "View ROFL App"
+      },
       "proposals": {
         "title": "Proposals",
         "viewLink": "View Proposal"
+      },
+      "validators": {
+        "title": "Validators",
+        "viewLink": "View Validator"
       },
       "count_one": "1 result",
       "count_other": "{{ count }} results",
@@ -701,14 +855,15 @@
       "moreCount_other": "{{ count }} more results"
     },
     "searchBtnText": "Search",
-    "searchSuggestionsForRuntime": "Not sure what to look for? Try out a search: <OptionalBreak><BlockLink><BlockIcon/> Block</BlockLink>, <TransactionLink><TransactionIcon/> Transaction</TransactionLink>, <AccountLink><AccountIcon/> Address</AccountLink>, <TokenLink><TokenIcon/> Token</TokenLink> </OptionalBreak>.",
-    "searchSuggestionsForConsensus": "Not sure what to look for? Try out a search: <OptionalBreak><BlockLink><BlockIcon/> Block</BlockLink>, <TransactionLink><TransactionIcon/> Transaction</TransactionLink>, <AccountLink><AccountIcon/> Address</AccountLink> </OptionalBreak>.",
-    "searchSuggestionsForNoResultsForRuntime": "Alternatively, you can view a random <BlockLink><BlockIcon/> Block</BlockLink>, <OptionalBreak><TransactionLink><TransactionIcon/> Transaction</TransactionLink>, <AccountLink><AccountIcon/> Address</AccountLink> or <TokenLink><TokenIcon/> Token</TokenLink></OptionalBreak> <OptionalBreak>to discover our Explorer.</OptionalBreak>",
-    "searchSuggestionsForNoResultsForConsensus": "Alternatively, you can view a random <BlockLink><BlockIcon/> Block</BlockLink>, <OptionalBreak><TransactionLink><TransactionIcon/> Transaction</TransactionLink> or <AccountLink><AccountIcon/> Address</AccountLink> <OptionalBreak>to discover our Explorer.</OptionalBreak>"
+    "searchSuggestionsForRuntime": "Not sure what to look for? Try out a search: <OptionalBreak><BlockLink>Block</BlockLink>, <TransactionLink>Transaction</TransactionLink>, <AccountLink>Address</AccountLink>, <TokenLink>Token</TokenLink></OptionalBreak>.",
+    "searchSuggestionsForConsensus": "Not sure what to look for? Try out a search: <OptionalBreak><BlockLink>Block</BlockLink>, <TransactionLink>Transaction</TransactionLink>, <AccountLink>Address</AccountLink></OptionalBreak>.",
+    "suggestSearchForRuntime": "Use search to find what you are looking for, i.e. <OptionalBreak><BlockLink>Block</BlockLink>, <TransactionLink>Transaction</TransactionLink>, <AccountLink>Address</AccountLink>, <TokenLink>Token</TokenLink></OptionalBreak>.",
+    "suggestSearchForConsensus": "Use search to find what you are looking for, i.e. <OptionalBreak><BlockLink>Block</BlockLink>, <TransactionLink>Transaction</TransactionLink>, <AccountLink>Address</AccountLink></OptionalBreak>."
   },
   "tableSearch": {
     "error": {
-      "tooShort": "Please enter at least 3 characters to perform a search."
+      "tooShort": "Please enter at least 3 characters to perform a search.",
+      "tooMany": "Too many words"
     },
     "noMatchingResults": "There are no results matching your filters.",
     "clearFilters": "Clear filters"
@@ -716,7 +871,6 @@
   "validator": {
     "active": "Active",
     "amount": "Amount",
-    "balanceDistribution": "Balance Distribution",
     "blockWithHeight": "Block {{height}}",
     "boundsNotSet": "No bounds set (0% - 100%)",
     "change": "Change (24h)",
@@ -730,13 +884,13 @@
     "emptyDebondingList": "No one is debonding delegations from this validator.",
     "emptyDelegationsList": "No one is delegating to this validator.",
     "entityId": "Entity ID",
+    "escrowDistribution": "Escrow Distribution",
     "externalLink": "External Link",
     "externalLinkDescription": "Oasis is not responsible for any content on external pages.",
     "groupStatus": "{{status}} validators",
     "inactive": "Inactive",
     "listTitle": "Validators",
     "missed": "Missed",
-    "nodeId": "Node ID",
     "others": "Others",
     "signed": "Signed",
     "signedBlocks": "Signed Blocks",
@@ -753,6 +907,7 @@
     "totalShare": "Total Share",
     "undelegations": "Undelegations",
     "uptime": "Uptime",
+    "uptimeLast24": "Last 24 hours",
     "voting": "Voting %",
     "votingPower": "Voting Power",
     "votingPowerOverall": "in % of overall network",
