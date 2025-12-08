@@ -23,7 +23,7 @@ export const usePontusXAccountsMetadata = () => {
   })
 
   if (error) {
-    console.log('Failed to load Pontus-X account names', error)
+    console.error('Failed to load Pontus-X account names', error)
   }
 
   const map: AccountMap = new Map()
