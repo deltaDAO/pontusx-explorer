@@ -75,7 +75,7 @@ export const useSearchForPontusXAccountsByName = (
   const isMetadataError = metadataError !== undefined
 
   if (isMetadataError) {
-    console.log('Failed to load Pontus-X account names', metadataError)
+    console.error('Failed to load Pontus-X account names', metadataError)
   }
 
   const matches =
