@@ -19,7 +19,6 @@ type PontusXAccountsMetadata = {
 
 export const usePontusXAccountsMetadata = () => {
   const { isLoading, error, data } = usePontusXRegistry({
-    apiBaseUrl: 'https://cache.registry.staging.pontus-x.eu',
     includeDeprecated: true,
   })
 
