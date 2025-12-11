@@ -53,10 +53,15 @@ export const useSearchForAccountsByName = (
 ): AccountNameSearchResults => {
   const isPontusX = scope.layer === 'pontusxtest' || scope.layer === 'pontusxdev'
   const isValidPontusXSearch = isPontusX && !!nameFragments.length
-  const pontusXResults = useSearchForPontusXAccountsByName(scope.network, nameFragments, {
-    enabled: isValidPontusXSearch,
-    useErrorBoundary: false,
-  })
+  const pontusXResults = useSearchForPontusXAccountsByName(
+    scope.network,
+    scope.layer as 'pontusxtest' | 'pontusxdev',
+    nameFragments,
+    {
+      enabled: isValidPontusXSearch,
+      useErrorBoundary: false,
+    },
+  )
   const isValidOasisSearch = !isPontusX && !!nameFragments.length
   const oasisResults = useSearchForOasisAccountsByName(scope.network, scope.layer, nameFragments, {
     enabled: isValidOasisSearch,

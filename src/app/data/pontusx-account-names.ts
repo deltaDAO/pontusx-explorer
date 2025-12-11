@@ -58,6 +58,7 @@ export const usePontusXAccountMetadata = (oasisAddress: string): AccountMetadata
 
 export const useSearchForPontusXAccountsByName = (
   network: Network,
+  layer: 'pontusxtest' | 'pontusxdev',
   nameFragments: string[],
   queryOptions: { enabled: boolean } & UseQueryOptions<
     PontusXAccountsMetadata,
@@ -86,7 +87,7 @@ export const useSearchForPontusXAccountsByName = (
           .map(
             (account): AccountNameSearchRuntimeMatch => ({
               network,
-              layer: 'pontusxtest',
+              layer,
               address: account.address,
             }),
           )
